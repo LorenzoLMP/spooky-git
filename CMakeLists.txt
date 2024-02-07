@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.24)
 
 #if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
 #  set(CMAKE_CUDA_ARCHITECTURES 75)
@@ -9,9 +9,9 @@ if(NOT DEFINED CMAKE_CUDA_COMPILER)
   set(CMAKE_CUDA_COMPILER /opt/nvidia/hpc_sdk/Linux_x86_64/2023/cuda/12.0/bin/nvcc)
 endif()
 
-if(NOT DEFINED CUDAToolkit_ROOT)
-  set(CUDAToolkit_ROOT /opt/nvidia/hpc_sdk/Linux_x86_64/23.1/compilers/)
-endif()
+# if(NOT DEFINED CUDAToolkit_ROOT)
+#   set(CUDAToolkit_ROOT /opt/nvidia/hpc_sdk/Linux_x86_64/23.1/compilers/)
+# endif()
 
 if(NOT DEFINED CMAKE_CUDA_STANDARD)
     set(CMAKE_CUDA_STANDARD 11)

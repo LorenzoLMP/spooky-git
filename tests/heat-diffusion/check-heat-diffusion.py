@@ -41,8 +41,8 @@ def main():
     args = parser.parse_args()
     print("test dir is %s"%(args.input_dir))
 
-    py_savedir = args.input_dir+"/data/"
-    sp_savedir = args.input_dir+"/data/"
+    py_savedir = args.output_dir+"/data/"
+    sp_savedir = args.output_dir+"/data/"
 
     try:
         subprocess.run(
