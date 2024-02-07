@@ -1,0 +1,25 @@
+list(APPEND spooky_src
+${PROJECT_SOURCE_DIR}/src/spooky.cu
+${PROJECT_SOURCE_DIR}/src/fields.cu
+${PROJECT_SOURCE_DIR}/src/fields.hpp
+${PROJECT_SOURCE_DIR}/src/wavevector.cu
+${PROJECT_SOURCE_DIR}/src/hydro_mhd_advance.cu
+${PROJECT_SOURCE_DIR}/src/compute_dfield.cu
+${PROJECT_SOURCE_DIR}/src/compute_dt.cu
+${PROJECT_SOURCE_DIR}/src/hdf5_io.cu
+${PROJECT_SOURCE_DIR}/src/hdf5_io.hpp
+${PROJECT_SOURCE_DIR}/src/cublas_routines.cu
+${PROJECT_SOURCE_DIR}/src/cublas_routines.hpp
+${PROJECT_SOURCE_DIR}/src/cuda_kernels.cu
+${PROJECT_SOURCE_DIR}/src/cuda_kernels.hpp
+${PROJECT_SOURCE_DIR}/src/cuda_kernels_generic.cu
+${PROJECT_SOURCE_DIR}/src/cuda_kernels_generic.hpp
+${PROJECT_SOURCE_DIR}/src/cufft_routines.cu
+${PROJECT_SOURCE_DIR}/src/cufft_routines.hpp
+${PROJECT_SOURCE_DIR}/src/define_types.hpp
+${PROJECT_SOURCE_DIR}/src/initflow.cu
+${PROJECT_SOURCE_DIR}/src/parameters.hpp
+${PROJECT_SOURCE_DIR}/src/read_parameters.cu
+${PROJECT_SOURCE_DIR}/src/tests.cu
+${PROJECT_SOURCE_DIR}/src/tests.hpp
+)

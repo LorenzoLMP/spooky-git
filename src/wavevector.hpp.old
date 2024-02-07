@@ -1,0 +1,23 @@
+#include "define_types.hpp"
+
+
+
+class Wavevector {
+// private:
+//     scalar_type *r_data;
+//     data_type *c_data;
+public:
+    scalar_type *kxt, *ky, *kz;
+    scalar_type *mask;
+    scalar_type kxmax, kymax, kzmax, kmax;
+    void *d_kxt, *d_ky, *d_kz, *d_mask;
+    Wavevector();
+    void init_Wavevector();
+    void print_values();
+    void allocate_and_move_to_gpu();
+    void shear_Wavevector( double t, double dt);
+    void sync_with_host();
+    void clean_gpu();
+    ~Wavevector();
+};
+
