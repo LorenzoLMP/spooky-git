@@ -1,7 +1,28 @@
 # SPOOKY
+                 ____________
+               --            --
+             /                  \\
+            /                    \\
+           /     __               \\
+          |     /  \       __      ||
+          |    |    |     /  \     ||
+                \__/      \__/
+         |             ^            ||
+         |                          ||
+         |                          ||
+        |                            ||
+        |                            ||
+        |                            ||
+         \__         ______       __//
+            \       //     \_____//
+             \_____//
 
 
-## Instructions for compiling with cmake
+## Description
+
+Pseudospectral code to do HD/MHD simulations on a triply-periodic box on the GPU with CUDA. Work in progress.
+
+## Instructions for compiling with cmake (instructions to compile and run on newton cluster to follow)
 
 create build directory if not already present
 
@@ -38,15 +59,12 @@ for a single kernel
 ```
 $ sudo /opt/nvidia/hpc_sdk/Linux_x86_64/23.1/profilers/Nsight_Compute/ncu --export "/home/lorenzolmp/Documents/NVIDIA Nsight Compute/report%i" --force-overwrite --target-processes all --kernel-name axpyDouble --launch-count 1 spooky
 ```
-## Description
-
-Pseudospectral code to do HD/MHD simulations on a triply-periodic box on the GPU with CUDA. Work in progress.
-
-## CUDA APIs involved
-- [cufftExecC2C API](https://docs.nvidia.com/cuda/cufft/index.html#function-cufftexecc2c-cufftexecz2z)
 
 
 <!--
+## CUDA APIs involved
+- [cufftExecC2C API](https://docs.nvidia.com/cuda/cufft/index.html#function-cufftexecc2c-cufftexecz2z)
+
 ## Building (make)
 
 ## Prerequisites

@@ -1,9 +1,10 @@
 
 cmake_minimum_required(VERSION 3.24)
 
-#if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-#  set(CMAKE_CUDA_ARCHITECTURES 75)
-#endif()
+if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES 75)
+endif()
+
 
 if(NOT DEFINED CMAKE_CUDA_COMPILER)
   set(CMAKE_CUDA_COMPILER /opt/nvidia/hpc_sdk/Linux_x86_64/2023/cuda/12.0/bin/nvcc)
@@ -22,21 +23,20 @@ if(NOT DEFINED CMAKE_CUDA_FLAGS)
   set(CMAKE_CUDA_FLAGS "-ccbin /usr/bin/g++-12")
 endif()
 
-# if(NOT DEFINED BUILD_TESTS)
-#   set(BUILD_TESTS "False")
-# endif()
 option(BUILD_TESTS "Build test programs" OFF)
 
 set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CUDA_STANDARD 17)
 
-project(spooky-git VERSION 0.1 LANGUAGES CUDA CXX)
+project(spooky-git VERSION 0.1 LANGUAGES CUDA CXX C)
+#include(CMakePrintHelpers)
 
-
-find_package(CUDAToolkit)
+find_package(CUDAToolkit REQUIRED)
 
 find_package(Python REQUIRED)
+
+find_package(HDF5 REQUIRED)
 
 include(CTest)
 
@@ -51,11 +51,20 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(argparse)
 
-# set (CMAKE_RUNTIME_OUTPUT_DIRECTORY /home/lorenzolmp/Documents/AIP-postdoc/cuda-code/spooky-cmake/)
+find_library(LIBCONFIG "config" REQUIRED)
 
-# set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ../../)
-#set (CMAKE_BINARY_DIR build)
 
+include_directories(
+${PROJECT_SOURCE_DIR}/libs/
+)
+
+include_directories(
+${PROJECT_SOURCE_DIR}/libs/HighFive/include/
+)
+
+include_directories(
+/home/lperrone/mylibconfig/libconfig/include/
+)
 
 
 add_subdirectory(src)

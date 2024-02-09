@@ -1,7 +1,5 @@
 ### these do not need to be modified
-include_directories(${PROJECT_SOURCE_DIR}/libs/)
 include_directories(${PROJECT_SOURCE_DIR}/src/)
-include_directories(${PROJECT_SOURCE_DIR}/libs/HighFive/include/)
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/)
 include(list_source_files.txt)
@@ -14,8 +12,9 @@ ${spooky_src})
 
 
 ### change name
+#target_link_libraries(test_fft-forward-inverse CUDA::cufft CUDA::cublas -lconfig -lhdf5)
+target_link_libraries(test_fft-forward-inverse CUDA::cufft CUDA::cublas CUDA::cudart HDF5::HDF5 ${LIBCONFIG})
 
-target_link_libraries(test_fft-forward-inverse CUDA::cufft CUDA::cublas -lconfig -lhdf5)
 target_link_libraries(test_fft-forward-inverse HighFive)
 target_link_libraries(test_fft-forward-inverse argparse)
 

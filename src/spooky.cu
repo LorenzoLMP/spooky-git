@@ -14,7 +14,7 @@
 // #include "cuda_kernels_generic.hpp"
 #include <argparse/argparse.hpp>
 
-
+void startup();
 
 // Parameters param;
 // int threadsPerBlock = 512;
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     std::string input_dir = program.get<std::string>("--input-dir");
     std::cout << "Input directory: " << input_dir << std::endl;
 
-
+    startup();
 
     double t = 0.0;
     double t_end = 0.0;
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 
     if (program.is_used("--output-dir")){
         std::string output_dir = program.get<std::string>("--output-dir");
-        std::cout << "cfg output directory will be overriden: " << output_dir << std::endl;
+        std::cout << "output directory will be overriden: " << output_dir << std::endl;
         param->output_dir = output_dir;
     }
     // param->read_Parameters();
@@ -162,3 +162,28 @@ int main(int argc, char *argv[]) {
 
     return EXIT_SUCCESS;
 };
+
+
+void startup(){
+	std::cout <<
+R"abcd(
+                 ____________
+               --            --
+             /                  \\
+            /                    \\
+           /     __               \\
+          |     /  \       __      ||
+          |    |    |     /  \     ||
+                \__/      \__/
+         |             ^            ||
+         |                          ||
+         |                          ||
+        |                            ||
+        |                            ||
+        |                            ||
+         \__         ______       __//
+            \       //     \_____//
+             \_____//
+
+)abcd" << std::endl;
+}
