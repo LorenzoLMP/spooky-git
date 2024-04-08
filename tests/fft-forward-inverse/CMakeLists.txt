@@ -13,7 +13,8 @@ ${spooky_src})
 
 ### change name
 #target_link_libraries(test_fft-forward-inverse CUDA::cufft CUDA::cublas -lconfig -lhdf5)
-target_link_libraries(test_fft-forward-inverse CUDA::cufft CUDA::cublas CUDA::cudart HDF5::HDF5 ${LIBCONFIG})
+#target_link_libraries(test_fft-forward-inverse CUDA::cufft CUDA::cublas CUDA::cudart HDF5::HDF5 ${LIBCONFIG})
+target_link_libraries(test_fft-forward-inverse CUDA::cufft CUDA::cublas CUDA::cudart hdf5-lib config)
 
 target_link_libraries(test_fft-forward-inverse HighFive)
 target_link_libraries(test_fft-forward-inverse argparse)
@@ -23,7 +24,7 @@ target_link_libraries(test_fft-forward-inverse argparse)
 ### can modify
 
 add_test(
-  NAME fft-forward-inverse
+  NAME spooky-fft-forward-inverse
   COMMAND test_fft-forward-inverse
 )
 
