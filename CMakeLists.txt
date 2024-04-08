@@ -30,13 +30,76 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CUDA_STANDARD 17)
 
 project(spooky-git VERSION 0.1 LANGUAGES CUDA CXX C)
-#include(CMakePrintHelpers)
-
+include(CMakePrintHelpers)
+include(FetchContent)
 find_package(CUDAToolkit REQUIRED)
 
 find_package(Python REQUIRED)
 
-find_package(HDF5 REQUIRED)
+cmake_print_variables(LIBCONFIG_ROOT)
+find_library(libconfig "config" 
+	HINTS "${LIBCONFIG_ROOT}/lib") 
+cmake_print_variables(libconfig)
+if(NOT libconfig)
+	message("config library not found")
+	FetchContent_Declare(libconfig
+	    GIT_REPOSITORY https://github.com/hyperrealm/libconfig.git
+	)
+	FetchContent_MakeAvailable(libconfig)
+	cmake_print_variables(libconfig_SOURCE_DIR)
+	cmake_print_variables(libconfig_BINARY_DIR)
+	include_directories(${libconfig_SOURCE_DIR} ${libconfig_SOURCE_DIR}/lib)
+else()
+	message("LIBCONFIG: found")
+	include_directories(${LIBCONFIG_ROOT}/include)
+	add_library(config SHARED IMPORTED)
+	set_target_properties(config PROPERTIES IMPORTED_LOCATION ${libconfig})
+endif()
+# find_package(libconfig) 
+# cmake_print_variables(libconfig_FOUND)
+# if(NOT ${libconfig_FOUND})
+# 	message("config library not found")
+# 	FetchContent_Declare(libconfig
+# 	    GIT_REPOSITORY https://github.com/hyperrealm/libconfig.git
+# 	)
+# 	FetchContent_MakeAvailable(libconfig)
+# 	cmake_print_variables(libconfig_SOURCE_DIR)
+# 	cmake_print_variables(libconfig_BINARY_DIR)
+# 	include_directories(${libconfig_SOURCE_DIR} ${libconfig_SOURCE_DIR}/lib)
+# else()
+# 	message("LIBCONFIG: found")
+# 	include_directories(${libconfig_ROOT}/include ${libconfig_ROOT}/lib)
+# endif()
+#cmake_print_variables(${libconfig})
+#get_property(libconfig_SOURCE_DIR CACHE libconfig PROPERTY INCLUDE_DIRECTORIES)
+#cmake_print_variables(libconfig_INCLUDE_DIRS)
+#cmake_print_variables(LIBCONFIG_INCLUDE_DIRS)
+
+
+find_package(HDF5)
+if(NOT ${HDF5_FOUND})
+	FetchContent_Declare(HDF5                              # name of the content
+  	GIT_REPOSITORY https://github.com/HDFGroup/hdf5.git    # the repository
+  	GIT_TAG        hdf5-1_14_3                                 # the tag
+  	)
+	FetchContent_MakeAvailable(HDF5)
+	#FetchContent_SetPopulated(HDF5)
+	# FetchContent_GetProperties(HDF5)
+	# set (HDF5_BUILD_CPP_LIB ON CACHE BOOL "Build C++ support" FORCE)
+	# target_compile_options(HDF5 PUBLIC --enable-cxx)
+	# if(NOT HDF5_POPULATED)
+	# 	FetchContent_Populate(HDF5)
+	# 	set (HDF5_BUILD_CPP_LIB ON CACHE BOOL "Build C++ support" FORCE)
+	# 	add_subdirectory(${HDF5_SOURCE_DIR} ${HDF5_BINARY_DIR})
+	# endif()
+	add_library(hdf5-lib ALIAS hdf5-static)
+	cmake_print_variables(HDF5_SOURCE_DIR)
+	cmake_print_variables(HDF5_BINARY_DIR)
+	include_directories(${HDF5_SOURCE_DIR} ${HDF5_SOURCE_DIR}/src ${HDF5_BINARY_DIR} ${HDF5_BINARY_DIR}/src)
+else()
+	add_library(hdf5-lib ALIAS HDF5::HDF5)
+endif()
+
 
 include(CTest)
 
@@ -44,15 +107,11 @@ include(CheckLanguage)
 check_language(CUDA)
 
 
-include(FetchContent)
 FetchContent_Declare(
     argparse
     GIT_REPOSITORY https://github.com/p-ranav/argparse.git
 )
 FetchContent_MakeAvailable(argparse)
-
-find_library(LIBCONFIG "config" REQUIRED)
-
 
 include_directories(
 ${PROJECT_SOURCE_DIR}/libs/
@@ -62,9 +121,9 @@ include_directories(
 ${PROJECT_SOURCE_DIR}/libs/HighFive/include/
 )
 
-include_directories(
-/home/lperrone/mylibconfig/libconfig/include/
-)
+#include_directories(
+#/home/lperrone/mylibconfig/libconfig/include/
+#)
 
 
 add_subdirectory(src)

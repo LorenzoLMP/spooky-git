@@ -1,4 +1,5 @@
 build/
 data/
+external/
 *.h5
 load_modules

@@ -128,7 +128,7 @@ int test_forward_inverse_transform(){
     float milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
     std::printf("Elapsed time (in s): %.5f \t Approx time per FFT (in ms): %.5f \n",milliseconds/1000, 0.5*milliseconds/Niter);
-    float gflops = 1e-9*5*(ntotal)*log2(ntotal)/(0.5*1e-3*milliseconds/Niter);
+    float gflops = 1e-9*5*(ntotal_complex)*log2(ntotal_complex)/(0.5*1e-3*milliseconds/Niter);
     std::printf("Average GFlop/s (per Fourier transform) %.2f\n",gflops);
     
 
