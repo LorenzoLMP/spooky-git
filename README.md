@@ -22,27 +22,64 @@
 
 Pseudospectral code to do HD/MHD simulations on a triply-periodic box on the GPU with CUDA. Work in progress.
 
-## Instructions for compiling with cmake (instructions to compile and run on newton cluster to follow)
+## Prerequisites 
 
-create build directory if not already present
+The current implementation of SPOOKY requires:
+
+1. a CUDA compiler (tested with cuda-11.8 and cuda-12.0)
+2. CUDA toolkit
+3. cmake (minimum 3.24)
+4. Python 3.+ with numpy, matplotlib, argparse (necessary for some tests)
+5. `libconfig` and `HDF5` libraries (can be installed automatically if not present)
+
+## Installation
+
+```
+git clone git@github.com:LorenzoLMP/spooky-git.git
+cd spooky-git
+```
+
+## Compiling with cmake (instructions to compile and run on newton cluster to follow)
+
+Create build directory if not already present for out-of-source build (recommended)
 
 ```
 $ mkdir build
 $ cd build
-$ cmake ..
+```
+
+A typical build command looks like this:
+
+```
+$ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/path/to/cuda/bin/nvcc -DHDF5_ROOT=/path/to/hdf5/ -DLIBCONFIG_ROOT=/path/to/libconfig/ -DCMAKE_CUDA_ARCHITECTURES="XX" ..
+```
+
+1. The cuda architectures have to be chosen based on the hardware that is available. 75 for NVIDIA Quadro RTX 8000, 80 for A100.
+2. Depending on the version of your default g++ compiler, it might be incompatible with the .... If so, add the option ```-DCMAKE_CUDA_FLAGS="-ccbin /path/to/g++"``` with the path to a compatible version of g++
+3. If you don't want to build the tests, simply do ```-DBUILD_TESTS=OFF``` or omit.
+4. If you don't have libconfig or hdf5 installed, omit the option ```-DLIBCONFIG_ROOT``` or ```-DHDF5_ROOT``` and CMake will attempt to automatically donwload and build the appropriate version of the libraries.
+
+If the configuration step was successful, now simply compile as:
+
+```
 $ make clean && make -j 8
+```
+
+The SPOOKY executable can be run as
+```
 $ ./src/spooky --input-dir /path/to/input/dir
 ```
 
 ## Running tests
 
-If you want to run the tests do instead:
+If you want to run the tests (```-DBUILD_TESTS=ON```) do instead:
+
 ```
-$ conda activate astro-vtk (for python test scripts)
-$ cmake -DBUILD_TESTS=ON ..
-$ make clean && make -j 8
-$ ctest
+$ ctest -V -R "spooky"
 ```
+
+which will run all the spooky tests and show the output.
+
 ## Steps for profiling
 ```
 $ nsys start --stop-on-exit=false
