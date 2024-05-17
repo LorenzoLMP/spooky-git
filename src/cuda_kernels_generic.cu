@@ -40,6 +40,22 @@ __global__ void RRvectorDivide(const scalar_type *A, const scalar_type *B, scala
     }
 }
 
+__global__ void ComplexNorm(const cufftDoubleComplex *A, scalar_type *B, size_t N) {
+    size_t i = i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+
+    if (i < N) {
+        B[i] = A[i].x * A[i].x + A[i].y * A[i].y;
+    }
+}
+
+__global__ void DoubleAbsolute(const scalar_type *A, scalar_type *B, size_t N) {
+    size_t i = i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+
+    if (i < N) {
+        B[i] = fabs(A[i]);
+    }
+}
+
 // __global__ void RCvectorMultiply(const scalar_type *A, const cufftDoubleComplex *X, const cufftDoubleComplex *Z, scalar_type a, size_t N){
 //     size_t i = i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
 //

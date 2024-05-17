@@ -74,6 +74,8 @@ public:
     void write_data_file( int num_snap, Parameters *param);
     void clean_gpu();
     void RungeKutta3( double t, double t_end, Parameters *param );
+    void ComputeDivergence(Parameters *param);
+    void CleanFieldDivergence( );
     ~Fields();
 };
 

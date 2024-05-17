@@ -30,7 +30,7 @@ __global__ void nablaOpScalar( const scalar_type *d_all_kvec, const cufftDoubleC
 __global__ void nablaOpVector( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, scalar_type a, size_t N, int flag) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // int KX = 0; int KY = 1; int KZ = 2;
-    // assuming that X and Z are pointing at the first element of the 3D vector, then this kernel also works for magnetic field
+    // assuming that X and Z are pointing to the first element of the 3D vector, then this kernel also works for magnetic field
 
     if ( flag == 0 ){ // overwrite i-th element
         if (i < N) {
@@ -65,6 +65,45 @@ __global__ void nablaOpVector( const scalar_type *d_all_kvec, const cufftDoubleC
 
 }
 
+__global__ void Divergence( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, size_t N) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // int KX = 0; int KY = 1; int KZ = 2;
+    // X points to the first element of the 3D vector, Z is the scalar (complex) output 
+    // This kernel works for velocity and magnetic field
+
+    if (i < N) {
+        // vfeld/bfield
+        Z[i].x = - (d_all_kvec[KX * N + i] * X[i].y + d_all_kvec[KY * N + i] * X[N + i].y + d_all_kvec[KZ * N + i] * X[2 * N + i].y ) ;
+        Z[i].y =   (d_all_kvec[KX * N + i] * X[i].x + d_all_kvec[KY * N + i] * X[N + i].x + d_all_kvec[KZ * N + i] * X[2 * N + i].x );
+    }
+}
+
+__global__ void CleanDivergence( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, size_t N) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // int KX = 0; int KY = 1; int KZ = 2;
+    // X points to the first element of the 3D vector, Z is the scalar (complex) output 
+    // This kernel works for velocity and magnetic field
+    cufftDoubleComplex q0;
+    scalar_type ik2 = 0.0;
+    if (i < N) {
+        // vfeld/bfield
+        q0.x = - (d_all_kvec[KX * N + i] * X[i].y + d_all_kvec[KY * N + i] * X[N + i].y + d_all_kvec[KZ * N + i] * X[2 * N + i].y );
+        q0.y = (d_all_kvec[KX * N + i] * X[i].x + d_all_kvec[KY * N + i] * X[N + i].x + d_all_kvec[KZ * N + i] * X[2 * N + i].x );
+
+        if (i > 0) {
+            ik2 = 1.0 / (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i]);
+        }
+
+        Z[i].x = X[i].x -  d_all_kvec[KX * N + i] * q0.y * ik2;
+        Z[i].y = X[i].y +  d_all_kvec[KX * N + i] * q0.x * ik2;
+
+        Z[N + i].x = X[N + i].x -  d_all_kvec[KY * N + i] * q0.y * ik2;
+        Z[N + i].y = X[N + i].y +  d_all_kvec[KY * N + i] * q0.x * ik2;
+
+        Z[2 * N + i].x = X[2 * N + i].x -  d_all_kvec[KZ * N + i] * q0.y * ik2;
+        Z[2 * N + i].y = X[2 * N + i].y +  d_all_kvec[KZ * N + i] * q0.x * ik2;
+    }
+}
 
 #ifdef INCOMPRESSIBLE
 // compute the elements of the traceless symmetric matrix B_ij = u_i u_j - delta_ij Tr (u_i u_j) / 3. It has only 5 independent components B_xx, B_xy, B_xz, Byy, B_yz. (B_zz = - B_xx - B_yy)

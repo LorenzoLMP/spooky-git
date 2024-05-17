@@ -148,7 +148,7 @@ void Fields::compute_dt( Parameters *param  ) {
     maxbz=0.0;
 
     int idx_max_bx, idx_max_by, idx_max_bz;
-    cublasStatus_t stat;
+    // cublasStatus_t stat;
 
     // here we need to do a c2r transform first when in production
 
@@ -171,11 +171,16 @@ void Fields::compute_dt( Parameters *param  ) {
     maxby=fabs(maxby);
     maxbz=fabs(maxbz);
 
-    std::printf("maxbx: %.5f \n",maxfx);
-    std::printf("maxby: %.5f \n",maxfy);
-    std::printf("maxbz: %.5f \n",maxfz);
+    // std::printf("maxbx: %.5f \n",maxfx);
+    // std::printf("maxby: %.5f \n",maxfy);
+    // std::printf("maxbz: %.5f \n",maxfz);
+
 
     gamma_b = ( wavevector.kxmax ) * maxbx + wavevector.kymax * maxby + wavevector.kzmax * maxbz;
+
+#ifdef DEBUG
+    if (current_step % 100 == 0 ) std::printf("maxbx: %.4e \t maxby: %.4e \t maxbz: %.4e \t gamma_b: %.4e \n",maxbx,maxby,maxbz,gamma_b);
+#endif
 
 #ifdef WITH_EXPLICIT_DISSIPATION
     gamma_b += ((wavevector.kxmax )*( wavevector.kxmax )+wavevector.kymax*wavevector.kymax+wavevector.kzmax*wavevector.kzmax) * param->nu_m;	// CFL condition on resistivity

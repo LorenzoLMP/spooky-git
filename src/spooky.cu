@@ -123,6 +123,9 @@ int main(int argc, char *argv[]) {
         t = t + fields.current_dt;
         fields.current_time = t;
         if( (t-t_lastsnap)>=param->toutput_flow) {
+            fields.ComputeDivergence(param);
+            fields.CleanFieldDivergence();
+            fields.ComputeDivergence(param);
             fields.copy_back_to_host();
             fields.write_data_file(num_save+1, param);
             std::printf("Saving at step n. %d \n",fields.current_step);
