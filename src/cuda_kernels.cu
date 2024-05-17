@@ -65,43 +65,52 @@ __global__ void nablaOpVector( const scalar_type *d_all_kvec, const cufftDoubleC
 
 }
 
-__global__ void Divergence( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, size_t N) {
+__global__ void Divergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // int KX = 0; int KY = 1; int KZ = 2;
     // X points to the first element of the 3D vector, Z is the scalar (complex) output 
     // This kernel works for velocity and magnetic field
-
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
     if (i < N) {
-        // vfeld/bfield
-        Z[i].x = - (d_all_kvec[KX * N + i] * X[i].y + d_all_kvec[KY * N + i] * X[N + i].y + d_all_kvec[KZ * N + i] * X[2 * N + i].y ) ;
-        Z[i].y =   (d_all_kvec[KX * N + i] * X[i].x + d_all_kvec[KY * N + i] * X[N + i].x + d_all_kvec[KZ * N + i] * X[2 * N + i].x );
+        // divergence of vfeld/bfield
+        Z[i] = imI *  (d_all_kvec[KX * N + i] * X[i] + d_all_kvec[KY * N + i] * X[N + i] + d_all_kvec[KZ * N + i] * X[2 * N + i] );
+        // Z[i].x = - (d_all_kvec[KX * N + i] * X[i].y + d_all_kvec[KY * N + i] * X[N + i].y + d_all_kvec[KZ * N + i] * X[2 * N + i].y ) ;
+        // Z[i].y =   (d_all_kvec[KX * N + i] * X[i].x + d_all_kvec[KY * N + i] * X[N + i].x + d_all_kvec[KZ * N + i] * X[2 * N + i].x );
     }
 }
 
-__global__ void CleanDivergence( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, size_t N) {
+__global__ void CleanDivergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // int KX = 0; int KY = 1; int KZ = 2;
     // X points to the first element of the 3D vector, Z is the scalar (complex) output 
     // This kernel works for velocity and magnetic field
-    cufftDoubleComplex q0;
+    data_type q0;
     scalar_type ik2 = 0.0;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
     if (i < N) {
-        // vfeld/bfield
-        q0.x = - (d_all_kvec[KX * N + i] * X[i].y + d_all_kvec[KY * N + i] * X[N + i].y + d_all_kvec[KZ * N + i] * X[2 * N + i].y );
-        q0.y = (d_all_kvec[KX * N + i] * X[i].x + d_all_kvec[KY * N + i] * X[N + i].x + d_all_kvec[KZ * N + i] * X[2 * N + i].x );
+        // divergence of vfeld/bfield
+        q0 = imI *  (d_all_kvec[KX * N + i] * X[i] + d_all_kvec[KY * N + i] * X[N + i] + d_all_kvec[KZ * N + i] * X[2 * N + i] );
+        // q0.x = - (d_all_kvec[KX * N + i] * X[i].y + d_all_kvec[KY * N + i] * X[N + i].y + d_all_kvec[KZ * N + i] * X[2 * N + i].y );
+        // q0.y = (d_all_kvec[KX * N + i] * X[i].x + d_all_kvec[KY * N + i] * X[N + i].x + d_all_kvec[KZ * N + i] * X[2 * N + i].x );
 
         if (i > 0) {
             ik2 = 1.0 / (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i]);
         }
 
-        Z[i].x = X[i].x -  d_all_kvec[KX * N + i] * q0.y * ik2;
-        Z[i].y = X[i].y +  d_all_kvec[KX * N + i] * q0.x * ik2;
+        Z[        i] = X[        i] + imI * d_all_kvec[KX * N + i] * q0 * ik2;
+        Z[    N + i] = X[    N + i] + imI * d_all_kvec[KY * N + i] * q0 * ik2;
+        Z[2 * N + i] = X[2 * N + i] + imI * d_all_kvec[KZ * N + i] * q0 * ik2;
+        
+        // Z[i].x = X[i].x -  d_all_kvec[KX * N + i] * q0.y * ik2;
+        // Z[i].y = X[i].y +  d_all_kvec[KX * N + i] * q0.x * ik2;
 
-        Z[N + i].x = X[N + i].x -  d_all_kvec[KY * N + i] * q0.y * ik2;
-        Z[N + i].y = X[N + i].y +  d_all_kvec[KY * N + i] * q0.x * ik2;
+        // Z[N + i].x = X[N + i].x -  d_all_kvec[KY * N + i] * q0.y * ik2;
+        // Z[N + i].y = X[N + i].y +  d_all_kvec[KY * N + i] * q0.x * ik2;
 
-        Z[2 * N + i].x = X[2 * N + i].x -  d_all_kvec[KZ * N + i] * q0.y * ik2;
-        Z[2 * N + i].y = X[2 * N + i].y +  d_all_kvec[KZ * N + i] * q0.x * ik2;
+        // Z[2 * N + i].x = X[2 * N + i].x -  d_all_kvec[KZ * N + i] * q0.y * ik2;
+        // Z[2 * N + i].y = X[2 * N + i].y +  d_all_kvec[KZ * N + i] * q0.x * ik2;
     }
 }
 

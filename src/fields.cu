@@ -410,7 +410,7 @@ void Fields::ComputeDivergence( Parameters *param ){
     #ifdef INCOMPRESSIBLE
         // compute mean divergence for velocity field    
         blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-        Divergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_all_fields + ntotal_complex * VX, (cufftDoubleComplex *)  d_tmparray[0], (size_t) ntotal_complex);
+        Divergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields + ntotal_complex * VX, (data_type *)  d_tmparray[0], (size_t) ntotal_complex);
         // transform back to real space
         c2r_fft(d_tmparray[0], d_tmparray_r[0]);
         // compute absolute value of real vector (actually Dasum already does it...)
@@ -424,7 +424,7 @@ void Fields::ComputeDivergence( Parameters *param ){
          #ifdef MHD
             // compute mean divergence for magnetic field    
             blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-            Divergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_all_fields + ntotal_complex * BX, (cufftDoubleComplex *)  d_tmparray[0], (size_t) ntotal_complex);
+            Divergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields + ntotal_complex * BX, (data_type *)  d_tmparray[0], (size_t) ntotal_complex);
             // transform back to real space 
             c2r_fft(d_tmparray[0], d_tmparray_r[0]);
             // compute absolute value of real vector (actually Dasum already does it...)
@@ -446,12 +446,14 @@ void Fields::CleanFieldDivergence( ){
     #ifdef INCOMPRESSIBLE
         // compute mean divergence for velocity field    
         blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-        CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_all_fields + ntotal_complex * VX, (cufftDoubleComplex *) d_all_fields + ntotal_complex * VX, (size_t) ntotal_complex);
+        // CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_all_fields + ntotal_complex * VX, (cufftDoubleComplex *) d_all_fields + ntotal_complex * VX, (size_t) ntotal_complex);
+        CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields + ntotal_complex * VX, (data_type *) d_all_fields + ntotal_complex * VX, (size_t) ntotal_complex);
 
          #ifdef MHD
             // compute mean divergence for magnetic field    
             blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-            CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_all_fields + ntotal_complex * BX, (cufftDoubleComplex *) d_all_fields + ntotal_complex * BX, (size_t) ntotal_complex);
+            // CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_all_fields + ntotal_complex * BX, (cufftDoubleComplex *) d_all_fields + ntotal_complex * BX, (size_t) ntotal_complex);
+            CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields + ntotal_complex * BX, (data_type *) d_all_fields + ntotal_complex * BX, (size_t) ntotal_complex);
             
          #endif
     #endif
