@@ -37,7 +37,7 @@ void Fields::compute_dfield( int stage_step, Parameters *param ) {
     // laplacianScalar((scalar_type **)wavevector.d_kvec, (cufftDoubleComplex *) d_farray[TH], (cufftDoubleComplex *) d_dfarray[TH], param->nu_th, ASS);
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     // nablaOp<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_kvec[KX],  (scalar_type *) wavevector.d_kvec[KY], (scalar_type *) wavevector.d_kvec[KZ], (cufftDoubleComplex *) d_farray[TH], (cufftDoubleComplex *) d_dfarray[TH], param->nu_th, (size_t) ntotal_complex, ASS);
-    nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_farray[TH], (cufftDoubleComplex *) d_dfarray[TH], param->nu_th, (size_t) ntotal_complex, ASS);
+    nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_farray[TH], (data_type *) d_dfarray[TH], param->nu_th, (size_t) ntotal_complex, ASS);
 
 #endif
 
@@ -117,7 +117,7 @@ void Fields::compute_dfield( int stage_step, Parameters *param ) {
     // compute derivative of traceless shear matrix and assign to dfields
     // this kernel works also if MHD
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    NonLinHydroAdv<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (cufftDoubleComplex *)d_all_tmparray + ntotal_complex * num_fields, (cufftDoubleComplex *) d_all_dfields, (scalar_type *)wavevector.d_mask, ntotal_complex);
+    NonLinHydroAdv<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *)d_all_tmparray + ntotal_complex * num_fields, (data_type *) d_all_dfields, (scalar_type *)wavevector.d_mask, ntotal_complex);
 
 
 #ifdef MHD
@@ -135,11 +135,11 @@ void Fields::compute_dfield( int stage_step, Parameters *param ) {
 
     // compute derivative of antisymmetric magnetic shear matrix and assign to dfields
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    MagneticShear<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (cufftDoubleComplex *)d_all_tmparray + ntotal_complex * num_fields, (cufftDoubleComplex *) d_all_dfields, (scalar_type *)wavevector.d_mask, ntotal_complex);
+    MagneticShear<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *)d_all_tmparray + ntotal_complex * num_fields, (data_type *) d_all_dfields, (scalar_type *)wavevector.d_mask, ntotal_complex);
 
     // for explicit treatment of diffusion terms
     // point d_all_fields at BX
-    nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_all_fields + ntotal_complex * BX, (cufftDoubleComplex *) d_all_dfields + ntotal_complex * BX, param->nu_m, (size_t) ntotal_complex, ADD);
+    nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields + ntotal_complex * BX, (data_type *) d_all_dfields + ntotal_complex * BX, param->nu_m, (size_t) ntotal_complex, ADD);
 
 #endif
 
@@ -198,7 +198,7 @@ void Fields::compute_dfield( int stage_step, Parameters *param ) {
 
     // compute derivative of energy flux vector and assign u nabla theta to the dfield for theta
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    NonLinBoussinesqAdv<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (cufftDoubleComplex *)d_all_tmparray + ntotal_complex * num_fields, (cufftDoubleComplex *) d_all_dfields, (scalar_type *)wavevector.d_mask, ntotal_complex);
+    NonLinBoussinesqAdv<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *)d_all_tmparray + ntotal_complex * num_fields, (data_type *) d_all_dfields, (scalar_type *)wavevector.d_mask, ntotal_complex);
 
 
 
@@ -208,24 +208,24 @@ void Fields::compute_dfield( int stage_step, Parameters *param ) {
     // this is for normalization where theta is in units of g [L/T^2]
     // other normalizations possible
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( (cufftDoubleComplex *)d_all_fields, (cufftDoubleComplex *) d_all_dfields, param->N2, ntotal_complex, STRAT_DIR);
+    BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)d_all_fields, (data_type *) d_all_dfields, param->N2, ntotal_complex, STRAT_DIR);
 #endif
 
     //  for explicit treatment of energy diffusion term
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_farray[TH], (cufftDoubleComplex *) d_dfarray[TH], param->nu_th, (size_t) ntotal_complex, ADD);
+    nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_farray[TH], (data_type *) d_dfarray[TH], param->nu_th, (size_t) ntotal_complex, ADD);
 
 
 #endif
 
     // compute pseudo-pressure and subtract grad p_tilde from dfields
-    GradPseudoPressure<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (cufftDoubleComplex *) d_all_dfields, ntotal_complex);
+    GradPseudoPressure<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *) d_all_dfields, ntotal_complex);
 
 
 
     // for explicit treatment of diffusion terms
     // with incompressible d_all_fields always points at VX
-    nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_all_fields, (cufftDoubleComplex *) d_all_dfields, param->nu, (size_t) ntotal_complex, ADD);
+    nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields, (data_type *) d_all_dfields, param->nu, (size_t) ntotal_complex, ADD);
 
     // scalar_type *host_tmp;
     // host_tmp = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * 2 * ntotal_complex * num_fields );

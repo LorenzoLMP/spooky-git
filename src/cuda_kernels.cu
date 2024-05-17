@@ -7,59 +7,54 @@
 #include "common.hpp"
 
 
-__global__ void nablaOpScalar( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, scalar_type a, size_t N, int flag) {
+__global__ void nablaOpScalar( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, scalar_type a, size_t N, int flag) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // int KX = 0; int KY = 1; int KZ = 2;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
 
     if ( flag == 0 ){ // overwrite i-th element
         if (i < N) {
-            Z[i].x = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i].x;
-            Z[i].y = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i].y;
+            Z[i] = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i];
         }
     }
     else if ( flag == 1) { // accumulate to i-th element
         if (i < N) {
-            Z[i].x += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i].x;
-            Z[i].y += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i].y;
+            Z[i] += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i];
         }
     }
 
 }
 
 
-__global__ void nablaOpVector( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, scalar_type a, size_t N, int flag) {
+__global__ void nablaOpVector( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, scalar_type a, size_t N, int flag) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // int KX = 0; int KY = 1; int KZ = 2;
     // assuming that X and Z are pointing to the first element of the 3D vector, then this kernel also works for magnetic field
-
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
     if ( flag == 0 ){ // overwrite i-th element
         if (i < N) {
             // VX/BX component
-            Z[i].x = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i].x;
-            Z[i].y = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i].y;
+            Z[i] = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i];
 
             // VY/BY component
-            Z[N + i].x = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[N + i].x;
-            Z[N + i].y = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[N + i].y;
+            Z[N + i] = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[N + i];
 
             // VZ/BZ component
-            Z[2 * N + i].x = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[2 * N + i].x;
-            Z[2 * N + i].y = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[2 * N + i].y;
+            Z[2 * N + i] = - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[2 * N + i];
         }
     }
     else if ( flag == 1) { // accumulate to i-th element
         if (i < N) {
             // VX/BX component
-            Z[i].x += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i].x;
-            Z[i].y += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i].y;
+            Z[i] += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[i];
 
             // VY/BY component
-            Z[N + i].x += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[N + i].x;
-            Z[N + i].y += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[N + i].y;
+            Z[N + i] += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[N + i];
 
             // VZ/BZ component
-            Z[2 * N + i].x += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[2 * N + i].x;
-            Z[2 * N + i].y += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[2 * N + i].y;
+            Z[2 * N + i] += - a * (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * X[2 * N + i];
         }
     }
 
@@ -120,6 +115,7 @@ __global__ void CleanDivergence( const scalar_type *d_all_kvec, const data_type 
 __global__ void TracelessShearMatrix( const scalar_type *d_all_fields, scalar_type *d_all_tmparray, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // int VX = 0; int VY = 1; int VZ = 2;
+
     if (i < N) {
 
         // 0: B_xx = u_x^2 - u^2/3
@@ -138,26 +134,31 @@ __global__ void TracelessShearMatrix( const scalar_type *d_all_fields, scalar_ty
 
 
 // compute derivative of traceless shear matrix and assign to dfields
-__global__ void NonLinHydroAdv(const scalar_type *d_all_kvec, const cufftDoubleComplex *ShearMatrix, cufftDoubleComplex *d_all_dfields, const scalar_type *d_mask, size_t N){
+__global__ void NonLinHydroAdv(const scalar_type *d_all_kvec, const data_type *ShearMatrix, data_type *d_all_dfields, const scalar_type *d_mask, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // int KX = 0; int KY = 1; int KZ = 2;
     // int VX = 0; int VY = 1; int VZ = 2;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
     if (i < N) {
         // delta u_x = - ( I k_x B_xx + I k_y B_xy + I k_z B_xz)
-        // operations divided in real and complex part
-        d_all_dfields[VX * N + i].x =   d_mask[i] * (  d_all_kvec[KX * N + i] * ShearMatrix[i].y + d_all_kvec[KY * N + i] * ShearMatrix[N + i].y + d_all_kvec[KZ * N + i] * ShearMatrix[2 * N + i].y );
-        d_all_dfields[VX * N + i].y =   d_mask[i] * (- d_all_kvec[KX * N + i] * ShearMatrix[i].x - d_all_kvec[KY * N + i] * ShearMatrix[N + i].x - d_all_kvec[KZ * N + i] * ShearMatrix[2 * N + i].x );
+        d_all_dfields[VX * N + i] = - imI * d_mask[i] * (  d_all_kvec[KX * N + i] * ShearMatrix[i] + d_all_kvec[KY * N + i] * ShearMatrix[N + i] + d_all_kvec[KZ * N + i] * ShearMatrix[2 * N + i] );
+
+        // d_all_dfields[VX * N + i].x =   d_mask[i] * (  d_all_kvec[KX * N + i] * ShearMatrix[i].y + d_all_kvec[KY * N + i] * ShearMatrix[N + i].y + d_all_kvec[KZ * N + i] * ShearMatrix[2 * N + i].y );
+        // d_all_dfields[VX * N + i].y =   d_mask[i] * (- d_all_kvec[KX * N + i] * ShearMatrix[i].x - d_all_kvec[KY * N + i] * ShearMatrix[N + i].x - d_all_kvec[KZ * N + i] * ShearMatrix[2 * N + i].x );
 
         // delta u_y = - ( I k_x B_yx + I k_y B_yy + I k_z B_yz)
-        // operations divided in real and complex part
-        d_all_dfields[VY * N + i].x =   d_mask[i] * (  d_all_kvec[KX * N + i] * ShearMatrix[N + i].y + d_all_kvec[KY * N + i] * ShearMatrix[3 * N + i].y + d_all_kvec[KZ * N + i] * ShearMatrix[4 * N + i].y );
-        d_all_dfields[VY * N + i].y =   d_mask[i] * (- d_all_kvec[KX * N + i] * ShearMatrix[N + i].x - d_all_kvec[KY * N + i] * ShearMatrix[3 * N + i].x - d_all_kvec[KZ * N + i] * ShearMatrix[4 * N + i].x );
+        d_all_dfields[VY * N + i] = - imI * d_mask[i] * (  d_all_kvec[KX * N + i] * ShearMatrix[N + i] + d_all_kvec[KY * N + i] * ShearMatrix[3 * N + i] + d_all_kvec[KZ * N + i] * ShearMatrix[4 * N + i] );
+
+        // d_all_dfields[VY * N + i].x =   d_mask[i] * (  d_all_kvec[KX * N + i] * ShearMatrix[N + i].y + d_all_kvec[KY * N + i] * ShearMatrix[3 * N + i].y + d_all_kvec[KZ * N + i] * ShearMatrix[4 * N + i].y );
+        // d_all_dfields[VY * N + i].y =   d_mask[i] * (- d_all_kvec[KX * N + i] * ShearMatrix[N + i].x - d_all_kvec[KY * N + i] * ShearMatrix[3 * N + i].x - d_all_kvec[KZ * N + i] * ShearMatrix[4 * N + i].x );
 
         // delta u_z = - ( I k_x B_zx + I k_y B_zy + I k_z B_zz)
         // note that B_zz = - B_xx - B_yy
-        // operations divided in real and complex part
-        d_all_dfields[VZ * N + i].x =   d_mask[i] * (  d_all_kvec[KX * N + i] * ShearMatrix[2 * N + i].y + d_all_kvec[KY * N + i] * ShearMatrix[4 * N + i].y - d_all_kvec[KZ * N + i] * ( ShearMatrix[i].y + ShearMatrix[3 * N + i].y ) );
-        d_all_dfields[VZ * N + i].y =   d_mask[i] * (- d_all_kvec[KX * N + i] * ShearMatrix[2 * N + i].x - d_all_kvec[KY * N + i] * ShearMatrix[4 * N + i].x + d_all_kvec[KZ * N + i] * ( ShearMatrix[i].x + ShearMatrix[3 * N + i].x ) );
+        d_all_dfields[VZ * N + i] =  - imI * d_mask[i] * (  d_all_kvec[KX * N + i] * ShearMatrix[2 * N + i] + d_all_kvec[KY * N + i] * ShearMatrix[4 * N + i] - d_all_kvec[KZ * N + i] * ( ShearMatrix[i] + ShearMatrix[3 * N + i] ) );
+
+        // d_all_dfields[VZ * N + i].x =   d_mask[i] * (  d_all_kvec[KX * N + i] * ShearMatrix[2 * N + i].y + d_all_kvec[KY * N + i] * ShearMatrix[4 * N + i].y - d_all_kvec[KZ * N + i] * ( ShearMatrix[i].y + ShearMatrix[3 * N + i].y ) );
+        // d_all_dfields[VZ * N + i].y =   d_mask[i] * (- d_all_kvec[KX * N + i] * ShearMatrix[2 * N + i].x - d_all_kvec[KY * N + i] * ShearMatrix[4 * N + i].x + d_all_kvec[KZ * N + i] * ( ShearMatrix[i].x + ShearMatrix[3 * N + i].x ) );
     }
 
 }
@@ -165,17 +166,20 @@ __global__ void NonLinHydroAdv(const scalar_type *d_all_kvec, const cufftDoubleC
 
 
 // compute pseudo-pressure and subtract grad p_tilde from dfields
-__global__ void GradPseudoPressure(const scalar_type *d_all_kvec, cufftDoubleComplex *d_all_dfields, size_t N){
+__global__ void GradPseudoPressure(const scalar_type *d_all_kvec, data_type *d_all_dfields, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    cufftDoubleComplex divDeltaField;
+    data_type divDeltaField;
     scalar_type ik2 = 1.0;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
     // int KX = 0; int KY = 1; int KZ = 2;
     // int VX = 0; int VY = 1; int VZ = 2;
     if (i < N) {
-        // real part
-        divDeltaField.x = - d_all_kvec[KX * N + i] * d_all_dfields[VX * N + i].y - d_all_kvec[KY * N + i] * d_all_dfields[VY * N + i].y - d_all_kvec[KZ * N + i] * d_all_dfields[VZ * N + i].y ;
-        // complex part
-        divDeltaField.y =   d_all_kvec[KX * N + i] * d_all_dfields[VX * N + i].x + d_all_kvec[KY * N + i] * d_all_dfields[VY * N + i].x + d_all_kvec[KZ * N + i] * d_all_dfields[VZ * N + i].x ;
+        divDeltaField = imI * ( d_all_kvec[KX * N + i] * d_all_dfields[VX * N + i] + d_all_kvec[KY * N + i] * d_all_dfields[VY * N + i] + d_all_kvec[KZ * N + i] * d_all_dfields[VZ * N + i] ) ;
+        // // real part
+        // divDeltaField.x = - d_all_kvec[KX * N + i] * d_all_dfields[VX * N + i].y - d_all_kvec[KY * N + i] * d_all_dfields[VY * N + i].y - d_all_kvec[KZ * N + i] * d_all_dfields[VZ * N + i].y ;
+        // // complex part
+        // divDeltaField.y =   d_all_kvec[KX * N + i] * d_all_dfields[VX * N + i].x + d_all_kvec[KY * N + i] * d_all_dfields[VY * N + i].x + d_all_kvec[KZ * N + i] * d_all_dfields[VZ * N + i].x ;
 
         // compute 1/k2
         if (i > 0){
@@ -184,16 +188,19 @@ __global__ void GradPseudoPressure(const scalar_type *d_all_kvec, cufftDoubleCom
 
         // add -grad p
         // vx component
-        d_all_dfields[VX * N + i].x += - d_all_kvec[KX * N + i] * ik2 * divDeltaField.y;
-        d_all_dfields[VX * N + i].y +=   d_all_kvec[KX * N + i] * ik2 * divDeltaField.x;
+        d_all_dfields[VX * N + i] += imI * d_all_kvec[KX * N + i] * ik2 * divDeltaField;
+        // d_all_dfields[VX * N + i].x += - d_all_kvec[KX * N + i] * ik2 * divDeltaField.y;
+        // d_all_dfields[VX * N + i].y +=   d_all_kvec[KX * N + i] * ik2 * divDeltaField.x;
 
         // vy component
-        d_all_dfields[VY * N + i].x += - d_all_kvec[KY * N + i] * ik2 * divDeltaField.y;
-        d_all_dfields[VY * N + i].y +=   d_all_kvec[KY * N + i] * ik2 * divDeltaField.x;
+        d_all_dfields[VY * N + i] += imI * d_all_kvec[KY * N + i] * ik2 * divDeltaField;
+        // d_all_dfields[VY * N + i].x += - d_all_kvec[KY * N + i] * ik2 * divDeltaField.y;
+        // d_all_dfields[VY * N + i].y +=   d_all_kvec[KY * N + i] * ik2 * divDeltaField.x;
 
         // vz component
-        d_all_dfields[VZ * N + i].x += - d_all_kvec[KZ * N + i] * ik2 * divDeltaField.y;
-        d_all_dfields[VZ * N + i].y +=   d_all_kvec[KZ * N + i] * ik2 * divDeltaField.x;
+        d_all_dfields[VZ * N + i] += imI * d_all_kvec[KZ * N + i] * ik2 * divDeltaField;
+        // d_all_dfields[VZ * N + i].x += - d_all_kvec[KZ * N + i] * ik2 * divDeltaField.y;
+        // d_all_dfields[VZ * N + i].y +=   d_all_kvec[KZ * N + i] * ik2 * divDeltaField.x;
 
     }
 
@@ -248,25 +255,30 @@ __global__ void MagneticEmf( const scalar_type *d_all_fields, scalar_type *d_all
 
 // compute derivatives of emf and assign to magnetic fields
 // curl of emf is in the first 3 temp_arrays (after those reserved for the fields, the memory block points already at the right location)
-__global__ void MagneticShear(const scalar_type *d_all_kvec, const cufftDoubleComplex *MagEmf, cufftDoubleComplex *d_all_dfields, const scalar_type *d_mask, size_t N){
+__global__ void MagneticShear(const scalar_type *d_all_kvec, const data_type *MagEmf, data_type *d_all_dfields, const scalar_type *d_mask, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // int KX = 0; int KY = 1; int KZ = 2;
     // int VX = 0; int VY = 1; int VZ = 2;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
     if (i < N) {
         // delta B_x =  ( I k_y emf_z - I k_z emf_y )
         // operations divided in real and complex part
-        d_all_dfields[BX * N + i].x =  - d_mask[i] * ( d_all_kvec[KY * N + i] * MagEmf[2 * N + i].y - d_all_kvec[KZ * N + i] * MagEmf[    N + i].y );
-        d_all_dfields[BX * N + i].y =    d_mask[i] * ( d_all_kvec[KY * N + i] * MagEmf[2 * N + i].x - d_all_kvec[KZ * N + i] * MagEmf[    N + i].x );
+        d_all_dfields[BX * N + i] =  imI * d_mask[i] * ( d_all_kvec[KY * N + i] * MagEmf[2 * N + i] - d_all_kvec[KZ * N + i] * MagEmf[    N + i] );
+        // d_all_dfields[BX * N + i].x =  - d_mask[i] * ( d_all_kvec[KY * N + i] * MagEmf[2 * N + i].y - d_all_kvec[KZ * N + i] * MagEmf[    N + i].y );
+        // d_all_dfields[BX * N + i].y =    d_mask[i] * ( d_all_kvec[KY * N + i] * MagEmf[2 * N + i].x - d_all_kvec[KZ * N + i] * MagEmf[    N + i].x );
 
         // delta B_y =  ( I k_z emf_x - I k_x emf_z )
         // operations divided in real and complex part
-        d_all_dfields[BY * N + i].x =  - d_mask[i] * ( d_all_kvec[KZ * N + i] * MagEmf[        i].y - d_all_kvec[KX * N + i] * MagEmf[2 * N + i].y );
-        d_all_dfields[BY * N + i].y =    d_mask[i] * ( d_all_kvec[KZ * N + i] * MagEmf[        i].x - d_all_kvec[KX * N + i] * MagEmf[2 * N + i].x );
+        d_all_dfields[BY * N + i] =  imI * d_mask[i] * ( d_all_kvec[KZ * N + i] * MagEmf[        i] - d_all_kvec[KX * N + i] * MagEmf[2 * N + i] );
+        // d_all_dfields[BY * N + i].x =  - d_mask[i] * ( d_all_kvec[KZ * N + i] * MagEmf[        i].y - d_all_kvec[KX * N + i] * MagEmf[2 * N + i].y );
+        // d_all_dfields[BY * N + i].y =    d_mask[i] * ( d_all_kvec[KZ * N + i] * MagEmf[        i].x - d_all_kvec[KX * N + i] * MagEmf[2 * N + i].x );
 
         // delta B_z =  ( I k_x emf_y - I k_y emf_x )
         // operations divided in real and complex part
-        d_all_dfields[BZ * N + i].x =  - d_mask[i] * ( d_all_kvec[KX * N + i] * MagEmf[1 * N + i].y - d_all_kvec[KY * N + i] * MagEmf[        i].y );
-        d_all_dfields[BZ * N + i].y =    d_mask[i] * ( d_all_kvec[KX * N + i] * MagEmf[1 * N + i].x - d_all_kvec[KY * N + i] * MagEmf[        i].x  );
+        d_all_dfields[BZ * N + i] =  imI * d_mask[i] * ( d_all_kvec[KX * N + i] * MagEmf[1 * N + i] - d_all_kvec[KY * N + i] * MagEmf[        i] );
+        // d_all_dfields[BZ * N + i].x =  - d_mask[i] * ( d_all_kvec[KX * N + i] * MagEmf[1 * N + i].y - d_all_kvec[KY * N + i] * MagEmf[        i].y );
+        // d_all_dfields[BZ * N + i].y =    d_mask[i] * ( d_all_kvec[KX * N + i] * MagEmf[1 * N + i].x - d_all_kvec[KY * N + i] * MagEmf[        i].x  );
     }
 
 }
@@ -296,15 +308,18 @@ __global__ void EnergyFluxVector( const scalar_type *d_all_fields, scalar_type *
 
 
 // compute derivative of energy flux vector and assign u nabla theta to the dfield for theta
-__global__ void NonLinBoussinesqAdv(const scalar_type *d_all_kvec, const cufftDoubleComplex *EnergyFlux, cufftDoubleComplex *d_all_dfields, const scalar_type *d_mask, size_t N){
+__global__ void NonLinBoussinesqAdv(const scalar_type *d_all_kvec, const data_type *EnergyFlux, data_type *d_all_dfields, const scalar_type *d_mask, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // int KX = 0; int KY = 1; int KZ = 2;
     // int VX = 0; int VY = 1; int VZ = 2;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
     if (i < N) {
         // delta theta = - ( I k_x E_x + I k_y E_y + I k_z E_z)
         // operations divided in real and complex part
-        d_all_dfields[TH * N + i].x =   d_mask[i] * (  d_all_kvec[KX * N + i] * EnergyFlux[i].y + d_all_kvec[KY * N + i] * EnergyFlux[N + i].y + d_all_kvec[KZ * N + i] * EnergyFlux[2 * N + i].y );
-        d_all_dfields[TH * N + i].y =   d_mask[i] * (- d_all_kvec[KX * N + i] * EnergyFlux[i].x - d_all_kvec[KY * N + i] * EnergyFlux[N + i].x - d_all_kvec[KZ * N + i] * EnergyFlux[2 * N + i].x );
+        d_all_dfields[TH * N + i] = - imI * d_mask[i] * (  d_all_kvec[KX * N + i] * EnergyFlux[i] + d_all_kvec[KY * N + i] * EnergyFlux[N + i] + d_all_kvec[KZ * N + i] * EnergyFlux[2 * N + i]);
+        // d_all_dfields[TH * N + i].x =   d_mask[i] * (  d_all_kvec[KX * N + i] * EnergyFlux[i].y + d_all_kvec[KY * N + i] * EnergyFlux[N + i].y + d_all_kvec[KZ * N + i] * EnergyFlux[2 * N + i].y );
+        // d_all_dfields[TH * N + i].y =   d_mask[i] * (- d_all_kvec[KX * N + i] * EnergyFlux[i].x - d_all_kvec[KY * N + i] * EnergyFlux[N + i].x - d_all_kvec[KZ * N + i] * EnergyFlux[2 * N + i].x );
 
     }
 
@@ -314,20 +329,25 @@ __global__ void NonLinBoussinesqAdv(const scalar_type *d_all_kvec, const cufftDo
 // add N2 u_strat to temperature equation
 // this is for normalization where theta is in units of g [L/T^2]
 // other normalizations possible
-__global__ void BoussinesqStrat( const cufftDoubleComplex *d_all_fields, cufftDoubleComplex *d_all_dfields, double BV_freq2, size_t N, int strat_dir){
+__global__ void BoussinesqStrat( const data_type *d_all_fields, data_type *d_all_dfields, double BV_freq2, size_t N, int strat_dir){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+
     if (i < N) {
         // add - th e_strat to velocity component in the strat direction
         // strat_dir can be 0 (e_x), 1 (e_y), 2 (e_z) and is defined in common.hpp
+        d_all_dfields[strat_dir * N + i] +=   - d_all_fields[TH * N + i] ;
         // operations divided in real and complex part
-        d_all_dfields[strat_dir * N + i].x +=   - d_all_fields[TH * N + i].x ;
-        d_all_dfields[strat_dir * N + i].y +=   - d_all_fields[TH * N + i].y ;
+        // d_all_dfields[strat_dir * N + i].x +=   - d_all_fields[TH * N + i].x ;
+        // d_all_dfields[strat_dir * N + i].y +=   - d_all_fields[TH * N + i].y ;
 
         // add N2 u_strat to temperature equation
         // BV_freq2 is the squared BV frequency (can be negative)
+        d_all_dfields[TH * N + i] +=   BV_freq2 * d_all_fields[strat_dir * N + i] ;
         // operations divided in real and complex part
-        d_all_dfields[TH * N + i].x +=   BV_freq2 * d_all_fields[strat_dir * N + i].x ;
-        d_all_dfields[TH * N + i].y +=   BV_freq2 * d_all_fields[strat_dir * N + i].y ;
+        // d_all_dfields[TH * N + i].x +=   BV_freq2 * d_all_fields[strat_dir * N + i].x ;
+        // d_all_dfields[TH * N + i].y +=   BV_freq2 * d_all_fields[strat_dir * N + i].y ;
     }
 }
 

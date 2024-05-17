@@ -19,9 +19,9 @@
 // extern const int threadsPerBlock;
 // extern int blocksPerGrid;
 
-__global__ void nablaOpScalar( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, scalar_type a, size_t N, int flag);
+__global__ void nablaOpScalar( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, scalar_type a, size_t N, int flag);
 
-__global__ void nablaOpVector( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, scalar_type a, size_t N, int flag);
+__global__ void nablaOpVector( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, scalar_type a, size_t N, int flag);
 
 // __global__ void nablaOp( scalar_type *kx, scalar_type *ky, scalar_type *kz, cufftDoubleComplex *X, cufftDoubleComplex *Z, scalar_type a, size_t N, int flag);
 
@@ -29,19 +29,19 @@ __global__ void TracelessShearMatrix( const scalar_type *d_all_fields, scalar_ty
 
 __global__ void EnergyFluxVector( const scalar_type *d_all_fields, scalar_type *d_all_tmparray, size_t N);
 
-__global__ void NonLinHydroAdv(const scalar_type *d_all_kvec, const cufftDoubleComplex *ShearMatrix, cufftDoubleComplex *d_all_dfields, const scalar_type *d_mask, size_t N);
+__global__ void NonLinHydroAdv(const scalar_type *d_all_kvec, const data_type *ShearMatrix, data_type *d_all_dfields, const scalar_type *d_mask, size_t N);
 
-__global__ void NonLinBoussinesqAdv(const scalar_type *d_all_kvec, const cufftDoubleComplex *EnergyFlux, cufftDoubleComplex *d_all_dfields, const scalar_type *d_mask, size_t N);
+__global__ void NonLinBoussinesqAdv(const scalar_type *d_all_kvec, const data_type *EnergyFlux, data_type *d_all_dfields, const scalar_type *d_mask, size_t N);
 
-__global__ void BoussinesqStrat( const cufftDoubleComplex *d_all_fields, cufftDoubleComplex *d_all_dfields, double BV_freq2, size_t N, int strat_dir);
+__global__ void BoussinesqStrat( const data_type *d_all_fields, data_type *d_all_dfields, double BV_freq2, size_t N, int strat_dir);
 
 __global__ void TracelessShearMatrixMHD( const scalar_type *d_all_fields, scalar_type *d_all_tmparray, size_t N);
 
 __global__ void MagneticEmf( const scalar_type *d_all_fields, scalar_type *d_all_tmparray, size_t N);
 
-__global__ void MagneticShear(const scalar_type *d_all_kvec, const cufftDoubleComplex *MagEmf, cufftDoubleComplex *d_all_dfields, const scalar_type *d_mask, size_t N);
+__global__ void MagneticShear(const scalar_type *d_all_kvec, const data_type *MagEmf, data_type *d_all_dfields, const scalar_type *d_mask, size_t N);
 
-__global__ void GradPseudoPressure(const scalar_type *d_all_kvec, cufftDoubleComplex *d_all_dfields, size_t N);
+__global__ void GradPseudoPressure(const scalar_type *d_all_kvec, data_type *d_all_dfields, size_t N);
 
 __global__ void Divergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N);
 
