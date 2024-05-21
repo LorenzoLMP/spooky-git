@@ -104,10 +104,10 @@ def main():
         print('t = {:10.4f} \t L2 error = {:0.2e}'.format(t,L2_err))
 
     if (L2_err < tol):
-        print('t_final = %d \t L2 error = %.2e ... PASSED'%(i,L2_err))
+        print('t_final = %10.4f \t L2 error = %.2e ... PASSED'%(t,L2_err))
         flag = 0 # pass
     else:
-        print('t_final = %d \t L2 error = %.2e ... NOT PASSED'%(i,L2_err))
+        print('t_final = %10.4f \t L2 error = %.2e ... NOT PASSED'%(t,L2_err))
 
     return flag
 

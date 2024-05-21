@@ -180,8 +180,8 @@ def main():
     # T_hat += dT_hat
     T[:] = irfft(T_hat)
     # j += 1
-    if save:
-        np.savez(savedir+'{:s}.{:04d}.npz'.format(savename,numsave+1), x=x, T=T, t=tend, dt=tend-t)
+    # if save:
+    #     np.savez(savedir+'{:s}.{:04d}.npz'.format(savename,numsave+1), x=x, T=T, t=tend, dt=tend-t)
     if show:
         im1.set_ydata(T)
         # chi = get_chi(T)

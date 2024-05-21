@@ -91,6 +91,7 @@ def main():
         data_py = np.load(py_savedir+'{:s}.{:04d}.npz'.format(py_savename,i))
         x_py = data_py['x']
         T_py = data_py['T']
+        t =  data_sp['t_save'][0]
         data_py.close()
 
         data_sp = h5py.File(sp_savedir+'{:s}{:04d}.h5'.format(sp_savename,i), 'r')
@@ -106,12 +107,12 @@ def main():
 
         L2_err = np.sum(np.power(T_py-T_sp[:,0,0],2.0))
         if (L2_err < tol):
-            print('i = %d \t L2 error = %.2e ... PASSED'%(i,L2_err))
+            print('i = %10.4f \t L2 error = %.2e ... PASSED'%(t,L2_err))
         else:
-            print('i = %d \t L2 error = %.2e ... NOT PASSED'%(i,L2_err))
+            print('i = %10.4f \t L2 error = %.2e ... NOT PASSED'%(t,L2_err))
 
     if (L2_err < tol):
-        print('t_fin = %d \t L2 error = %.2e ... PASSED'%(i,L2_err))
+        print('t_fin = %10.4f \t L2 error = %.2e ... PASSED'%(t,L2_err))
         flag = 0 #success
 
     return flag

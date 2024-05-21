@@ -43,6 +43,8 @@ public:
     double current_dt;
     double current_time;
     int stage_step;
+    double t_lastsnap;
+    int num_save;
     unsigned int current_step;
     data_type *all_fields, *all_dfields;
     data_type **farray, **dfarray;
@@ -68,11 +70,13 @@ public:
     void compute_dfield();
     void compute_dt();
     void copy_back_to_host();
-    void write_data_file( int num_snap);
+    void CheckOutput();
+    void write_data_file();
     void clean_gpu();
     void RungeKutta3();
     void ComputeDivergence();
     void CleanFieldDivergence( );
+    void CheckSymmetries();
     ~Fields();
 };
 
