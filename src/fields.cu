@@ -7,7 +7,7 @@
 #include "cuda_kernels.hpp"
 // #include "wavevector.hpp"
 
-Fields::Fields( int num, Parameters *param ) : wavevector(param->lx, param->ly, param->lz) {
+Fields::Fields( int num, Parameters *p_in ) : wavevector(p_in->lx, p_in->ly, p_in->lz) {
     num_fields = num;
     std::printf("num_fields: %d \n",num_fields);
 
@@ -17,6 +17,8 @@ Fields::Fields( int num, Parameters *param ) : wavevector(param->lx, param->ly, 
     current_dt = 0.0;
     current_time = 0.0;
     current_step = 0;
+
+    param = p_in;
     // r_data = (scalar_type *) malloc( sizeof( scalar_type ) * 2*ntotal_complex ) ;
     // c_data = (data_type *) r_data;
 
@@ -93,7 +95,7 @@ Fields::Fields( int num, Parameters *param ) : wavevector(param->lx, param->ly, 
     // thrust::host_vector<data_type*> d_dfarray_t(num_fields);
 
 
-    init_Fields(param);
+    init_Fields();
     // r_data = (scalar_type *) c_data;
 }
 
@@ -117,7 +119,7 @@ Fields::~Fields() {
 
 }
 
-void Fields::init_Fields(Parameters *param)  {
+void Fields::init_Fields()  {
 
     // std::printf("before init wavevec lx = %f \t ly = %f \t lz = %f\n",param->lx, param->ly, param->lz);
     // Wavevector wavevector(param->lx, param->ly, param->lz);
@@ -131,7 +133,7 @@ void Fields::init_Fields(Parameters *param)  {
         all_dfields[i] = data_type(0.0,0.0);
     }
 
-    init_SpatialStructure(param);
+    init_SpatialStructure();
     // std::printf("num_fields: %d \n",num_fields);
     // for (int n = 0 ; n < num_fields ; n++) {
     //     std::printf("n=%d:\n",n);
@@ -400,7 +402,7 @@ void Fields::allocate_and_move_to_gpu() {
     wavevector.allocate_and_move_to_gpu();
 }
 
-void Fields::ComputeDivergence( Parameters *param ){
+void Fields::ComputeDivergence( ){
 
     double divvfield = 0.0;
     double divBfield = 0.0;

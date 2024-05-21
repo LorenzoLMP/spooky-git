@@ -11,7 +11,7 @@
 
 // void advectFields(scalar_type **d_kvec, cufftDoubleComplex **array_input, cufftDoubleComplex **array_output, cufftDoubleComplex **scratch, int flag);
 
-void Fields::compute_dfield( int stage_step, Parameters *param ) {
+void Fields::compute_dfield() {
     NVTX3_FUNC_RANGE();
 
     int blocksPerGrid;
@@ -32,7 +32,7 @@ void Fields::compute_dfield( int stage_step, Parameters *param ) {
     // int blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     // nablaOp<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_kvec[KX],  (scalar_type *) wavevector.d_kvec[KY], (scalar_type *) wavevector.d_kvec[KZ], (cufftDoubleComplex *) d_farray[TH], (cufftDoubleComplex *) d_dfarray[TH], param->nu_th, (size_t) ntotal_complex, ASS);
 
-    if (stage_step == 0) compute_dt( param );
+    if (stage_step == 0) compute_dt();
 
     // laplacianScalar((scalar_type **)wavevector.d_kvec, (cufftDoubleComplex *) d_farray[TH], (cufftDoubleComplex *) d_dfarray[TH], param->nu_th, ASS);
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
@@ -80,7 +80,7 @@ void Fields::compute_dfield( int stage_step, Parameters *param ) {
     // free(host_tmp);
 
     // cudaDeviceSynchronize();
-    if (stage_step == 0) compute_dt( param );
+    if (stage_step == 0) compute_dt();
 
     // we use Basdevant formulation [1983]
     // compute the elements of the traceless symmetric matrix B_ij = u_i u_j - delta_ij Tr (u_i u_j) / 3. It has only 5 independent components B_xx, B_xy, B_xz, Byy, B_yz. (B_zz = - B_xx - B_yy)

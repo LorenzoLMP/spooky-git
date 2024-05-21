@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     startup();
 
     double t = 0.0;
-    double t_end = 0.0;
+    // double t_end = 0.0;
     double t_lastsnap = 0.0;
     // int step = 0;
     int num_save = 0;
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     // fields.init_Fields(param);
     // fields.param.read_Parameters();
 
-    t_end = param->t_final;
+    // t_end = param->t_final;
     // Fields fields(3);
     std::printf("lx = %f \t ly = %f \t lz = %f\n",param->lx, param->ly, param->lz);
     std::printf("kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",fields.wavevector.kxmax,fields.wavevector.kymax, fields.wavevector.kzmax);
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     try {
-    fields.write_data_file(num_save, param);
+    fields.write_data_file(num_save);
     }
     catch (const std::exception& err) {
     std::cerr << err.what() << std::endl;
@@ -113,23 +113,22 @@ int main(int argc, char *argv[]) {
     // fields.print_device_values();
 
 
-    while (t < t_end) {
+    while (fields.current_time < param->t_final) {
         // std::printf("step n. %d \n",fields.current_step);
     // while (fields.current_step < 1) {
 
         // dt = fields.advance_timestep(t, t_end, &step); // this function computes dt and advances the time (field(n+1) = field(n) + dfield*dt)
-        fields.RungeKutta3( t,  t_end, param);
+        fields.RungeKutta3();
         // fields.print_device_values();
-        t = t + fields.current_dt;
-        fields.current_time = t;
-        if( (t-t_lastsnap)>=param->toutput_flow) {
-            fields.ComputeDivergence(param);
+        // fields.current_time = t;
+        if( (fields.current_time-t_lastsnap)>=param->toutput_flow) {
+            fields.ComputeDivergence();
             fields.CleanFieldDivergence();
-            fields.ComputeDivergence(param);
+            fields.ComputeDivergence();
             fields.copy_back_to_host();
-            fields.write_data_file(num_save+1, param);
+            fields.write_data_file(num_save+1);
             std::printf("Saving at step n. %d \n",fields.current_step);
-            std::printf("Saving data file at t= %.6e \n",t);
+            std::printf("Saving data file at t= %.6e \n",fields.current_time);
             t_lastsnap = t_lastsnap + param->toutput_flow;
             num_save++;
         }
@@ -145,7 +144,7 @@ int main(int argc, char *argv[]) {
     std::printf("Starting copy back to host\n");
     fields.copy_back_to_host();
     std::printf("Saving data file...\n");
-    fields.write_data_file(num_save+1, param);
+    fields.write_data_file(num_save+1);
 
     fields.clean_gpu();
     std::printf("Finished fields gpu cleanup\n");

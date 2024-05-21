@@ -9,7 +9,7 @@
 
 
 // we are assuming that the fields have been already fft to real and saved in d_tmparray_r
-void Fields::compute_dt( Parameters *param  ) {
+void Fields::compute_dt() {
 
     NVTX3_FUNC_RANGE();
     double dt;

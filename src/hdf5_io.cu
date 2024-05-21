@@ -15,7 +15,7 @@ using namespace HighFive;
 
 
 
-void Fields::write_data_file(int num_snap, Parameters *param) {
+void Fields::write_data_file(int num_snap) {
 
     NVTX3_FUNC_RANGE();
     std::printf("Writing data file... \n");

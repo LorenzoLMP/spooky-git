@@ -15,24 +15,28 @@ cublasStatus_t stat;
 // extern int threadsPerBlock;
 
 
-void Fields::RungeKutta3( double t, double t_end, Parameters  *param) {
+void Fields::RungeKutta3() {
     NVTX3_FUNC_RANGE();
     double dt_RK = 0.0;
     int blocksPerGrid = (2 * ntotal_complex * num_fields + threadsPerBlock - 1) / threadsPerBlock;
-    int RK_step = 0;
+    stage_step = 0;
     current_step += 1;
 
     // compute_dt( );
+    // note that the following compute_dfield also compute the new current_dt!!
+    compute_dfield();
+    stage_step++;
 
     // std::printf("...Computing dfield\n");
-    compute_dfield(RK_step++, param);
-    if ( t + current_dt > t_end) current_dt = t_end - t;
+    
+    if ( current_time + current_dt > param->t_final) current_dt = param->t_final - current_time;
     dt_RK = current_dt; // in theory one can do strang splitting so dt_RK can be 1/2 dt
+    
 #ifdef DEBUG
     std::printf("RK, 1st step:\n");
     std::printf("After compute dfield, RK, 1st step:\n");
     // print_device_values();
-    if (current_step == 1 || current_step % 100 == 0 ) std::printf("t: %.5e \t dt: %.5e \n",t,dt_RK);
+    if (current_step == 1 || current_step % 100 == 0 ) std::printf("t: %.5e \t dt: %.5e \n",current_time,dt_RK);
     if (current_step == 1 || current_step % 100 == 0 ) print_device_values();
 #endif
 
@@ -57,7 +61,8 @@ void Fields::RungeKutta3( double t, double t_end, Parameters  *param) {
     std::printf("RK, 2nd step:\n");
 #endif
     // std::printf("...Computing dfield\n");
-    compute_dfield(RK_step++, param);
+    compute_dfield();
+    stage_step++;
     // for( i = 0 ; i < NTOTAL_COMPLEX ; i++) {
     //         fld.farray[n][i] = fld1.farray[n][i] + gammaRK[1] * dfld.farray[n][i] * dt;
     //         fld1.farray[n][i] = fld.farray[n][i] + xiRK[1] * dfld.farray[n][i] * dt;
@@ -74,7 +79,8 @@ void Fields::RungeKutta3( double t, double t_end, Parameters  *param) {
     std::printf("RK, 3rd step:\n");
 #endif
     // std::printf("...Computing dfield\n");
-    compute_dfield(RK_step++, param);
+    compute_dfield();
+    stage_step++;
     // for( i = 0 ; i < NTOTAL_COMPLEX ; i++) {
     //     fld.farray[n][i] = fld1.farray[n][i] + gammaRK[2] * dfld.farray[n][i] * dt;
     // }
@@ -82,28 +88,11 @@ void Fields::RungeKutta3( double t, double t_end, Parameters  *param) {
     axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)d_all_scrtimestep, (scalar_type *)d_all_dfields, (scalar_type *)d_all_fields, (scalar_type) 1.0, gammaRK[2]*dt_RK,  2 * ntotal_complex * num_fields);
 
 
+
+    current_time += current_dt;
+
     return ;
 
 
 }
 
-
-
-
-// double Fields::advance_timestep( double t, double t_end, int* p_step) {
-//     NVTX3_FUNC_RANGE();
-//     double dt = 0.0;
-//     // int step = 0;
-//
-//     // std::printf("Computing dt\n");
-//     compute_dt( &dt );
-//
-//     if ( t + dt > t_end) dt = t_end - t;
-//     // std::printf("dt: %.2e \n",dt);
-//     // one can implement different solvers...
-//     // RungeKutta3((double)0.5);
-//     RungeKutta3((double)dt);
-//     // std::printf("Updating n. step\n");
-//     *p_step = *p_step + 1;
-//     return dt;
-// }
