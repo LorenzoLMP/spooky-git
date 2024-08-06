@@ -238,7 +238,7 @@ void Fields::compute_dfield() {
     }
     // take divergence of heat flux
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    Divergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *) d_tmparray[3], (data_type *) d_all_dfields + TH * ntotal_complex, ntotal_complex);
+    DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *) d_tmparray[3], (data_type *) d_all_dfields + TH * ntotal_complex, (scalar_type *)wavevector.d_mask, ntotal_complex, ADD);
 #endif   // MHD
 #endif   // ANISOTROPIC_DIFFUSION
 

@@ -84,7 +84,7 @@ for i in range(len(sp_data_list)):
 
     th_analytical = th_0 * np.exp(sigma*t)
 
-    fig, ax = plt.subplots(3,1)
+    fig, ax = plt.subplots(3,1, figsize=(9,10))
 
     ax[0].plot(x, vz_analytical[:,0,0], ls='', marker='x', markerfacecolor='none', label='analytical')
     ax[0].plot(x, vz[:,0,0], ls='', marker='s', markerfacecolor='none', label='spooky')

@@ -123,6 +123,28 @@ __global__ void CleanDivergence( const scalar_type *d_all_kvec, const data_type 
     }
 }
 
+__global__ void DivergenceMask( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, const scalar_type *d_mask, size_t N, int flag) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // int KX = 0; int KY = 1; int KZ = 2;
+    // X points to the first element of the 3D vector, Z is the scalar (complex) output
+    // This kernel works for velocity and magnetic field
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+
+    if ( flag == 0 ){ // overwrite i-th element
+        if (i < N) {
+            // divergence of vfeld/bfield
+            Z[i] = imI * d_mask[i] * (d_all_kvec[KX * N + i] * X[i] + d_all_kvec[KY * N + i] * X[N + i] + d_all_kvec[KZ * N + i] * X[2 * N + i] );
+        }
+    }
+    else if ( flag == 1) { // accumulate to i-th element
+        if (i < N) {
+            // divergence of vfeld/bfield
+            Z[i] += imI * d_mask[i] * (d_all_kvec[KX * N + i] * X[i] + d_all_kvec[KY * N + i] * X[N + i] + d_all_kvec[KZ * N + i] * X[2 * N + i] );
+        }
+    }
+}
+
 #ifdef INCOMPRESSIBLE
 // compute the elements of the traceless symmetric matrix B_ij = u_i u_j - delta_ij Tr (u_i u_j) / 3. It has only 5 independent components B_xx, B_xy, B_xz, Byy, B_yz. (B_zz = - B_xx - B_yy)
 // the results are saved in the first 5 temp_arrays (after those reserved for the fields, the memory block points already at the right location)

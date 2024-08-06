@@ -47,6 +47,8 @@ __global__ void Gradient( const scalar_type *d_all_kvec, const data_type *X, dat
 
 __global__ void Divergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N);
 
+__global__ void DivergenceMask( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, const scalar_type *d_mask, size_t N, int flag);
+
 // __global__ void CleanDivergence( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, size_t N);
 __global__ void CleanDivergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N);
 
