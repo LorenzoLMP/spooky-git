@@ -8,9 +8,9 @@ import glob
 
 # test script expects the executable as argument
 
-nx = 64
-ny = 64
-nz = 64
+nx = 1024
+ny = 4
+nz = 4
 
 lx = 1.0
 ly = 1.0
