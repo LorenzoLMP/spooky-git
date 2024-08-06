@@ -80,6 +80,32 @@ $ ctest -V -R "spooky"
 
 which will run all the spooky tests and show the output.
 
+## On Newton (last update: 2024-08-06)
+
+For interactive jobs:
+```
+srun -p a100 --gres=gpu:1 --job-name "GpuInteractiveJob" --time=02:00:00 --pty bash
+```
+
+```
+$ source load_modules
+```
+
+```
+cd build
+rm -rf *
+```
+
+```
+$ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.5/bin/nvcc -DCMAKE_CUDA_FLAGS="-ccbin /usr/bin/g++" -DHDF5_ROOT=/home/lperrone/myhdf5/hdf5/ -DLIBCONFIG_ROOT=/home/lperrone/mylibconfig/libconfig/ ..
+```
+
+
+```
+$ make clean && make -j 8
+```
+
+
 ## Steps for profiling
 ```
 $ nsys start --stop-on-exit=false
@@ -96,6 +122,7 @@ for a single kernel
 ```
 $ sudo /opt/nvidia/hpc_sdk/Linux_x86_64/23.1/profilers/Nsight_Compute/ncu --export "/home/lorenzolmp/Documents/NVIDIA Nsight Compute/report%i" --force-overwrite --target-processes all --kernel-name axpyDouble --launch-count 1 spooky
 ```
+
 
 
 <!--
