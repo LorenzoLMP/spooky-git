@@ -16,8 +16,8 @@ lx = 1.0
 ly = 1.0
 lz = 1.0
 
-reynolds_m =
-reynolds_ani =
+reynolds_m = 100000
+reynolds_ani = 100
 sigma  = 0.9341413811120219
 Pe     = reynolds_ani
 Reeta  = reynolds_m
