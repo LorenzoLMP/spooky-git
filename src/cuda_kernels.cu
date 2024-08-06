@@ -60,6 +60,20 @@ __global__ void nablaOpVector( const scalar_type *d_all_kvec, const data_type *X
 
 }
 
+__global__ void Gradient( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // int KX = 0; int KY = 1; int KZ = 2;
+    // X points to the first element of the 1D scalar, Z points to the first element of the 3D vector (complex) output
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+    if (i < N) {
+        // gradient of scalar field
+        Z[i]         = imI *  ( d_all_kvec[KX * N + i] * X[i] );
+        Z[N + i]     = imI *  ( d_all_kvec[KY * N + i] * X[i] );
+        Z[2 * N + i] = imI *  ( d_all_kvec[KZ * N + i] * X[i] );
+    }
+}
+
 __global__ void Divergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // int KX = 0; int KY = 1; int KZ = 2;
@@ -350,5 +364,37 @@ __global__ void BoussinesqStrat( const data_type *d_all_fields, data_type *d_all
         // d_all_dfields[TH * N + i].y +=   BV_freq2 * d_all_fields[strat_dir * N + i].y ;
     }
 }
+
+#ifdef MHD
+// compute the scalar B \cdot grad theta (in real space), and assign it to a new scratch array
+// B points at the memory location of the 3D vector, GradTheta points at the memory location of the 3D grad theta, Z is the scratch array
+__global__ void ComputeBGradTheta( const scalar_type *B, const scalar_type *GradTheta, scalar_type *Z, size_t N) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // int VX = 0; int VY = 1; int VZ = 2, int TH = 3;
+    if (i < N) {
+
+        // Z = Bx gradx theta + By grady theta + Bz gradz theta
+        Z[i] = B[ 0 * N + i ] * GradTheta[ 0 * N + i ]  +  B[ 1 * N + i ] * GradTheta[ 1 * N + i ] + B[ 2 * N + i ] * GradTheta[ 2 * N + i ] ;
+    }
+}
+
+// compute the vector (b b \cdot grad theta + b b_z) (in real space), and assign it to a new scratch 3D array
+// B points at the memory location of the 3D vector, BGradTheta points at the memory location of the scalar field, Z is the 3D scratch array
+__global__ void ComputeAnisotropicHeatFlux( const scalar_type *B, const scalar_type *BGradTheta, scalar_type *Z, scalar_type OmegaT2, scalar_type chi, size_t N, int strat_dir) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    scalar_type B2 = 0.0;
+    if (i < N) {
+        B2 = B[ 0 * N + i ] * B[ 0 * N + i ] + B[ 1 * N + i ] * B[ 1 * N + i ] + B[ 2 * N + i ] * B[ 2 * N + i ] ;
+        // Z_x = B_x BGradTheta / B^2
+        Z[ 0 * N + i ] = chi * B[ 0 * N + i ] * ( BGradTheta[ i ] + OmegaT2 * B[ strat_dir * N + i ] ) / B2 ;
+        // Z_y = B_y BGradTheta / B^2
+        Z[ 1 * N + i ] = chi * B[ 1 * N + i ] * ( BGradTheta[ i ] + OmegaT2 * B[ strat_dir * N + i ] ) / B2 ;
+        // Z_z = B_z BGradTheta / B^2
+        Z[ 2 * N + i ] = chi * B[ 2 * N + i ] * ( BGradTheta[ i ] + OmegaT2 * B[ strat_dir * N + i ] ) / B2 ;
+    }
+}
+
+#endif // MHD
+
 
 #endif

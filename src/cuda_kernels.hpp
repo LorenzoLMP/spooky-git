@@ -43,10 +43,14 @@ __global__ void MagneticShear(const scalar_type *d_all_kvec, const data_type *Ma
 
 __global__ void GradPseudoPressure(const scalar_type *d_all_kvec, data_type *d_all_dfields, size_t N);
 
+__global__ void Gradient( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N);
+
 __global__ void Divergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N);
 
 // __global__ void CleanDivergence( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, size_t N);
 __global__ void CleanDivergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N);
+
+__global__ void ComputeAnisotropicHeatFlux( const scalar_type *B, const scalar_type *BGradTheta, scalar_type *Z, scalar_type OmegaT2, scalar_type chi, size_t N, int strat_dir);
 
 // absolute<T> computes the absolute value of a number f(x) -> |x|
 template <typename T>
