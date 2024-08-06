@@ -54,6 +54,8 @@ __global__ void CleanDivergence( const scalar_type *d_all_kvec, const data_type 
 
 __global__ void ComputeAnisotropicHeatFlux( const scalar_type *B, const scalar_type *BGradTheta, scalar_type *Z, scalar_type OmegaT2, scalar_type chi, size_t N, int strat_dir);
 
+__global__ void ComputeBGradTheta( const scalar_type *B, const scalar_type *GradTheta, scalar_type *Z, size_t N);
+
 // absolute<T> computes the absolute value of a number f(x) -> |x|
 template <typename T>
 struct absolute

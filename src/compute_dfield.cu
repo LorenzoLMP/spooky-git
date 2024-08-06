@@ -222,7 +222,7 @@ void Fields::compute_dfield() {
     ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((cufftDoubleComplex *)d_all_fields + ntotal_complex * BX, (cufftDoubleComplex *)d_all_tmparray, 3 * ntotal_complex);
     // compute gradient of theta and assign it to next 3 scratch arrays
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    Gradient<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *) d_farray[TH], (cufftDoubleComplex *)d_all_tmparray + 3 * ntotal_complex, ntotal_complex);
+    Gradient<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *) d_farray[TH], (data_type *)d_all_tmparray + 3 * ntotal_complex, ntotal_complex);
     // compute complex to real iFFTs
     for (int n = 0; n < 6; n++){
         c2r_fft(d_tmparray[n], d_tmparray_r[n]);
