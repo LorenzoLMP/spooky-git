@@ -131,10 +131,13 @@ void Fields::compute_dt() {
 #ifdef BOUSSINESQ
     gamma_v += pow(fabs(param->N2), 0.5) / param->safety_source;
 #ifdef WITH_EXPLICIT_DISSIPATION
-    gamma_v += ((wavevector.kxmax )*( wavevector.kxmax )+wavevector.kymax*wavevector.kymax+wavevector.kzmax*wavevector.kzmax) * param->nu_th;		// NB: this is very conservative. It should be combined with the condition on nu
-
-#endif
-#endif
+#ifndef ANISOTROPIC
+    gamma_v += ((wavevector.kxmax )*( wavevector.kxmax )+wavevector.kymax*wavevector.kymax+wavevector.kzmax*wavevector.kzmax) * param->nu_th; // NB: this is very conservative. It should be combined with the condition on nu
+#else
+    gamma_v += ((wavevector.kxmax )*( wavevector.kxmax )+wavevector.kymax*wavevector.kymax+wavevector.kzmax*wavevector.kzmax) * (1./param->reynolds_ani); //
+#endif // ANISOTROPIC
+#endif // WITH_EXPLICIT_DISSIPATION
+#endif // BOUSSINESQ
 
 
 
