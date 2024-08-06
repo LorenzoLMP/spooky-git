@@ -91,10 +91,10 @@ def main():
         data_py = np.load(py_savedir+'{:s}.{:04d}.npz'.format(py_savename,i))
         x_py = data_py['x']
         T_py = data_py['T']
-        t =  data_sp['t_save'][0]
         data_py.close()
 
         data_sp = h5py.File(sp_savedir+'{:s}{:04d}.h5'.format(sp_savename,i), 'r')
+        t =  data_sp['t_save'][0]
         T_sp = np.reshape(data_sp['th'],(nx,ny,nz))
         data_sp.close()
 
