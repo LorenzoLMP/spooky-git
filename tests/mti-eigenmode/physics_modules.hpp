@@ -5,7 +5,7 @@
 #define WITH_EXPLICIT_DISSIPATION
 #define DEALIASING
 #define MHD
-#define ANISOTROPIC
+#define ANISOTROPIC_DIFFUSION
 
 // #define DEBUG
 

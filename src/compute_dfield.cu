@@ -25,7 +25,7 @@ void Fields::compute_dfield() {
 #ifdef HEAT_EQ
 
     // dT = nu_th nabla T
-    //   #ifndef ANISOTROPIC
+    //   #ifndef ANISOTROPIC_DIFFUSION
         // dfldo.th[i] += - nu_th * k2t[i] * fldi.th[i];
     //   #endif
     // computes nabla operator of T and assigns to dT
