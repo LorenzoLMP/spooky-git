@@ -8,9 +8,9 @@
 
 void Fields::CheckSymmetries(){
     if( current_step % param->symmetries_step) {
-        if( current_step % 50*param->symmetries_step == 0) ComputeDivergence();
+        if( current_step % 500*param->symmetries_step == 0) ComputeDivergence();
         CleanFieldDivergence();
-        if( current_step % 50*param->symmetries_step == 0) ComputeDivergence();
+        if( current_step % 500*param->symmetries_step == 0) ComputeDivergence();
     }
     
 }
