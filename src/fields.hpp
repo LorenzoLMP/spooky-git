@@ -77,6 +77,9 @@ public:
     void ComputeDivergence();
     void CleanFieldDivergence( );
     void CheckSymmetries();
+
+    void AnisotropicConduction();
+
     ~Fields();
 };
 

@@ -7,10 +7,6 @@
 #include "cuda_kernels_generic.hpp"
 
 
-// void laplacianScalar(scalar_type **d_kvec, cufftDoubleComplex *scalar_input, cufftDoubleComplex *scalar_output, double rescale, int flag);
-
-// void advectFields(scalar_type **d_kvec, cufftDoubleComplex **array_input, cufftDoubleComplex **array_output, cufftDoubleComplex **scratch, int flag);
-
 void Fields::compute_dfield() {
     NVTX3_FUNC_RANGE();
 
@@ -217,6 +213,8 @@ void Fields::compute_dfield() {
     nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_farray[TH], (data_type *) d_dfarray[TH], param->nu_th, (size_t) ntotal_complex, ADD);
 #else
 #ifdef MHD
+    AnisotropicConduction();
+    /*
     // assign Bx, By, Bz to first 3 scratch arrays
     blocksPerGrid = ( 3 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((cufftDoubleComplex *)d_all_fields + ntotal_complex * BX, (cufftDoubleComplex *)d_all_tmparray, 3 * ntotal_complex);
@@ -239,6 +237,7 @@ void Fields::compute_dfield() {
     // take divergence of heat flux
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *) d_tmparray[3], (data_type *) d_all_dfields + TH * ntotal_complex, (scalar_type *)wavevector.d_mask, ntotal_complex, ADD);
+    */
 #endif   // MHD
 #endif   // ANISOTROPIC_DIFFUSION
 
