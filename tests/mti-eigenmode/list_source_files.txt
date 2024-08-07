@@ -22,4 +22,5 @@ ${PROJECT_SOURCE_DIR}/src/read_parameters.cu
 ${PROJECT_SOURCE_DIR}/src/tests.cu
 ${PROJECT_SOURCE_DIR}/src/tests.hpp
 ${PROJECT_SOURCE_DIR}/src/symmetries.cu
+${PROJECT_SOURCE_DIR}/src/physics/anisotropic_conduction/anisotropic_conduction.cu
 )
