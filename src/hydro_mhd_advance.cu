@@ -22,6 +22,12 @@ void Fields::RungeKutta3() {
     stage_step = 0;
     current_step += 1;
 
+#ifdef DDEBUG
+    // std::printf("After 1st RK:\n");
+    // print_device_values();
+    std::printf("RK, doing 1st step...\n");
+#endif
+
     // compute_dt( );
     // note that the following compute_dfield also compute the new current_dt!!
     compute_dfield();
@@ -32,8 +38,8 @@ void Fields::RungeKutta3() {
     if ( current_time + current_dt > param->t_final) current_dt = param->t_final - current_time;
     dt_RK = current_dt; // in theory one can do strang splitting so dt_RK can be 1/2 dt
     
-#ifdef DEBUG
-    std::printf("RK, 1st step:\n");
+#ifdef DDEBUG
+    // std::printf("RK, finished 1st step.\n");
     std::printf("After compute dfield, RK, 1st step:\n");
     // print_device_values();
     if (current_step == 1 || current_step % 100 == 0 ) std::printf("t: %.5e \t dt: %.5e \n",current_time,dt_RK);
@@ -55,10 +61,10 @@ void Fields::RungeKutta3() {
     // // d_all_scrtimestep = d_all_fields + xiRK[0] * dt * d_all_dfields;
     axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)d_all_fields, (scalar_type *)d_all_dfields, (scalar_type *)d_all_scrtimestep, (scalar_type) 1.0, xiRK[0]*dt_RK,  2 * ntotal_complex * num_fields);
 
-#ifdef DEBUG
-    std::printf("After 1st RK:\n");
+#ifdef DDEBUG
+    // std::printf("After 1st RK:\n");
     // print_device_values();
-    std::printf("RK, 2nd step:\n");
+    std::printf("RK, doing 2nd step...\n");
 #endif
     // std::printf("...Computing dfield\n");
     compute_dfield();
@@ -73,10 +79,10 @@ void Fields::RungeKutta3() {
     // d_all_scrtimestep = d_all_fields + xiRK[1] * dt * d_all_dfields;
     axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)d_all_fields, (scalar_type *)d_all_dfields, (scalar_type *)d_all_scrtimestep, (scalar_type) 1.0, xiRK[1]*dt_RK,  2 * ntotal_complex * num_fields);
 
-#ifdef DEBUG
-    std::printf("After 2nd RK:\n");
+#ifdef DDEBUG
+    // std::printf("After 2nd RK:\n");
     // print_device_values();
-    std::printf("RK, 3rd step:\n");
+    std::printf("RK, doing 3rd step...\n");
 #endif
     // std::printf("...Computing dfield\n");
     compute_dfield();

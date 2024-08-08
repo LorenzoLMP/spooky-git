@@ -1,4 +1,3 @@
-// #define WITH_EXPLICIT_DISSIPATION
 
 
 #define INCOMPRESSIBLE
@@ -7,9 +6,8 @@
 #define MHD
 #define ANISOTROPIC_DIFFUSION
 
-// #define DEBUG
+#define DEBUG
 
-// #define HEAT_EQ
 
 #define BOUSSINESQ
 #define STRATIFICATION

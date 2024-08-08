@@ -110,9 +110,6 @@ void Fields::compute_dt() {
     gamma_v = ( wavevector.kxmax ) * maxfx + wavevector.kymax * maxfy + wavevector.kzmax * maxfz;
     // gamma_v = 100;
     // std::printf("gamma_v: %.4e \n",gamma_v);
-#ifdef DEBUG
-    if (current_step % 100 == 0 ) std::printf("maxfx: %.4e \t maxfy: %.4e \t maxfz: %.4e \t gamma_v: %.4e \n",maxfx,maxfy,maxfz,gamma_v);
-#endif
 
 #ifdef WITH_ROTATION
     gamma_v += fabs(param->omega) / param->safety_source;
@@ -139,7 +136,9 @@ void Fields::compute_dt() {
 #endif // WITH_EXPLICIT_DISSIPATION
 #endif // BOUSSINESQ
 
-
+#ifdef DEBUG
+    if (current_step % 100 == 0 ) std::printf("maxfx: %.4e \t maxfy: %.4e \t maxfz: %.4e \t gamma_v: %.4e \n",maxfx,maxfy,maxfz,gamma_v);
+#endif
 
 #ifdef MHD
     double gamma_b;
@@ -181,12 +180,13 @@ void Fields::compute_dt() {
 
     gamma_b = ( wavevector.kxmax ) * maxbx + wavevector.kymax * maxby + wavevector.kzmax * maxbz;
 
-#ifdef DEBUG
-    if (current_step % 100 == 0 ) std::printf("maxbx: %.4e \t maxby: %.4e \t maxbz: %.4e \t gamma_b: %.4e \n",maxbx,maxby,maxbz,gamma_b);
-#endif
 
 #ifdef WITH_EXPLICIT_DISSIPATION
     gamma_b += ((wavevector.kxmax )*( wavevector.kxmax )+wavevector.kymax*wavevector.kymax+wavevector.kzmax*wavevector.kzmax) * param->nu_m;	// CFL condition on resistivity
+#endif
+
+#ifdef DEBUG
+    if (current_step % 100 == 0 ) std::printf("maxbx: %.4e \t maxby: %.4e \t maxbz: %.4e \t gamma_b: %.4e \n",maxbx,maxby,maxbz,gamma_b);
 #endif
 
     dt = param->cfl / (gamma_v  + gamma_b);
@@ -213,7 +213,9 @@ void Fields::compute_dt() {
     dt = param->cfl / (gamma_v );
 #endif
 
-
+#ifdef DEBUG
+    if (current_step % 100 == 0 ) std::printf("t: %.4e \t dt: %.4e \n", current_time, dt);
+#endif
 
     current_dt = dt;
     // *p_dt = dt;

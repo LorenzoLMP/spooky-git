@@ -7,10 +7,16 @@
 #include "cuda_kernels.hpp"
 
 void Fields::CheckSymmetries(){
+#ifdef DEBUG
+    if( current_step % 100 == 0) {
+        std::printf("Computing divergence of v/B fields \n");
+        ComputeDivergence();
+    }
+#endif
     if( current_step % param->symmetries_step) {
-        if( current_step % 500*param->symmetries_step == 0) ComputeDivergence();
+
         CleanFieldDivergence();
-        if( current_step % 500*param->symmetries_step == 0) ComputeDivergence();
+        // if( current_step % 500*param->symmetries_step == 0) ComputeDivergence();
     }
     
 }
@@ -33,8 +39,8 @@ void Fields::ComputeDivergence( ){
         // DoubleAbsolute<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) d_tmparray_r[0], (scalar_type *) d_tmparray_r[0], (size_t) ntotal_complex);
         // reduce sum
         stat = cublasDasum(handle0, 2 * ntotal_complex, d_tmparray_r[0], 1, &divvfield);
-        if (stat != CUBLAS_STATUS_SUCCESS) std::printf("Reduce-sum of div v failed\n");
-        std::printf("Mean-divergence of v-field is %.2e\n",divvfield*param->lx/(2 * ntotal_complex));
+        if (stat != CUBLAS_STATUS_SUCCESS) std::printf("-Reduce-sum of div v failed\n");
+        std::printf("----Mean-divergence of v-field is %.2e\n",divvfield*param->lx/(2 * ntotal_complex));
 
          #ifdef MHD
             // compute mean divergence for magnetic field    
@@ -47,8 +53,8 @@ void Fields::ComputeDivergence( ){
             // DoubleAbsolute<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) d_tmparray_r[0], (scalar_type *) d_tmparray_r[0], (size_t) ntotal_complex);
             // reduce sum
             stat = cublasDasum(handle0, 2 * ntotal_complex, d_tmparray_r[0], 1, &divBfield);
-            if (stat != CUBLAS_STATUS_SUCCESS) std::printf("Reduce-sum of div B failed\n");
-            std::printf("Mean-divergence of B-field is %.2e\n",divBfield*param->lx/(2 * ntotal_complex));
+            if (stat != CUBLAS_STATUS_SUCCESS) std::printf("-Reduce-sum of div B failed\n");
+            std::printf("----Mean-divergence of B-field is %.2e\n",divBfield*param->lx/(2 * ntotal_complex));
          #endif
     #endif
 
