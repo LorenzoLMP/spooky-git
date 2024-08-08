@@ -78,6 +78,7 @@ public:
     void CleanFieldDivergence( );
     void CheckSymmetries();
 
+    void Boussinesq();
     void AnisotropicConduction();
     void EntropyStratification();
 

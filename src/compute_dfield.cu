@@ -133,158 +133,150 @@ void Fields::compute_dfield() {
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     MagneticShear<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *)d_all_tmparray + ntotal_complex * num_fields, (data_type *) d_all_dfields, (scalar_type *)wavevector.d_mask, ntotal_complex);
 
-    // for explicit treatment of diffusion terms
-    // point d_all_fields at BX
-    nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields + ntotal_complex * BX, (data_type *) d_all_dfields + ntotal_complex * BX, param->nu_m, (size_t) ntotal_complex, ADD);
+
 
 #endif
 
 #ifdef BOUSSINESQ
-    // for hydro-Boussinesq computation of u nabla theta can go here
-
-    // first compute energy flux vector [ u_x theta, u_y theta, u_z theta]
-    // we can re-utilize tmparrays and store result in tmparray_r[num_fields] - tmparray_r[num_fields + 3]
-    blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    EnergyFluxVector<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)d_all_tmparray, (scalar_type *)d_all_tmparray + 2 * ntotal_complex * num_fields,  2 * ntotal_complex);
-
-    // scalar_type *host_tmp;
-    // host_tmp = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * 2 * ntotal_complex );
-    // for (int i = 0; i < 2 * ntotal_complex ; i++){
-    //     host_tmp[i] = 0.0;
-    // }
-    // CUDA_RT_CALL(cudaMemcpy(host_tmp, (scalar_type*)d_tmparray_r[4], sizeof(scalar_type) * 2 * ntotal_complex , cudaMemcpyDeviceToHost));
-    // unsigned int idx;
-    // for (int i = 25; i < 32; i++){
-    //     idx =  (nz/2+1)*2 * ( i * ny);
-    //     // std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, farray_r[0][idx], idx, farray_r[1][idx]);
-    //     for (int n = 0; n < 1; n++){
-    //         std::printf("tmp[%d][%d] = %.3e \t", n, idx, host_tmp[idx]);
-    //     }
-    //     std::cout << std::endl;
-    // }
-    // for (int i = 0; i < 2 * ntotal_complex ; i++){
-    //     if (host_tmp[i] != 0.0) {
-    //         std::printf("BREAK:   tmp[%d] = %.3e \n", i, host_tmp[i]);
-    //         break;
-    //     }
-    // }
-    // free(host_tmp);
-
-    // take fourier transforms of the 3 energy flux vector components
-    for (int n = num_fields ; n < num_fields + 3; n++) {
-        r2c_fft(d_tmparray_r[n], d_tmparray[n]);
-    }
-
-    // scalar_type *host_tmp;
-    // host_tmp = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * 2 * ntotal_complex );
-    // for (int i = 0; i < 2 * ntotal_complex ; i++){
-    //     host_tmp[i] = 0.0;
-    // }
-    // CUDA_RT_CALL(cudaMemcpy(host_tmp, (scalar_type*)d_tmparray[4], sizeof(scalar_type) * 2 * ntotal_complex , cudaMemcpyDeviceToHost));
-    // unsigned int idx;
-    // for (int i = 0; i < 25; i++){
-    //     idx =  (nz/2+1)*2 * ( i * ny);
-    //     // std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, farray_r[0][idx], idx, farray_r[1][idx]);
-    //     for (int n = 0; n < 1; n++){
-    //         std::printf("tmp[%d][%d] = %.3e \t", n, idx, host_tmp[idx]);
-    //     }
-    //     std::cout << std::endl;
-    // }
-    // free(host_tmp);
-
-    // compute derivative of energy flux vector and assign u nabla theta to the dfield for theta
-    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    NonLinBoussinesqAdv<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *)d_all_tmparray + ntotal_complex * num_fields, (data_type *) d_all_dfields, (scalar_type *)wavevector.d_mask, ntotal_complex);
-
-
-
-#ifdef STRATIFICATION
-    EntropyStratification();
-    // add - th e_strat to velocity component in the strat direction
-    // add N2 u_strat to temperature equation
-    // this is for normalization where theta is in units of g [L/T^2]
-    // other normalizations possible
-    // blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    // BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)d_all_fields, (data_type *) d_all_dfields, param->N2, ntotal_complex, STRAT_DIR);
+    // This function assumes that the real transforms of the fields are stored in tmparrays_r[0] - tmparray_r[num_fields - 1]
+    Boussinesq();
 #endif
 
-#ifndef ANISOTROPIC_DIFFUSION
-    //  for explicit treatment of energy diffusion term
-    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_farray[TH], (data_type *) d_dfarray[TH], param->nu_th, (size_t) ntotal_complex, ADD);
-#else
-#ifdef MHD
-    AnisotropicConduction();
-    /*
-    // assign Bx, By, Bz to first 3 scratch arrays
-    blocksPerGrid = ( 3 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((cufftDoubleComplex *)d_all_fields + ntotal_complex * BX, (cufftDoubleComplex *)d_all_tmparray, 3 * ntotal_complex);
-    // compute gradient of theta and assign it to next 3 scratch arrays
-    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    Gradient<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *) d_farray[TH], (data_type *)d_all_tmparray + 3 * ntotal_complex, ntotal_complex);
-    // compute complex to real iFFTs
-    for (int n = 0; n < 6; n++){
-        c2r_fft(d_tmparray[n], d_tmparray_r[n]);
-    }
-    // compute the scalar B grad theta (real space) and assign it to 7th scratch array
-    blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    ComputeBGradTheta<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *) d_tmparray_r[0], (scalar_type *) d_tmparray_r[3], (scalar_type *) d_tmparray_r[6], 2 * ntotal_complex);
-    // compute the anisotropic heat flux and put it in the 3-4-5 tmp arrays
-    ComputeAnisotropicHeatFlux<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *) d_tmparray_r[0], (scalar_type *) d_tmparray_r[6], (scalar_type *) d_tmparray_r[3], param->OmegaT2, (1./param->reynolds_ani), 2 * ntotal_complex, STRAT_DIR);
-    // take fourier transforms of the heat flux
-    for (int n = 3 ; n < 6; n++) {
-        r2c_fft(d_tmparray_r[n], d_tmparray[n]);
-    }
-    // take divergence of heat flux
-    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *) d_tmparray[3], (data_type *) d_all_dfields + TH * ntotal_complex, (scalar_type *)wavevector.d_mask, ntotal_complex, ADD);
-    */
-#endif   // MHD
-#endif   // ANISOTROPIC_DIFFUSION
+// #ifdef BOUSSINESQ
+//     // for hydro-Boussinesq computation of u nabla theta can go here
+//
+//     // first compute energy flux vector [ u_x theta, u_y theta, u_z theta]
+//     // we can re-utilize tmparrays and store result in tmparray_r[num_fields] - tmparray_r[num_fields + 3]
+//     blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+//     EnergyFluxVector<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)d_all_tmparray, (scalar_type *)d_all_tmparray + 2 * ntotal_complex * num_fields,  2 * ntotal_complex);
+//
+//     // scalar_type *host_tmp;
+//     // host_tmp = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * 2 * ntotal_complex );
+//     // for (int i = 0; i < 2 * ntotal_complex ; i++){
+//     //     host_tmp[i] = 0.0;
+//     // }
+//     // CUDA_RT_CALL(cudaMemcpy(host_tmp, (scalar_type*)d_tmparray_r[4], sizeof(scalar_type) * 2 * ntotal_complex , cudaMemcpyDeviceToHost));
+//     // unsigned int idx;
+//     // for (int i = 25; i < 32; i++){
+//     //     idx =  (nz/2+1)*2 * ( i * ny);
+//     //     // std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, farray_r[0][idx], idx, farray_r[1][idx]);
+//     //     for (int n = 0; n < 1; n++){
+//     //         std::printf("tmp[%d][%d] = %.3e \t", n, idx, host_tmp[idx]);
+//     //     }
+//     //     std::cout << std::endl;
+//     // }
+//     // for (int i = 0; i < 2 * ntotal_complex ; i++){
+//     //     if (host_tmp[i] != 0.0) {
+//     //         std::printf("BREAK:   tmp[%d] = %.3e \n", i, host_tmp[i]);
+//     //         break;
+//     //     }
+//     // }
+//     // free(host_tmp);
+//
+//     // take fourier transforms of the 3 energy flux vector components
+//     for (int n = num_fields ; n < num_fields + 3; n++) {
+//         r2c_fft(d_tmparray_r[n], d_tmparray[n]);
+//     }
+//
+//     // scalar_type *host_tmp;
+//     // host_tmp = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * 2 * ntotal_complex );
+//     // for (int i = 0; i < 2 * ntotal_complex ; i++){
+//     //     host_tmp[i] = 0.0;
+//     // }
+//     // CUDA_RT_CALL(cudaMemcpy(host_tmp, (scalar_type*)d_tmparray[4], sizeof(scalar_type) * 2 * ntotal_complex , cudaMemcpyDeviceToHost));
+//     // unsigned int idx;
+//     // for (int i = 0; i < 25; i++){
+//     //     idx =  (nz/2+1)*2 * ( i * ny);
+//     //     // std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, farray_r[0][idx], idx, farray_r[1][idx]);
+//     //     for (int n = 0; n < 1; n++){
+//     //         std::printf("tmp[%d][%d] = %.3e \t", n, idx, host_tmp[idx]);
+//     //     }
+//     //     std::cout << std::endl;
+//     // }
+//     // free(host_tmp);
+//
+//     // compute derivative of energy flux vector and assign u nabla theta to the dfield for theta
+//     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+//     NonLinBoussinesqAdv<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *)d_all_tmparray + ntotal_complex * num_fields, (data_type *) d_all_dfields, (scalar_type *)wavevector.d_mask, ntotal_complex);
+//
+//
+//
+// #ifdef STRATIFICATION
+//     EntropyStratification();
+//     // add - th e_strat to velocity component in the strat direction
+//     // add N2 u_strat to temperature equation
+//     // this is for normalization where theta is in units of g [L/T^2]
+//     // other normalizations possible
+//     // blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+//     // BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)d_all_fields, (data_type *) d_all_dfields, param->N2, ntotal_complex, STRAT_DIR);
+// #endif
+//
+// #ifndef ANISOTROPIC_DIFFUSION
+//     //  for explicit treatment of energy diffusion term
+//     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+//     nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_farray[TH], (data_type *) d_dfarray[TH], param->nu_th, (size_t) ntotal_complex, ADD);
+// #else
+// #ifdef MHD
+//     AnisotropicConduction();
+//     /*
+//     // assign Bx, By, Bz to first 3 scratch arrays
+//     blocksPerGrid = ( 3 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+//     ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((cufftDoubleComplex *)d_all_fields + ntotal_complex * BX, (cufftDoubleComplex *)d_all_tmparray, 3 * ntotal_complex);
+//     // compute gradient of theta and assign it to next 3 scratch arrays
+//     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+//     Gradient<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *) d_farray[TH], (data_type *)d_all_tmparray + 3 * ntotal_complex, ntotal_complex);
+//     // compute complex to real iFFTs
+//     for (int n = 0; n < 6; n++){
+//         c2r_fft(d_tmparray[n], d_tmparray_r[n]);
+//     }
+//     // compute the scalar B grad theta (real space) and assign it to 7th scratch array
+//     blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+//     ComputeBGradTheta<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *) d_tmparray_r[0], (scalar_type *) d_tmparray_r[3], (scalar_type *) d_tmparray_r[6], 2 * ntotal_complex);
+//     // compute the anisotropic heat flux and put it in the 3-4-5 tmp arrays
+//     ComputeAnisotropicHeatFlux<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *) d_tmparray_r[0], (scalar_type *) d_tmparray_r[6], (scalar_type *) d_tmparray_r[3], param->OmegaT2, (1./param->reynolds_ani), 2 * ntotal_complex, STRAT_DIR);
+//     // take fourier transforms of the heat flux
+//     for (int n = 3 ; n < 6; n++) {
+//         r2c_fft(d_tmparray_r[n], d_tmparray[n]);
+//     }
+//     // take divergence of heat flux
+//     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+//     DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *) d_tmparray[3], (data_type *) d_all_dfields + TH * ntotal_complex, (scalar_type *)wavevector.d_mask, ntotal_complex, ADD);
+//     */
+// #endif   // MHD
+// #endif   // ANISOTROPIC_DIFFUSION
+//
+//
+// #endif // Boussinesq
 
-
-#endif // Boussinesq
+/*
+ *
+ * Now we enforce the incompressibility
+ * condition
+ *
+ */
 
 
     // compute pseudo-pressure and subtract grad p_tilde from dfields
+    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     GradPseudoPressure<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)wavevector.d_all_kvec, (data_type *) d_all_dfields, ntotal_complex);
 
 
+/*
+ *
+ * Here we do the diffusion terms
+ *
+ */
 
     // for explicit treatment of diffusion terms
     // with incompressible d_all_fields always points at VX
+    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields, (data_type *) d_all_dfields, param->nu, (size_t) ntotal_complex, ADD);
 
-    // scalar_type *host_tmp;
-    // host_tmp = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * 2 * ntotal_complex * num_fields );
-    // for (int i = 0; i < 2 * ntotal_complex * num_fields; i++){
-    //     host_tmp[i] = 0.0;
-    // }
-    // scalar_type **host_tmparray;
-    // host_tmparray = (scalar_type **) malloc( (size_t) sizeof(scalar_type *) * num_fields);
-    //
-    // for (int i = 0 ; i < num_fields ; i++) {
-    //     host_tmparray[i]   = host_tmp + i*2*ntotal_complex;
-    // }
-    // CUDA_RT_CALL(cudaMemcpy(host_tmp, (scalar_type*)d_all_dfields , sizeof(scalar_type) * 2 * ntotal_complex * num_fields, cudaMemcpyDeviceToHost));
-    // unsigned int idx;
-    // for (int i = 0; i < 25; i++){
-    //     idx =  (nz/2+1)*2 * ( i * ny);
-    //     // std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, farray_r[0][idx], idx, farray_r[1][idx]);
-    //     for (int n = 0; n < num_fields; n++){
-    //         std::printf("tmp[%d][%d] = %.3e \t", n, idx, host_tmparray[n][idx]);
-    //     }
-    //     std::cout << std::endl;
-    // }
-    // free(host_tmp);
-    // free(host_tmparray);
-
-
-    // r2c_fft(d_farray_r[VX], d_farray[VX]);
-    // r2c_fft(d_farray_r[VY], d_farray[VY]);
-    // r2c_fft(d_farray_r[VZ], d_farray[VZ]);
-
-    // std::printf("INCOMPRESSIBLE module not yet implemented \n");
+#ifdef MHD
+    // for explicit treatment of diffusion terms
+    // point d_all_fields at BX
+    nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields + ntotal_complex * BX, (data_type *) d_all_dfields + ntotal_complex * BX, param->nu_m, (size_t) ntotal_complex, ADD);
+#endif
 
 
 
