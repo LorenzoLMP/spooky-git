@@ -8,6 +8,6 @@
 
 // #define HEAT_EQ
 
-#define BOUSSINESQ
-#define STRATIFICATION
-#define STRAT_DIR    2
+// #define BOUSSINESQ
+// #define STRATIFICATION
+// #define STRAT_DIR    2
