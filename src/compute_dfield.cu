@@ -199,12 +199,13 @@ void Fields::compute_dfield() {
 
 
 #ifdef STRATIFICATION
+    EntropyStratification();
     // add - th e_strat to velocity component in the strat direction
     // add N2 u_strat to temperature equation
     // this is for normalization where theta is in units of g [L/T^2]
     // other normalizations possible
-    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)d_all_fields, (data_type *) d_all_dfields, param->N2, ntotal_complex, STRAT_DIR);
+    // blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    // BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)d_all_fields, (data_type *) d_all_dfields, param->N2, ntotal_complex, STRAT_DIR);
 #endif
 
 #ifndef ANISOTROPIC_DIFFUSION
@@ -305,25 +306,4 @@ void Fields::compute_dfield() {
 
 }
 
-
-// void laplacianScalar(scalar_type **d_kvec, cufftDoubleComplex *scalar_input, cufftDoubleComplex *scalar_output, double rescale, int flag){
-//     // the scalar field is complex and resides on device
-//     // flag is ASS=0 (assign) or ADD=1 (add)
-//     int blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-//     nablaOp<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) d_kvec[KX],  (scalar_type *) d_kvec[KY], (scalar_type *) d_kvec[KZ], (cufftDoubleComplex *) scalar_input, (cufftDoubleComplex *) scalar_output, rescale, (size_t) ntotal_complex, flag);
-// }
-
-
-// void laplacianVector(scalar_type **d_kvec, cufftDoubleComplex *vector_input, cufftDoubleComplex *vector_output, double rescale, int flag){
-// }
-
-// void advectFields(scalar_type **d_kvec, cufftDoubleComplex **array_input, cufftDoubleComplex **array_output, cufftDoubleComplex **scratch, int flag){
-//     // we are assuming that the first 3 arrays are always vx vy vz
-//     for (int n = 0 ; n < num_fields ; n++) {
-//         c2r_fft(array_input[n], scratch[n]);
-//     }
-//
-//     RRvectorMultiply(const scalar_type *A, const scalar_type *B, scalar_type *C, scalar_type a, size_t N)
-//
-// }
 

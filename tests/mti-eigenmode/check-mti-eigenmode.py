@@ -8,7 +8,7 @@ import glob
 
 # test script expects the executable as argument
 
-nx = 1024
+nx = 512
 ny = 4
 nz = 4
 

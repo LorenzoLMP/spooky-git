@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
     displayConfiguration(&fields, param);
 
-#ifdef DEBUG
+#ifdef DDEBUG
     fields.wavevector.print_values();
     fields.print_host_values();
 #endif
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
     fields.clean_gpu();
     std::printf("Finished fields gpu cleanup\n");
 
-#ifdef DEBUG
+#ifdef DDEBUG
     // fields.wavevector.print_values();
     fields.print_host_values();
 #endif

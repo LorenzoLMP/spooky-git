@@ -79,6 +79,7 @@ public:
     void CheckSymmetries();
 
     void AnisotropicConduction();
+    void EntropyStratification();
 
     ~Fields();
 };
