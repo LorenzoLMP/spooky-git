@@ -1,4 +1,5 @@
 #include <iostream>
+#include "spooky_outputs.hpp"
 
 class Parameters {       // The class
   public:             // Access specifier
@@ -73,7 +74,8 @@ class Parameters {       // The class
 
 	int		output_vorticity;	/**< Output the vorticity field in the 3D snapshots */
 
-	// struct VarName timevar_vars;	/**< Name of the variables needed in the timevar file */
+	SpookyOutput spookyOutVar;	/**< Name of the variables needed in the timevar file */
+	SpookyOutput userOutVar;	/**< User-defined output vars */
 	// struct VarName profile_vars; /**< Name of the variables needed in the profile outputs */
 
 	// initial conditions

@@ -43,7 +43,8 @@ public:
     double current_dt;
     double current_time;
     int stage_step;
-    double t_lastsnap;
+    double t_lastsnap; // for snapshot
+    double t_lastvar;  // for volume avg/ spectral qts.
     int num_save;
     unsigned int current_step;
     data_type *all_fields, *all_dfields;
@@ -70,8 +71,11 @@ public:
     void compute_dfield();
     void compute_dt();
     void copy_back_to_host();
+
     void CheckOutput();
     void write_data_file();
+    void write_data_output();
+
     void clean_gpu();
     void RungeKutta3();
     void ComputeDivergence();

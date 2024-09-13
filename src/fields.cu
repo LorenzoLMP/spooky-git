@@ -18,6 +18,7 @@ Fields::Fields( int num, Parameters *p_in ) : wavevector(p_in->lx, p_in->ly, p_i
     current_time = 0.0;
     current_step = 0;
     t_lastsnap = 0.0;
+    t_lastvar = 0.0;
     num_save = 0;
 
     param = p_in;

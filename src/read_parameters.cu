@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
+#include <cstring>
 // #include "libconfig/libconfig.h++"
 #include <libconfig.h>
 // #include "common.hpp"
@@ -222,21 +223,21 @@ void Parameters::read_Parameters(std::string input_dir) {
 		// 	// ERROR_HANDLER(ERROR_WARNING, "You did not provide any variable in timevar outputs");
 		// }
 		// else {
-		// 	timevar_vars.length = config_setting_length( setting );
+		spookyOutVar.length = config_setting_length( setting );
   //
-		// 	// Allocate output_vars
-		// 	timevar_vars.name = malloc( timevar_vars.length * sizeof(char*) );
+		// Allocate spooky output_vars
+		spookyOutVar.name = malloc( spookyOutVar.length * sizeof(char*) );
   //
-		// 	for(i = 0 ; i < timevar_vars.length ; i++) {
-		// 		temp_string = config_setting_get_string_elem( setting, i);
-  //
-		// 		// Allocate the string
-		// 		timevar_vars.name[i] = malloc( sizeof(char) * (strlen(temp_string) + 1));
-  //
-		// 		// Copy the string in the right location
-		// 		strcpy(timevar_vars.name[i], temp_string);
-		// 	}
-		// }
+		for(i = 0 ; i < spookyOutVar.length ; i++) {
+			temp_string = config_setting_get_string_elem( setting, i);
+
+			// Allocate the string
+			spookyOutVar.name[i] = malloc( sizeof(char) * (strlen(temp_string) + 1));
+
+			// Copy the string in the right location
+			strcpy(spookyOutVar.name[i], temp_string);
+		}
+	// }
 		if(!config_lookup_int(&config, "output.profile_dir",&tmp_v)) {
 			profile_dir = 0;
 		}
@@ -245,7 +246,7 @@ void Parameters::read_Parameters(std::string input_dir) {
 		}
 
 		// find which parameters are requested in the profile file
-		setting = config_lookup(&config, "output.profile_vars");
+		// setting = config_lookup(&config, "output.profile_vars");
 
 		// if(setting == NULL) {
 		// 	// ERROR_HANDLER(ERROR_WARNING, "You did not provide any variable in profile outputs");

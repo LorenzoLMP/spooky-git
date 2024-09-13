@@ -13,21 +13,21 @@ using namespace HighFive;
 // const std::string file_name("dataset.h5");
 // const std::string dataset_name("dset");
 
-void Fields::CheckOutput(){
-
-    if( (current_time-t_lastsnap)>=param->toutput_flow) {
-        // ComputeDivergence();
-        CleanFieldDivergence();
-        // ComputeDivergence();
-        std::printf("Starting copy back to host\n");
-        copy_back_to_host();
-        std::printf("Saving data file at step n. %d \n",current_step);
-        std::printf("Saving data file at t= %.6e \n",current_time);
-        write_data_file();
-        t_lastsnap += param->toutput_flow;
-        num_save++;
-    }
-}
+// void Fields::CheckOutput(){
+//
+//     if( (current_time-t_lastsnap)>=param->toutput_flow) {
+//         // ComputeDivergence();
+//         CleanFieldDivergence();
+//         // ComputeDivergence();
+//         std::printf("Starting copy back to host\n");
+//         copy_back_to_host();
+//         std::printf("Saving data file at step n. %d \n",current_step);
+//         std::printf("Saving data file at t= %.6e \n",current_time);
+//         write_data_file();
+//         t_lastsnap += param->toutput_flow;
+//         num_save++;
+//     }
+// }
 
 void Fields::write_data_file() {
 

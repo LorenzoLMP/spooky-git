@@ -6,8 +6,11 @@ ${PROJECT_SOURCE_DIR}/src/wavevector.cu
 ${PROJECT_SOURCE_DIR}/src/hydro_mhd_advance.cu
 ${PROJECT_SOURCE_DIR}/src/compute_dfield.cu
 ${PROJECT_SOURCE_DIR}/src/compute_dt.cu
-${PROJECT_SOURCE_DIR}/src/hdf5_io.cu
-${PROJECT_SOURCE_DIR}/src/hdf5_io.hpp
+${PROJECT_SOURCE_DIR}/src/output/hdf5_io.cu
+${PROJECT_SOURCE_DIR}/src/output/hdf5_io.hpp
+${PROJECT_SOURCE_DIR}/src/output/spooky_outputs.hpp
+${PROJECT_SOURCE_DIR}/src/output/check_output.cu
+${PROJECT_SOURCE_DIR}/src/output/output_timevar.cu
 ${PROJECT_SOURCE_DIR}/src/cublas_routines.cu
 ${PROJECT_SOURCE_DIR}/src/cublas_routines.hpp
 ${PROJECT_SOURCE_DIR}/src/cuda_kernels.cu

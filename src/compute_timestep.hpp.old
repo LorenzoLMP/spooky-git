@@ -1,4 +1,0 @@
-#include "define_types.hpp"
-
-
-void compute_dfield( double &dt, data_type **d_farray, data_type **d_dfarray, int step );
