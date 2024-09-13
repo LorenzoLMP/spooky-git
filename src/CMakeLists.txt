@@ -2,6 +2,10 @@ include_directories(
 ${PROJECT_SOURCE_DIR}/problems/generic/
 )
 
+include_directories(
+${PROJECT_SOURCE_DIR}/src/output/
+)
+
 
 include(list_source_files.txt)
 
