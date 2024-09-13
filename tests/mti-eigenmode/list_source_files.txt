@@ -28,4 +28,5 @@ ${PROJECT_SOURCE_DIR}/src/symmetries.cu
 ${PROJECT_SOURCE_DIR}/src/physics/boussinesq/boussinesq.cu
 ${PROJECT_SOURCE_DIR}/src/physics/anisotropic_conduction/anisotropic_conduction.cu
 ${PROJECT_SOURCE_DIR}/src/physics/entropy_stratification/entropy_stratification.cu
+${PROJECT_SOURCE_DIR}/src/common.hpp
 )

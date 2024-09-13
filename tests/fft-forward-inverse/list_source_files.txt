@@ -8,4 +8,5 @@ ${PROJECT_SOURCE_DIR}/src/cufft_routines.hpp
 ${PROJECT_SOURCE_DIR}/src/define_types.hpp
 ${PROJECT_SOURCE_DIR}/src/tests.cu
 ${PROJECT_SOURCE_DIR}/src/tests.hpp
+${PROJECT_SOURCE_DIR}/src/common.hpp
 )
