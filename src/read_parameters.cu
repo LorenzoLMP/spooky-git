@@ -6,11 +6,22 @@
 #include <libconfig.h>
 // #include "common.hpp"
 #include "parameters.hpp"
+// #include "spooky_outputs.hpp"
 
 #define SPOOKY_CONFIG_FILENAME		"spooky.cfg"
 // #define CONFIG_FILENAME		"./spooky.cfg"
 
+
+// SpookyOutput::SpookyOutput() {
+//     // double lx, ly, lz;
+//     // read_Parameters();
+// }
+//
+// SpookyOutput::~SpookyOutput() {
+// }
+
 Parameters::Parameters() {
+	SpookyOutput spookyOutVar;
     // double lx, ly, lz;
     // read_Parameters();
 }
@@ -36,6 +47,8 @@ void Parameters::read_Parameters(std::string input_dir) {
 	const char * temp_string;
 
     const char * temp_output;
+
+	// SpookyOutput spookyOutVar;
 	// DEBUG_START_FUNC;
 
 	// if(rank==0) {
@@ -225,18 +238,25 @@ void Parameters::read_Parameters(std::string input_dir) {
 		// else {
 		spookyOutVar.length = config_setting_length( setting );
   //
+		std::printf("length timevar array = %d \n",spookyOutVar.length);
 		// Allocate spooky output_vars
-		spookyOutVar.name = malloc( spookyOutVar.length * sizeof(char*) );
+		// std::vector<std::string> spookyOutVar.name
+		spookyOutVar.name.resize(spookyOutVar.length);
+		// spookyOutVar.name = malloc( spookyOutVar.length * sizeof(char*) );
   //
+		std::cout << "The following quantities will be computes: \t";
 		for(i = 0 ; i < spookyOutVar.length ; i++) {
 			temp_string = config_setting_get_string_elem( setting, i);
 
 			// Allocate the string
-			spookyOutVar.name[i] = malloc( sizeof(char) * (strlen(temp_string) + 1));
+			// spookyOutVar.name[i] = malloc( sizeof(char) * (strlen(temp_string) + 1));
 
 			// Copy the string in the right location
-			strcpy(spookyOutVar.name[i], temp_string);
+			// strcpy(spookyOutVar.name[i], temp_string);
+			std::cout << std::string(temp_string) << "\t";
+			spookyOutVar.name[i] = std::string(temp_string);
 		}
+		std::cout << std::endl;
 	// }
 		if(!config_lookup_int(&config, "output.profile_dir",&tmp_v)) {
 			profile_dir = 0;

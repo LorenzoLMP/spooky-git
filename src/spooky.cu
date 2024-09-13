@@ -72,10 +72,19 @@ int main(int argc, char *argv[]) {
     fields.print_host_values();
 #endif
 
+    std::printf("Allocating to gpu...\n");
+    fields.allocate_and_move_to_gpu();
+
+    // fields.print_device_values();
+
+    fields.CheckSymmetries();
+
+    std::printf("Initial data dump...\n");
     try {
     // fields.CheckOutput();
     fields.write_data_file();
     fields.num_save++;
+    fields.write_data_output();
     }
     catch (const std::exception& err) {
     std::cerr << err.what() << std::endl;
@@ -86,12 +95,7 @@ int main(int argc, char *argv[]) {
     // wavevector is a member of Fields
     // fields.wavevector.print_values();
 
-    std::printf("Allocating to gpu\n");
-    fields.allocate_and_move_to_gpu();
 
-    // fields.print_device_values();
-
-    fields.CheckSymmetries();
 
     while (fields.current_time < param->t_final) {
 
@@ -157,11 +161,15 @@ void displayConfiguration(Fields *fields, Parameters *param){
 
     std::printf("lx = %f \t ly = %f \t lz = %f\n",param->lx, param->ly, param->lz);
     std::printf("kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",fields->wavevector.kxmax,fields->wavevector.kymax, fields->wavevector.kzmax);
-
+#ifdef BOUSSINESQ
     std::printf("nu_th = %.2e \n",param->nu_th);
+#endif
     std::printf("nu = %.2e \n",param->nu);
+#ifdef STRATIFICATION
     std::printf("N2 = %.2e \n",param->N2);
+#endif
     std::printf("t_final = %.2e \n",param->t_final);
     std::printf("Enforcing symmetries every %d steps \n",param->symmetries_step);
     std::printf("Saving snapshot every  dt = %.2e \n",param->toutput_flow);
+    std::printf("Saving timevar every  dt = %.2e \n",param->toutput_time);
 }

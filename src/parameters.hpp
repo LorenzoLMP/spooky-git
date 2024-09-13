@@ -1,5 +1,20 @@
 #include <iostream>
+// #include "spooky_outputs.hpp"
+// #include <vector>
+// #include <array>
+// #include <complex>
+#include "define_types.hpp"
 #include "spooky_outputs.hpp"
+
+// class SpookyOutput { // The class
+//     public:
+//         int length; // Number of spooky variables
+//         // void* name; // Names of variables (need to be allocated properly)
+//         std::vector<std::string> name;
+//         // scalar_type computeEnergy(data_type *d_all_tmparray);
+//         SpookyOutput();
+//         ~SpookyOutput();
+// };
 
 class Parameters {       // The class
   public:             // Access specifier
@@ -75,7 +90,7 @@ class Parameters {       // The class
 	int		output_vorticity;	/**< Output the vorticity field in the 3D snapshots */
 
 	SpookyOutput spookyOutVar;	/**< Name of the variables needed in the timevar file */
-	SpookyOutput userOutVar;	/**< User-defined output vars */
+	// SpookyOutput userOutVar;	/**< User-defined output vars */
 	// struct VarName profile_vars; /**< Name of the variables needed in the profile outputs */
 
 	// initial conditions
