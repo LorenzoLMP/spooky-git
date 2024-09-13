@@ -11,6 +11,9 @@
 #define KX 0
 #define KY 1
 #define KZ 2
+// #ifdef SHEAR
+//     #define KXt 3
+// #endif
 
 #define ASS 0
 #define ADD 1

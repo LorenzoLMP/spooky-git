@@ -48,6 +48,8 @@ __global__ void Divergence( const scalar_type *d_all_kvec, const data_type *X, d
 // __global__ void CleanDivergence( const scalar_type *d_all_kvec, const cufftDoubleComplex *X, cufftDoubleComplex *Z, size_t N);
 __global__ void CleanDivergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N);
 
+__global__ void ShearWavevector( scalar_type *kx, const scalar_type *ky, double tremap, double kxmin, const size_t *fft_size, size_t N);
+
 // absolute<T> computes the absolute value of a number f(x) -> |x|
 template <typename T>
 struct absolute

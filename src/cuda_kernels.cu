@@ -352,3 +352,30 @@ __global__ void BoussinesqStrat( const data_type *d_all_fields, data_type *d_all
 }
 
 #endif
+
+// #ifdef SHEAR
+
+
+__global__ void ShearWavevector( scalar_type *kx, const scalar_type *ky, double tremap, double kxmin, const size_t *fft_size, size_t N) {
+    
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    int idx_i, idx_tmp;
+    // size_t nx, ny, nz;
+    // nx = fft_size[0];
+    // ny = fft_size[1];
+    // nz = fft_size[2];
+
+    if (i < N) {
+        // decompose i into idx_i, idx_j, idx_k
+        // i = k + (nz/2+1) * (j + i * ny)
+        // idx_tmp = (j + i * ny) = i // (nz/2+1)
+        idx_tmp = floor(i / (fft_size[2]/2+1));
+        idx_i = floor(idx_tmp / fft_size[1]);
+
+        kx[i] = kxmin * (fmod( (double) idx_i + ( (double) fft_size[0] / 2) ,  fft_size[0] ) - (double) fft_size[0] / 2 ) + tremap * ky[i];
+
+        
+    }
+}
+
+// #endif

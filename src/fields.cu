@@ -7,7 +7,7 @@
 #include "cuda_kernels.hpp"
 // #include "wavevector.hpp"
 
-Fields::Fields( int num, Parameters *p_in ) : wavevector(p_in->lx, p_in->ly, p_in->lz) {
+Fields::Fields( int num, Parameters *p_in ) : wavevector(p_in) {
     num_fields = num;
     std::printf("num_fields: %d \n",num_fields);
 

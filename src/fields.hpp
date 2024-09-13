@@ -21,12 +21,14 @@ public:
     scalar_type *d_mask;
     scalar_type lx, ly, lz;
 
-    Wavevector(scalar_type Lx, scalar_type Ly, scalar_type Lz);
+    // double tremap;
+
+    Wavevector(Parameters *p_in);
 
     void init_Wavevector();
     void print_values();
     void allocate_and_move_to_gpu();
-    void shear_Wavevector( double t, double dt);
+    void shear_Wavevector(double tremap);
     void sync_with_host();
     void clean_gpu();
     ~Wavevector();

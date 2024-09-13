@@ -6,6 +6,7 @@
 #include "fields.hpp"
 #include "common.hpp"
 // extern Parameters param;
+#include "cuda_kernels.hpp"
 
 // Wavevector::Wavevector() {
 //     lx = 0.0; ly = 0.0; lz = 0.0;
@@ -32,20 +33,26 @@
 //     init_Wavevector();
 //     }
 
-Wavevector::Wavevector(scalar_type Lx, scalar_type Ly, scalar_type Lz) {
-    lx = Lx; ly = Ly; lz = Lz;
-    // std::printf("baginning of wave\n");
+Wavevector::Wavevector(Parameters *p_in) {
+    lx = p_in->lx; ly = p_in->ly; lz = p_in->lz;
+    
+    int num_wavevec = 3;
+    // #ifdef SHEAR 
+    //     num_wavevec += 1;
+    // #endif
     // all_kvec contains kx ky kz sequentially
-    all_kvec = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex * 3);
+    // with shear there is an extra kxt at the end
+    // maybe not necessary
+    all_kvec = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex * num_wavevec);
     // kvec is array of arrays such that kvec[0] = kx, etc
-    kvec = (scalar_type **) malloc( (size_t) sizeof(scalar_type) * 3);
+    kvec = (scalar_type **) malloc( (size_t) sizeof(scalar_type) * num_wavevec);
     // init kvec
     // std::printf("before init kvec\n");
-    for (int i = 0 ; i < 3 ; i++) {
+    for (int i = 0 ; i < num_wavevec ; i++) {
         kvec[i]   = all_kvec + i*ntotal_complex;
     }
 
-    d_kvec = (scalar_type **) malloc( (size_t) sizeof(scalar_type *) * 3);
+    d_kvec = (scalar_type **) malloc( (size_t) sizeof(scalar_type *) * num_wavevec);
     // kxt = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
     // ky = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
     // kz = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
@@ -78,6 +85,9 @@ void Wavevector::init_Wavevector() {
                 kvec[KX][idx] = (2.0 * M_PI) / lx * (fmod( (double) i + ( (double) nx / 2) ,  nx ) - (double) nx / 2 );
                 kvec[KY][idx]  = (2.0 * M_PI) / ly * (fmod( (double) j + ( (double) ny / 2) ,  ny ) - (double) ny / 2 );
                 kvec[KZ][idx]  = (2.0 * M_PI) / lz * (double) k;
+                // #ifdef SHEAR 
+                //     kvec[KXt][idx] = (2.0 * M_PI) / lx * (fmod( (double) i + ( (double) nx / 2) ,  nx ) - (double) nx / 2 );
+                // #endif
             }
         }
     }
@@ -159,8 +169,15 @@ void Wavevector::print_values() {
     // }
 }
 
-void Wavevector::shear_Wavevector( double t, double dt) {
+void Wavevector::shear_Wavevector( double tremap ) {
     // write routines for shearing kxt
+    // tremap is already non-dimensionalized qty: param.shear * tremap
+    double kxmin = (2.0 * M_PI) / lx;
+    int blocksPerGrid = (ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+
+    ShearWavevector<<<blocksPerGrid, threadsPerBlock>>>( d_kvec[KX], d_kvec[KY], tremap, kxmin, fft_size, ntotal_complex);
+    
+
 }
 
 void Wavevector::allocate_and_move_to_gpu() {
