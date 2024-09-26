@@ -89,6 +89,20 @@ __global__ void Divergence( const scalar_type *d_all_kvec, const data_type *X, d
     }
 }
 
+// compute curl of a vector field and assign it to the first three output arrays
+__global__ void Curl(const scalar_type *d_all_kvec, const data_type *Vector, data_type *OutVector, size_t N){
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+    if (i < N) {
+        OutVector[0 * N + i] =  imI * ( d_all_kvec[KY * N + i] * Vector[2 * N + i] - d_all_kvec[KZ * N + i] * Vector[    N + i] );
+        OutVector[1 * N + i] =  imI * ( d_all_kvec[KZ * N + i] * Vector[        i] - d_all_kvec[KX * N + i] * Vector[2 * N + i] );
+        OutVector[2 * N + i] =  imI * ( d_all_kvec[KX * N + i] * Vector[1 * N + i] - d_all_kvec[KY * N + i] * Vector[        i] );
+
+    }
+
+}
+
 __global__ void CleanDivergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // int KX = 0; int KY = 1; int KZ = 2;

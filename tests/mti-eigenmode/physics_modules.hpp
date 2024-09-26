@@ -6,7 +6,7 @@
 #define MHD
 #define ANISOTROPIC_DIFFUSION
 
-#define DEBUG
+// #define DEBUG
 
 
 #define BOUSSINESQ

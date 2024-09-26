@@ -244,7 +244,7 @@ void Parameters::read_Parameters(std::string input_dir) {
 		spookyOutVar.name.resize(spookyOutVar.length);
 		// spookyOutVar.name = malloc( spookyOutVar.length * sizeof(char*) );
   //
-		std::cout << "The following quantities will be computes: \t";
+		std::cout << "The following quantities will be computed: \t";
 		for(i = 0 ; i < spookyOutVar.length ; i++) {
 			temp_string = config_setting_get_string_elem( setting, i);
 

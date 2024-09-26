@@ -250,46 +250,46 @@ void Fields::print_host_values() {
 }
 
 void Fields::print_device_values() {
-    data_type *all_fields_bis, *all_dfields_bis;
+    data_type *all_fields_bis;
+    // data_type *all_dfields_bis;
     all_fields_bis = (data_type *) malloc( (size_t) sizeof(data_type) * ntotal_complex * num_fields);
-    all_dfields_bis = (data_type *) malloc( (size_t) sizeof(data_type) * ntotal_complex * num_fields);
+    // all_dfields_bis = (data_type *) malloc( (size_t) sizeof(data_type) * ntotal_complex * num_fields);
 
 
     for (int i = 0; i < ntotal_complex * num_fields; i++){
         all_fields_bis[i] = data_type(0.0,0.0);
-        all_dfields_bis[i] = data_type(0.0,0.0);
+        // all_dfields_bis[i] = data_type(0.0,0.0);
     }
 
     // // transform from complex to real before moving over to host
 
-    // c2r_fft(d_farray[TH], d_farray_r[TH]);
-    // c2r_fft(d_dfarray[TH], d_dfarray_r[TH]);
-    for (int n = 0 ; n < num_fields ; n++) {
-        c2r_fft(d_farray[n], d_farray_r[n]);
-        c2r_fft(d_dfarray[n], d_dfarray_r[n]);
-    }
+    // for (int n = 0 ; n < num_fields ; n++) {
+    //     c2r_fft(d_farray[n], d_farray_r[n]);
+    //     c2r_fft(d_dfarray[n], d_dfarray_r[n]);
+    // }
 
     CUDA_RT_CALL(cudaMemcpy(all_fields_bis, d_all_fields, sizeof(data_type) * ntotal_complex * num_fields, cudaMemcpyDeviceToHost));
-    CUDA_RT_CALL(cudaMemcpy(all_dfields_bis, d_all_dfields, sizeof(data_type) * ntotal_complex * num_fields, cudaMemcpyDeviceToHost));
+    // CUDA_RT_CALL(cudaMemcpy(all_dfields_bis, d_all_dfields, sizeof(data_type) * ntotal_complex * num_fields, cudaMemcpyDeviceToHost));
 
     // // transform from real to complex to resume code execution
-    for (int n = 0 ; n < num_fields ; n++) {
-        r2c_fft(d_farray_r[n], d_farray[n]);
-        r2c_fft(d_dfarray_r[n], d_dfarray[n]);
-    }
+    // for (int n = 0 ; n < num_fields ; n++) {
+    //     r2c_fft(d_farray_r[n], d_farray[n]);
+    //     r2c_fft(d_dfarray_r[n], d_dfarray[n]);
+    // }
 
-    data_type **farray_bis, **dfarray_bis;
-    scalar_type **farray_bis_r, **dfarray_bis_r;
+    data_type **farray_bis;
+    // data_type **dfarray_bis;
+    // scalar_type **farray_bis_r, **dfarray_bis_r;
     farray_bis = (data_type **) malloc( (size_t) sizeof(data_type *) * num_fields);
-    farray_bis_r = (scalar_type **) malloc( (size_t) sizeof(data_type *) * num_fields);
-    dfarray_bis = (data_type **) malloc( (size_t) sizeof(data_type *) * num_fields);
-    dfarray_bis_r = (scalar_type **) malloc( (size_t) sizeof(data_type *) * num_fields);
+    // farray_bis_r = (scalar_type **) malloc( (size_t) sizeof(data_type *) * num_fields);
+    // dfarray_bis = (data_type **) malloc( (size_t) sizeof(data_type *) * num_fields);
+    // dfarray_bis_r = (scalar_type **) malloc( (size_t) sizeof(data_type *) * num_fields);
 
     for (int i = 0 ; i < num_fields ; i++) {
         farray_bis[i]   = all_fields_bis + i*ntotal_complex;
-        farray_bis_r[i] = (scalar_type *) farray_bis[i];
-        dfarray_bis[i]   = all_dfields_bis + i*ntotal_complex;
-        dfarray_bis_r[i] = (scalar_type *) dfarray_bis[i];
+        // farray_bis_r[i] = (scalar_type *) farray_bis[i];
+        // dfarray_bis[i]   = all_dfields_bis + i*ntotal_complex;
+        // dfarray_bis_r[i] = (scalar_type *) dfarray_bis[i];
     }
 
     unsigned int idx;
@@ -304,29 +304,30 @@ void Fields::print_device_values() {
     //     std::cout << std::endl;
     // }
 
+    for (int n = 0; n < num_fields; n++){
+        for (int i = 0; i < 4; i++){
+            for (int j = 0; j < 4; j++){
+                for (int k = 0; k < 4; k++){
+                    idx = k + (nz/2+1) * ( j + i * ny);
+                    // std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, farray_bis_r[0][idx], idx, farray_bis_r[1][idx]);
+                    std::printf("(i,j,k) = (%02d,%02d,%02d), idx = %06d\t",i,j,k, idx);
 
-    for (int i = 0; i < 4; i++){
-        for (int j = 0; j < 2; j++){
-            for (int k = 0; k < 2; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
-                // std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, farray_bis_r[0][idx], idx, farray_bis_r[1][idx]);
-                std::printf("(i,j,k) = (%02d,%02d,%02d), idx = %06d\t",i,j,k, idx);
-                for (int n = 0; n < num_fields; n++){
-                    std::printf("v[%01d] = %.2e  ", n,  farray_bis_r[n][idx]);
-                    std::printf("dv[%01d] = %.2e \t", n,  dfarray_bis_r[n][idx]);
+                    std::printf("v[%01d] = %.2e + 1j %.2e  ", n,  farray_bis[n][idx].real(),farray_bis[n][idx].imag());
+                    std::cout << std::endl;
+                    // std::printf("dv[%01d] = %.2e \t", n,  dfarray_bis_r[n][idx]);
                 }
-                std::cout << std::endl;
+
             }
         }
     }
 
     free(all_fields_bis);
     free(farray_bis);
-    free(farray_bis_r);
+    // free(farray_bis_r);
 
-    free(all_dfields_bis);
-    free(dfarray_bis);
-    free(dfarray_bis_r);
+    // free(all_dfields_bis);
+    // free(dfarray_bis);
+    // free(dfarray_bis_r);
     // for (int i = 0; i < 8; i++){
     //     std::printf("vx[%d] = %f \t vy[%d] = %f \n", i, farray_bis_r[0][i],i, farray_bis_r[1][i]);
     //     // std::printf("vy[%d] %f \n", i, farray_r[1][i]);

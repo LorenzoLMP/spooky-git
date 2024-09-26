@@ -75,6 +75,7 @@ public:
     void CheckOutput();
     void write_data_file();
     void write_data_output();
+    void write_data_output_header();
 
     void clean_gpu();
     void RungeKutta3();

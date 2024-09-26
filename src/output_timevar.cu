@@ -55,15 +55,117 @@ void Fields::write_data_output() {
             // current time
             output_var = current_time;
         }
-        // else if(!param->spookyOutVar.name[i].compare(std::string("ev"))) {
-        //     // kinetic energy
-        //     output_var = param->spookyOutVar.computeEnergy((data_type *) d_all_tmparray);
-        // }
+#ifdef INCOMPRESSIBLE
+        else if(!param->spookyOutVar.name[i].compare(std::string("ev"))) {
+            // kinetic energy
+            output_var = param->spookyOutVar.computeEnergy(d_farray[VX]);
+            output_var += param->spookyOutVar.computeEnergy(d_farray[VY]);
+            output_var += param->spookyOutVar.computeEnergy(d_farray[VZ]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("Kx"))) {
+            // kinetic energy x
+            output_var = param->spookyOutVar.computeEnergy(d_farray[VX]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("Ky"))) {
+            // kinetic energy y
+            output_var = param->spookyOutVar.computeEnergy(d_farray[VY]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("Kz"))) {
+            // kinetic energy z
+            output_var = param->spookyOutVar.computeEnergy(d_farray[VZ]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("vxvy"))) {
+            // reynolds stresses
+            output_var = param->spookyOutVar.twoFieldCorrelation(d_tmparray_r[VX], d_tmparray_r[VY]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("vyvz"))) {
+            // reynolds stresses
+            output_var = param->spookyOutVar.twoFieldCorrelation(d_tmparray_r[VY], d_tmparray_r[VZ]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("vyvz"))) {
+            // reynolds stresses
+            output_var = param->spookyOutVar.twoFieldCorrelation(d_tmparray_r[VY], d_tmparray_r[VZ]);
+        }
+#endif
+#ifdef MHD
+        else if(!param->spookyOutVar.name[i].compare(std::string("em"))) {
+            // magnetic energy
+            output_var = param->spookyOutVar.computeEnergy(d_farray[BX]);
+            output_var += param->spookyOutVar.computeEnergy(d_farray[BY]);
+            output_var += param->spookyOutVar.computeEnergy(d_farray[BZ]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("Mx"))) {
+            // magnetic energy x
+            output_var = param->spookyOutVar.computeEnergy(d_farray[BX]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("My"))) {
+            // magnetic energy y
+            output_var = param->spookyOutVar.computeEnergy(d_farray[BY]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("Mz"))) {
+            // magnetic energy z
+            output_var = param->spookyOutVar.computeEnergy(d_farray[BZ]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("bxby"))) {
+            // maxwell stresses
+            output_var = param->spookyOutVar.twoFieldCorrelation(d_tmparray_r[BX], d_tmparray_r[BY]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("bybz"))) {
+            // maxwell stresses
+            output_var = param->spookyOutVar.twoFieldCorrelation(d_tmparray_r[BY], d_tmparray_r[BZ]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("bybz"))) {
+            // maxwell stresses
+            output_var = param->spookyOutVar.twoFieldCorrelation(d_tmparray_r[BY], d_tmparray_r[BZ]);
+        }
+#endif
+#if defined(BOUSSINESQ) || defined(HEAT_EQ)
+        else if(!param->spookyOutVar.name[i].compare(std::string("et"))) {
+            // thermal/potential energy
+            output_var = param->spookyOutVar.computeEnergy(d_farray[TH]);
+        }
+#endif
+#if defined(BOUSSINESQ) && defined(INCOMPRESSIBLE)
+        else if(!param->spookyOutVar.name[i].compare(std::string("thvx"))) {
+            // convective flux
+            output_var = param->spookyOutVar.twoFieldCorrelation(d_tmparray_r[TH], d_tmparray_r[VX]);
+        }
+        else if(!param->spookyOutVar.name[i].compare(std::string("thvz"))) {
+            // convective flux
+            output_var = param->spookyOutVar.twoFieldCorrelation(d_tmparray_r[TH], d_tmparray_r[VZ]);
+        }
+#endif
         else {
             output_var = -1.0;
         }
 
         outputfile << std::scientific << std::setprecision(8) << output_var << "\t";
+    }
+
+    outputfile << "\n";
+    outputfile.close();
+}
+
+
+void Fields::write_data_output_header() {
+
+#ifdef DEBUG
+    std::printf("Writing data output... \n");
+#endif
+
+    char data_output_name[16];
+    std::sprintf(data_output_name,"timevar.spooky");
+    std::string fname = param->output_dir + std::string("/data/") + std::string(data_output_name);
+
+    std::ofstream outputfile;
+    outputfile.open (fname, std::ios_base::app);
+
+
+    outputfile << "## This file contains the time evolution of the following quantities: \n";
+    outputfile << "## \t";
+
+    for(int i = 0 ; i < param->spookyOutVar.length ; i++) {
+        outputfile << param->spookyOutVar.name[i]  << "\t";
     }
 
     outputfile << "\n";

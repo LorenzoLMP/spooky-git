@@ -9,8 +9,12 @@ class SpookyOutput { // The class
         int length; // Number of spooky variables
         // void* name; // Names of variables (need to be allocated properly)
         std::vector<std::string> name;
-        scalar_type computeEnergy(data_type *d_all_tmparray);
         SpookyOutput();
         ~SpookyOutput();
+        scalar_type computeEnergy(data_type *vcomplex);
+        scalar_type twoFieldCorrelation( scalar_type *v1, scalar_type *v2);
+        scalar_type computeEnstrophy(data_type *v_all_complex,
+                                        scalar_type *d_all_kvec,
+                                        data_type *tmparray);
 };
 

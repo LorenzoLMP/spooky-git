@@ -84,6 +84,7 @@ int main(int argc, char *argv[]) {
     // fields.CheckOutput();
     fields.write_data_file();
     fields.num_save++;
+    fields.write_data_output_header();
     fields.write_data_output();
     }
     catch (const std::exception& err) {
