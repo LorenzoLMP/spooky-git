@@ -3,9 +3,12 @@ ${PROJECT_SOURCE_DIR}/src/generic/
 )
 
 include_directories(
-${PROJECT_SOURCE_DIR}/src/output/
+${PROJECT_SOURCE_DIR}/src/io/
 )
 
+include_directories(
+${PROJECT_SOURCE_DIR}/src/
+)
 
 include(list_source_files.txt)
 
