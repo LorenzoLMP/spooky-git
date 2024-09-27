@@ -27,4 +27,6 @@ ${PROJECT_SOURCE_DIR}/src/tests.cu
 ${PROJECT_SOURCE_DIR}/src/tests.hpp
 ${PROJECT_SOURCE_DIR}/src/symmetries.cu
 ${PROJECT_SOURCE_DIR}/src/common.hpp
+${PROJECT_SOURCE_DIR}/src/generic/user_defined_cuda_kernels.cu
+${PROJECT_SOURCE_DIR}/src/generic/user_defined_cuda_kernels.hpp
 )

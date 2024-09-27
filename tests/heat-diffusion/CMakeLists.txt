@@ -9,17 +9,12 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/data/)
 
 ### these can be modified
 add_executable(test_heat-diffusion
-# spooky.cu
 initflow.cu
-spooky.hpp
-physics_modules.hpp
 ${spooky_src})
 
 
 ### change name
 
-#target_link_libraries(test_heat-diffusion CUDA::cufft CUDA::cublas -lconfig -lhdf5)
-#target_link_libraries(test_heat-diffusion CUDA::cufft CUDA::cublas CUDA::cudart HDF5::HDF5 ${LIBCONFIG})
 target_link_libraries(test_heat-diffusion CUDA::cufft CUDA::cublas CUDA::cudart hdf5-lib config)
 
 target_link_libraries(test_heat-diffusion HighFive)

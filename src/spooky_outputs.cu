@@ -8,6 +8,9 @@
 #include "spooky_outputs.hpp"
 #include "cublas_routines.hpp"
 #include "cuda_kernels.hpp"
+#include "cuda_kernels_generic.hpp"
+#include "cufft_routines.hpp"
+#include "user_defined_cuda_kernels.hpp"
 
 SpookyOutput::SpookyOutput() {
     // double lx, ly, lz;
@@ -58,7 +61,7 @@ scalar_type SpookyOutput::computeEnstrophy(data_type *v_all_complex,
     /***
      * This function uses complex inputs to compute the "enstrophy" of a vector field
      * To do so, we first compute the curl of the field, and then sum the "energies" of the
-     * three components. We divide by (1/2) in agreement with the definition of the enstrophy.
+     * three components.
      ***/
 
     // cublasStatus_t stat;
@@ -74,8 +77,34 @@ scalar_type SpookyOutput::computeEnstrophy(data_type *v_all_complex,
 
     // if (stat != CUBLAS_STATUS_SUCCESS) std::printf("energy failed\n");
 
-    return 0.5*enstrophy;
+    return enstrophy;
 }
+
+scalar_type SpookyOutput::computeDissipation(data_type *scalar_complex,
+                                             scalar_type *d_all_kvec,
+                                             data_type *tmparray) {
+    /***
+     * This function uses complex inputs to compute the "dissipation" of a scalar field (-k^2 th^2)
+     * To do so, we first compute the gradient of the field, and then sum the "energies" of the
+     * three components.
+     ***/
+
+    // cublasStatus_t stat;
+    // scalar_type norm = 0.0;
+    scalar_type dissipation = 0.0;
+
+
+    int blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    Gradient<<<blocksPerGrid, threadsPerBlock>>>(d_all_kvec, scalar_complex, tmparray, (size_t) ntotal_complex);
+
+
+    dissipation = computeEnergy((data_type *)tmparray) + computeEnergy((data_type *)tmparray + ntotal_complex) + computeEnergy((data_type *)tmparray + 2*ntotal_complex) ;
+
+    // if (stat != CUBLAS_STATUS_SUCCESS) std::printf("energy failed\n");
+
+    return dissipation;
+}
+
 
 
 scalar_type SpookyOutput::twoFieldCorrelation( scalar_type *v1,
@@ -127,3 +156,116 @@ scalar_type SpookyOutput::twoFieldCorrelation( scalar_type *v1,
     return correlation;
 }
 
+scalar_type SpookyOutput::computeAnisoDissipation(scalar_type *d_all_kvec,
+                                                  data_type *d_all_fields,
+                                                  data_type **d_farray,
+                                                  scalar_type **d_farray_r,
+                                                  data_type *d_all_tmparray,
+                                                  data_type **d_tmparray,
+                                                  scalar_type **d_tmparray_r,
+                                                  scalar_type *d_mask,
+                                                  int num_fields) {
+    /***
+     * This function uses complex inputs to compute the anisotropic "dissipation" with
+     * anisotropic thermal conduction along magnetic field lines.
+     * To do so, we compute the term div (\vec b b \cdot \grad theta ) transform to real,
+     * then compute the 2fieldcorrelation between this term and theta
+     ***/
+
+    // cublasStatus_t stat;
+    // scalar_type norm = 0.0;
+    scalar_type dissipation = 0.0;
+    int blocksPerGrid;
+
+#ifdef BOUSSINESQ
+#ifdef MHD
+#ifdef ANISOTROPIC_DIFFUSION
+
+    // Bx, By, Bz real fields are already in the 4-5-6 tmp arrays
+    // compute gradient of theta and assign it to next 3 scratch arrays [num_fields -- num_fields + 3] (the first num_fields arrays are reserved for the real-valued fields)
+    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    Gradient<<<blocksPerGrid, threadsPerBlock>>>(d_all_kvec, d_farray[TH], (data_type *)d_all_tmparray + num_fields * ntotal_complex, ntotal_complex);
+    // compute complex to real iFFTs
+    for (int n = num_fields; n < num_fields + 3; n++){
+        c2r_fft(d_tmparray[n], d_tmparray_r[n]);
+    }
+    // compute the scalar B grad theta (real space) and assign it to num_fields-th scratch array
+    blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    ComputeBGradTheta<<<blocksPerGrid, threadsPerBlock>>>( d_tmparray_r[BX], (scalar_type *) d_all_tmparray + 2 * ntotal_complex * num_fields, d_tmparray_r[num_fields + 3], 2 * ntotal_complex);
+    // compute the anisotropic heat flux and put it in the 3-4-5 tmp arrays
+    // we can reutilize the ComputeAnisotropicHeatFlux kernel
+    ComputeAnisotropicHeatFlux<<<blocksPerGrid, threadsPerBlock>>>(  d_tmparray_r[BX], d_tmparray_r[num_fields + 3], d_tmparray_r[num_fields], 0.0, 1.0, 2 * ntotal_complex, 0);
+    // take fourier transforms of the heat flux
+    for (int n = num_fields ; n < num_fields + 3; n++) {
+        r2c_fft(d_tmparray_r[n], d_tmparray[n]);
+    }
+    // take divergence of heat flux and overwrite the num_fields scratch array
+    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>(d_all_kvec, d_tmparray[num_fields], d_tmparray[num_fields], d_mask, ntotal_complex, ASS);
+
+    // transform back to real
+    c2r_fft(d_tmparray[num_fields], d_tmparray_r[num_fields]);
+
+    // compute 2field correlation between the divergence of bb grad T and T
+    dissipation = twoFieldCorrelation( d_tmparray_r[num_fields], d_tmparray_r[TH]);
+
+
+#endif // ANISOTROPIC_DIFFUSION
+#endif // MHD
+#endif // BOUSSINESQ
+
+    return dissipation;
+
+}
+
+scalar_type SpookyOutput::computeAnisoInjection(scalar_type *d_all_kvec,
+                                                  data_type *d_all_fields,
+                                                  data_type **d_farray,
+                                                  scalar_type **d_farray_r,
+                                                  data_type *d_all_tmparray,
+                                                  data_type **d_tmparray,
+                                                  scalar_type **d_tmparray_r,
+                                                  scalar_type *d_mask,
+                                                  int num_fields) {
+    /***
+     * This function uses complex inputs to compute the anisotropic "injection" with the MTI
+     * To do so, we compute the MTI injecttion term div (b b_z) transform to real,
+     * then compute the 2fieldcorrelation between this term and theta
+     ***/
+
+    scalar_type injection = 0.0;
+    int blocksPerGrid;
+
+#ifdef BOUSSINESQ
+#ifdef MHD
+#ifdef ANISOTROPIC_DIFFUSION
+
+    // Bx, By, Bz real fields are already in the 4-5-6 tmp arrays
+    // compute vector b_z \vec b (depending on which direction is the stratification)
+    // and put it into the [num_fields - num_fields + 3] d_tmparray
+    blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    Computebbstrat<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *) d_all_tmparray + 2 * ntotal_complex * BX,  (scalar_type *) d_all_tmparray + 2 * ntotal_complex * num_fields, (size_t) 2 * ntotal_complex, STRAT_DIR);
+
+    // transform to complex space
+    for (int n = num_fields ; n < num_fields + 3; n++) {
+        r2c_fft(d_tmparray_r[n], d_tmparray[n]);
+    }
+
+    // compute divergence of this vector
+    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>(d_all_kvec, d_tmparray[num_fields], d_tmparray[num_fields], d_mask, ntotal_complex, ASS);
+
+    // transform to real space
+    c2r_fft(d_tmparray[num_fields], d_tmparray_r[num_fields]);
+
+    // compute 2 field correlation between div (b_z \vec b) and theta
+    injection= twoFieldCorrelation( d_tmparray_r[num_fields], d_tmparray_r[TH]);
+
+
+#endif // ANISOTROPIC_DIFFUSION
+#endif // MHD
+#endif // BOUSSINESQ
+
+    return injection;
+
+}

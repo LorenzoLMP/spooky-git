@@ -1,5 +1,5 @@
 include_directories(
-${PROJECT_SOURCE_DIR}/problems/generic/
+${PROJECT_SOURCE_DIR}/src/generic/
 )
 
 include_directories(

@@ -31,3 +31,5 @@ __global__ void axpyDouble( scalar_type *X,  scalar_type *Y, scalar_type *Z, sca
 __global__ void axpyComplex( const cufftDoubleComplex *X, const cufftDoubleComplex *Y, cufftDoubleComplex *Z, scalar_type a, scalar_type b, size_t N);
 
 __global__ void ComplexVecAssign(const cufftDoubleComplex *A, cufftDoubleComplex *B, size_t N);
+
+// __global__ void scalarDissipation( const scalar_type *d_all_kvec, const data_type *X, scalar_type *Z, size_t N);

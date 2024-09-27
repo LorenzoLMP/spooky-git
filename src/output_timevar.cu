@@ -86,6 +86,12 @@ void Fields::write_data_output() {
             // reynolds stresses
             output_var = param->spookyOutVar.twoFieldCorrelation(d_tmparray_r[VY], d_tmparray_r[VZ]);
         }
+        else if(!param->spookyOutVar.name[i].compare(std::string("w2"))) {
+            // enstrophy
+            output_var = param->spookyOutVar.computeEnstrophy(d_all_fields + ntotal_complex * VX,
+                                             wavevector.d_all_kvec,
+                                             d_all_tmparray + ntotal_complex * num_fields);
+        }
 #endif
 #ifdef MHD
         else if(!param->spookyOutVar.name[i].compare(std::string("em"))) {
@@ -118,12 +124,57 @@ void Fields::write_data_output() {
             // maxwell stresses
             output_var = param->spookyOutVar.twoFieldCorrelation(d_tmparray_r[BY], d_tmparray_r[BZ]);
         }
+        else if(!param->spookyOutVar.name[i].compare(std::string("j2"))) {
+            // compute total current rms
+            // we can reuse the computeEnstrophy function
+            output_var = param->spookyOutVar.computeEnstrophy(d_all_fields + ntotal_complex * BX,
+                                             wavevector.d_all_kvec,
+                                             d_all_tmparray + ntotal_complex * num_fields);
+        }
 #endif
 #if defined(BOUSSINESQ) || defined(HEAT_EQ)
         else if(!param->spookyOutVar.name[i].compare(std::string("et"))) {
             // thermal/potential energy
             output_var = param->spookyOutVar.computeEnergy(d_farray[TH]);
         }
+        else if(!param->spookyOutVar.name[i].compare(std::string("dissgradT"))) {
+            // thermal dissipation (isotropic or anisotropic)
+            #if defined(ANISOTROPIC_DIFFUSION) && defined(MHD)
+            // the minus sign is for consistency with snoopy
+            output_var = - param->spookyOutVar.computeAnisoDissipation(wavevector.d_all_kvec,
+                                                d_all_fields,
+                                                d_farray,
+                                                d_farray_r,
+                                                d_all_tmparray,
+                                                d_tmparray,
+                                                d_tmparray_r,
+                                                wavevector.d_mask,
+                                                num_fields);
+            // output_var = param->spookyOutVar.computeAnisoDissipation(d_all_fields,
+            //                                     wavevector.d_all_kvec,
+            //                                     (scalar_type *)d_all_tmparray,
+            //                                     d_all_tmparray + ntotal_complex * num_fields);
+            #else
+            output_var = param->spookyOutVar.computeDissipation(d_farray[TH],
+                                                wavevector.d_all_kvec,
+                                                d_all_tmparray + ntotal_complex * num_fields);
+            #endif
+        }
+        #if defined(ANISOTROPIC_DIFFUSION) && defined(MHD)
+        else if(!param->spookyOutVar.name[i].compare(std::string("fluxbbgradT"))) {
+            // thermal dissipation (isotropic or anisotropic)
+
+            output_var = param->spookyOutVar.computeAnisoInjection(wavevector.d_all_kvec,
+                                                d_all_fields,
+                                                d_farray,
+                                                d_farray_r,
+                                                d_all_tmparray,
+                                                d_tmparray,
+                                                d_tmparray_r,
+                                                wavevector.d_mask,
+                                                num_fields);
+        }
+        #endif
 #endif
 #if defined(BOUSSINESQ) && defined(INCOMPRESSIBLE)
         else if(!param->spookyOutVar.name[i].compare(std::string("thvx"))) {
