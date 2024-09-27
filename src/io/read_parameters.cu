@@ -22,6 +22,7 @@
 
 Parameters::Parameters() {
 	SpookyOutput spookyOutVar;
+	SpookyOutput userOutVar;
     // double lx, ly, lz;
     // read_Parameters();
 }
@@ -230,34 +231,60 @@ void Parameters::read_Parameters(std::string input_dir) {
 		}
 
 		// find which parameters are requested in the timevar file
+		// these are the default spooky quantities
 		setting = config_lookup(&config, "output.timevar_vars");
-
-		// if(setting == NULL) {
-		// 	// ERROR_HANDLER(ERROR_WARNING, "You did not provide any variable in timevar outputs");
-		// }
-		// else {
 		spookyOutVar.length = config_setting_length( setting );
-  //
-		std::printf("length timevar array = %d \n",spookyOutVar.length);
+		std::printf("length timevar array = %d \n", spookyOutVar.length);
 		// Allocate spooky output_vars
-		// std::vector<std::string> spookyOutVar.name
 		spookyOutVar.name.resize(spookyOutVar.length);
-		// spookyOutVar.name = malloc( spookyOutVar.length * sizeof(char*) );
-  //
 		std::cout << "The following quantities will be computed: \t";
 		for(i = 0 ; i < spookyOutVar.length ; i++) {
 			temp_string = config_setting_get_string_elem( setting, i);
-
-			// Allocate the string
-			// spookyOutVar.name[i] = malloc( sizeof(char) * (strlen(temp_string) + 1));
-
-			// Copy the string in the right location
-			// strcpy(spookyOutVar.name[i], temp_string);
 			std::cout << std::string(temp_string) << "\t";
 			spookyOutVar.name[i] = std::string(temp_string);
 		}
 		std::cout << std::endl;
-	// }
+
+
+		// now for the user-defined quantities
+
+		// if (!config_lookup_string(&config, "output.user_timevar_vars",&temp_output)){
+		// 	std::cout << "Warning: you did not provide any variable in user outputs!" << std::endl;
+		// }
+		// else {
+		// 	setting = config_lookup(&config, "output.user_timevar_vars");
+		// 	userOutVar.length = config_setting_length( setting );
+		// 	std::printf("length user timevar array = %d \n", userOutVar.length);
+		// 	// Allocate user output_vars
+		// 	userOutVar.name.resize(userOutVar.length);
+		// 	std::cout << "The following user quantities will be computed: \t";
+		// 	for(i = 0 ; i < userOutVar.length ; i++) {
+		// 		temp_string = config_setting_get_string_elem( setting, i);
+		// 		std::cout << std::string(temp_string) << "\t";
+		// 		userOutVar.name[i] = std::string(temp_string);
+		// 	}
+		// 	std::cout << std::endl;
+		// }
+
+		setting = config_lookup(&config, "output.user_timevar_vars");
+		if(setting == NULL) {
+			std::cout << "Warning: you did not provide any variable in user outputs!" << std::endl;
+		}
+		else {
+			std::cout << "User outputs were provided" << std::endl;
+			userOutVar.length = config_setting_length( setting );
+			std::printf("length of the user timevar array = %d \n", userOutVar.length);
+			// Allocate user output_vars
+			userOutVar.name.resize(userOutVar.length);
+			std::cout << "The following user quantities will be computed: \t";
+			for(i = 0 ; i < userOutVar.length ; i++) {
+				temp_string = config_setting_get_string_elem( setting, i);
+				std::cout << std::string(temp_string) << "\t";
+				userOutVar.name[i] = std::string(temp_string);
+			}
+			std::cout << std::endl;
+		}
+
 		if(!config_lookup_int(&config, "output.profile_dir",&tmp_v)) {
 			profile_dir = 0;
 		}

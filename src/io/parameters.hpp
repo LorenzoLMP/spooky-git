@@ -90,7 +90,7 @@ class Parameters {       // The class
 	int		output_vorticity;	/**< Output the vorticity field in the 3D snapshots */
 
 	SpookyOutput spookyOutVar;	/**< Name of the variables needed in the timevar file */
-	// SpookyOutput userOutVar;	/**< User-defined output vars */
+	SpookyOutput userOutVar;	/**< User-defined output vars */
 	// struct VarName profile_vars; /**< Name of the variables needed in the profile outputs */
 
 	// initial conditions

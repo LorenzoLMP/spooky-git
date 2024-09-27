@@ -193,6 +193,22 @@ void Fields::write_data_output() {
         outputfile << std::scientific << std::setprecision(8) << output_var << "\t";
     }
 
+    if (param->userOutVar.length > 0){
+        for (int i = 0; i < param->userOutVar.length; i++){
+
+            if(!param->userOutVar.name[i].compare(std::string("uservar1"))) {
+                output_var = 0.0;
+            }
+            else if(!param->userOutVar.name[i].compare(std::string("uservar2"))) {
+                output_var = 0.0;
+            }
+            else {
+                output_var = -1.0;
+            }
+            outputfile << std::scientific << std::setprecision(8) << output_var << "\t";
+        }
+    }
+
     outputfile << "\n";
     outputfile.close();
 }
@@ -217,6 +233,12 @@ void Fields::write_data_output_header() {
 
     for(int i = 0 ; i < param->spookyOutVar.length ; i++) {
         outputfile << param->spookyOutVar.name[i]  << "\t";
+    }
+
+    if (param->userOutVar.length > 0){
+        for (int i = 0; i < param->userOutVar.length; i++){
+            outputfile << param->userOutVar.name[i]  << "\t";
+        }
     }
 
     outputfile << "\n";
