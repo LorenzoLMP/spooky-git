@@ -5,6 +5,7 @@
 #include "common.hpp"
 #include "cublas_routines.hpp"
 #include "cuda_kernels.hpp"
+#include "parameters.hpp"
 
 void Fields::CheckSymmetries(){
 #ifdef DEBUG

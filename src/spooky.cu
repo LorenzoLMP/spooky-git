@@ -13,6 +13,7 @@
 // #include "cuda_kernels.hpp"
 // #include "cuda_kernels_generic.hpp"
 #include <argparse/argparse.hpp>
+#include "parameters.hpp"
 
 void startup();
 void displayConfiguration(Fields *fields, Parameters *param);

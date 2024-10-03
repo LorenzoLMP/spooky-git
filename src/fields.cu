@@ -5,6 +5,7 @@
 #include "common.hpp"
 #include "cublas_routines.hpp"
 #include "cuda_kernels.hpp"
+#include "parameters.hpp"
 // #include "wavevector.hpp"
 
 Fields::Fields( int num, Parameters *p_in ) : wavevector(p_in->lx, p_in->ly, p_in->lz) {

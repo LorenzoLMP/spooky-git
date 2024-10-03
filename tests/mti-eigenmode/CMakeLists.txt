@@ -11,6 +11,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/data/)
 add_executable(test_mti-eigenmode
 initflow.cu
 user_defined_cuda_kernels.cu
+user_outputs.cu
 ${spooky_src})
 
 

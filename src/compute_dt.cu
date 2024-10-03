@@ -6,7 +6,7 @@
 #include "cuda_kernels.hpp"
 #include "cuda_kernels_generic.hpp"
 #include "cublas_routines.hpp"
-
+#include "parameters.hpp"
 
 // we are assuming that the fields have been already fft to real and saved in d_tmparray_r
 void Fields::compute_dt() {

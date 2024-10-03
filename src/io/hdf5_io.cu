@@ -7,6 +7,7 @@
 #include <highfive/highfive.hpp>
 #include "fields.hpp"
 #include "hdf5_io.hpp"
+#include "parameters.hpp"
 
 using namespace HighFive;
 

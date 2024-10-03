@@ -4,11 +4,15 @@
 #include <array>
 #include <complex>
 
+class Fields;
+
 class SpookyOutput { // The class
     public:
         int length; // Number of spooky variables
         // void* name; // Names of variables (need to be allocated properly)
         std::vector<std::string> name;
+        Fields *field;
+        // SpookyOutput(Fields *field_in);
         SpookyOutput();
         ~SpookyOutput();
         scalar_type computeEnergy(data_type *vcomplex);

@@ -7,6 +7,7 @@
 // #include "compute_timestep.hpp"
 #include "cuda_kernels.hpp"
 #include "cuda_kernels_generic.hpp"
+#include "parameters.hpp"
 
 
 const double gammaRK[3] = {8.0 / 15.0 , 5.0 / 12.0 , 3.0 / 4.0};

@@ -12,7 +12,9 @@ ${PROJECT_SOURCE_DIR}/src/cufft_routines.cu
 ${PROJECT_SOURCE_DIR}/src/initflow.cu
 ${PROJECT_SOURCE_DIR}/src/tests.cu
 ${PROJECT_SOURCE_DIR}/src/symmetries.cu
+##### problem-specific files #####
 ${PROJECT_SOURCE_DIR}/src/generic/user_defined_cuda_kernels.cu
+${PROJECT_SOURCE_DIR}/src/generic/user_outputs.cu
 ##### input/output files ######
 ${PROJECT_SOURCE_DIR}/src/io/hdf5_io.cu
 ${PROJECT_SOURCE_DIR}/src/io/check_output.cu

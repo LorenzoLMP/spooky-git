@@ -4,21 +4,23 @@
 // #include <array>
 // #include <complex>
 #include "define_types.hpp"
-#include "spooky_outputs.hpp"
+// #include "spooky_outputs.hpp"
+#include "user_outputs.hpp"
+// #include "fields.hpp"
 
-// class SpookyOutput { // The class
-//     public:
-//         int length; // Number of spooky variables
-//         // void* name; // Names of variables (need to be allocated properly)
-//         std::vector<std::string> name;
-//         // scalar_type computeEnergy(data_type *d_all_tmparray);
-//         SpookyOutput();
-//         ~SpookyOutput();
-// };
+
+// use forward declarations in the header files to get around the circular dependencies
+// https://stackoverflow.com/questions/994253/two-classes-that-refer-to-each-other
+// class Fields;
+
+// class SpookyOutput;
+
+// class UserOutput;
 
 class Parameters {       // The class
   public:             // Access specifier
 
+	// Fields *field;
     double lx;				/**< Box length in X*/
 	double ly;				/**< Box length in Y*/
 	double lz;				/**< Box length in Z*/
@@ -90,7 +92,7 @@ class Parameters {       // The class
 	int		output_vorticity;	/**< Output the vorticity field in the 3D snapshots */
 
 	SpookyOutput spookyOutVar;	/**< Name of the variables needed in the timevar file */
-	SpookyOutput userOutVar;	/**< User-defined output vars */
+	UserOutput userOutVar;	/**< User-defined output vars */
 	// struct VarName profile_vars; /**< Name of the variables needed in the profile outputs */
 
 	// initial conditions

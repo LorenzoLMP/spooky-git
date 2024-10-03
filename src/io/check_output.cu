@@ -8,6 +8,7 @@
 #include "fields.hpp"
 #include "hdf5_io.hpp"
 // #include "output_timevar.hpp"
+#include "parameters.hpp"
 
 void Fields::CheckOutput(){
 

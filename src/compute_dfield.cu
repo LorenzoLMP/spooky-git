@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "cuda_kernels.hpp"
 #include "cuda_kernels_generic.hpp"
-
+#include "parameters.hpp"
 
 void Fields::compute_dfield() {
     NVTX3_FUNC_RANGE();

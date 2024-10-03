@@ -4,7 +4,7 @@
 #include "fields.hpp"
 #include "spooky.hpp"
 #include "common.hpp"
-
+#include "parameters.hpp"
 
 void Fields::init_SpatialStructure(){
 

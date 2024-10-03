@@ -12,6 +12,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include "parameters.hpp"
 
 void Fields::write_data_output() {
 
@@ -197,7 +198,7 @@ void Fields::write_data_output() {
         for (int i = 0; i < param->userOutVar.length; i++){
 
             if(!param->userOutVar.name[i].compare(std::string("uservar1"))) {
-                output_var = 0.0;
+                output_var = param->userOutVar.customFunction(d_farray[0]);
             }
             else if(!param->userOutVar.name[i].compare(std::string("uservar2"))) {
                 output_var = 0.0;

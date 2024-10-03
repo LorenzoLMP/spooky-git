@@ -10,6 +10,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/data/)
 ### these can be modified
 add_executable(test_taylor-green
 initflow.cu
+user_outputs.cu
 ${spooky_src})
 
 

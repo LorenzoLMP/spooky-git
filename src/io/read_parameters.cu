@@ -20,15 +20,18 @@
 // SpookyOutput::~SpookyOutput() {
 // }
 
-Parameters::Parameters() {
-	SpookyOutput spookyOutVar;
-	SpookyOutput userOutVar;
+Parameters::Parameters() : spookyOutVar(), userOutVar() {
+	// SpookyOutput *spookyOutVar();
+	// UserOutput *userOutVar();
     // double lx, ly, lz;
     // read_Parameters();
+	// field = field_in;
 }
 
 Parameters::~Parameters() {
 }
+
+// void Parameters::add
 
 void Parameters::read_Parameters(std::string input_dir) {
 // void Parameters::read_Parameters() {
