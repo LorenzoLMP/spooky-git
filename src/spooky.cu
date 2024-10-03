@@ -52,9 +52,18 @@ int main(int argc, char *argv[]) {
     std::printf("Initialized fft\n");
     init_cublas();
 
+    //----------------------------------------------------------------------------------------
+    //! Declare classes
+
     Parameters *param;
-    param = new Parameters();
-    param->read_Parameters(input_dir);
+    Fields *fields;
+
+
+    //----------------------------------------------------------------------------------------
+    //! Create instances
+
+    param = new Parameters(fields, input_dir);
+    // param->read_Parameters(input_dir);
     std::printf("Finished reading in params\n");
 
     if (program.is_used("--output-dir")){
@@ -63,30 +72,30 @@ int main(int argc, char *argv[]) {
         param->output_dir = output_dir;
     }
 
-    // init fields
-    Fields fields(NUM_FIELDS, param);
+    fields = new Fields(param, NUM_FIELDS);
+    // fields->init_Fields(NUM_FIELDS, param);
 
-    displayConfiguration(&fields, param);
+    displayConfiguration(fields, param);
 
 #ifdef DDEBUG
-    fields.wavevector.print_values();
-    fields.print_host_values();
+    fields->wavevector.print_values();
+    fields->print_host_values();
 #endif
 
     std::printf("Allocating to gpu...\n");
-    fields.allocate_and_move_to_gpu();
+    fields->allocate_and_move_to_gpu();
 
-    // fields.print_device_values();
+    // fields->print_device_values();
 
-    fields.CheckSymmetries();
+    fields->CheckSymmetries();
 
     std::printf("Initial data dump...\n");
     try {
-    // fields.CheckOutput();
-    fields.write_data_file();
-    fields.num_save++;
-    fields.write_data_output_header();
-    fields.write_data_output();
+    // fields->CheckOutput();
+    fields->write_data_file();
+    fields->num_save++;
+    fields->write_data_output_header();
+    fields->write_data_output();
     }
     catch (const std::exception& err) {
     std::cerr << err.what() << std::endl;
@@ -95,31 +104,31 @@ int main(int argc, char *argv[]) {
     }
     
     // wavevector is a member of Fields
-    // fields.wavevector.print_values();
+    // fields->wavevector.print_values();
 
 
 
-    while (fields.current_time < param->t_final) {
+    while (fields->current_time < param->t_final) {
 
         // advance the equations (field(n+1) = field(n) + dfield*dt)
-        fields.RungeKutta3();
+        fields->RungeKutta3();
         // check if we need to output data
-        fields.CheckOutput();
+        fields->CheckOutput();
         // check if we need to enforce symmetries
-        fields.CheckSymmetries();
+        fields->CheckSymmetries();
         
     }
 
     // std::printf("Starting copy back to host\n");
-    // fields.copy_back_to_host();
+    // fields->copy_back_to_host();
     
 
-    fields.clean_gpu();
+    fields->clean_gpu();
     std::printf("Finished fields gpu cleanup\n");
 
 #ifdef DDEBUG
-    // fields.wavevector.print_values();
-    fields.print_host_values();
+    // fields->wavevector.print_values();
+    fields->print_host_values();
 #endif
 
     std::printf("Finishing cufft\n");

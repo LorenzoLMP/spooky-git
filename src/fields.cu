@@ -8,7 +8,74 @@
 #include "parameters.hpp"
 // #include "wavevector.hpp"
 
-Fields::Fields( int num, Parameters *p_in ) : wavevector(p_in->lx, p_in->ly, p_in->lz) {
+// Fields::Fields( int num, Parameters *p_in ) : wavevector(p_in->lx, p_in->ly, p_in->lz) {
+// Fields::Fields() : wavevector() {
+
+
+    // vx = (data_type *) malloc( (size_t) sizeof(data_type) * ntotal_complex);
+    // vy = (data_type *) malloc( (size_t) sizeof(data_type) * ntotal_complex);
+
+
+
+    // same but with thrust
+    // thrust::host_vector<data_type> all_fields_t(ntotal_complex * num_fields);
+    // thrust::host_vector<data_type> all_dfields_t(ntotal_complex * num_fields);
+    //
+    // thrust::fill(all_fields_t.begin(),all_fields_t.end(),data_type(1.0,0.0));
+    // for (int i = 0; i < 5; i++)
+    //     std::cout << all_fields_t[i] << '\n';
+    // std::cout << '\n';
+    //
+    // thrust::host_vector<data_type> farray_t[num_fields];
+    // thrust::host_vector<scalar_type> farray_t_r[num_fields];
+    // thrust::host_vector<data_type> dfarray_t[num_fields];
+    //
+    // for (int i = 0 ; i < num_fields ; i++) {
+    //     // farray_t[i]   = all_fields_t.begin() + i*ntotal_complex;
+    //     farray_t[i]   = thrust::host_vector<data_type>(all_fields_t.begin() + i*ntotal_complex, all_fields_t.begin() + (i+1)*ntotal_complex);
+    //     // farray_t_r[i]   = thrust::host_vector<data_type>(all_fields_t.begin() + i*ntotal_complex, all_fields_t.begin() + (i+1)*ntotal_complex);
+    //     dfarray_t[i]   = thrust::host_vector<data_type>(all_dfields_t.begin() + i*ntotal_complex, all_dfields_t.begin() + (i+1)*ntotal_complex);
+    //     // farray_r[i] = (scalar_type *) farray[i];
+    //     // dfarray[i]  = all_dfields + i*ntotal_complex;
+    //     // dfarray_r[i] = (scalar_type *) dfarray[i];
+    // }
+    //
+    // thrust::fill(farray_t[0].begin(),farray_t[0].end(),data_type(1.0,-1.0));
+    // for (int i = 0; i < 5; i++)
+    //     std::cout << all_fields_t[i] << '\n';
+    // std::cout << '\n';
+
+    // thrust::host_vector<data_type*> d_farray_t(num_fields);
+    // thrust::host_vector<scalar_type*> d_farray_t_r(num_fields);
+    // thrust::host_vector<data_type*> d_dfarray_t(num_fields);
+
+
+    // init_Fields();
+    // r_data = (scalar_type *) c_data;
+// }
+
+Fields::~Fields() {
+    free(all_fields);
+    // the following can be commented out for production
+    free(all_dfields);
+
+    free(farray);
+    free(farray_r);
+    // the following 2 can be commented out for production
+    free(dfarray);
+    free(dfarray_r);
+    free(d_farray);
+    free(d_farray_r);
+
+    free(d_dfarray);
+    free(d_dfarray_r);
+
+    free(d_tmparray);
+
+}
+
+// void Fields::init_Fields( int num, Parameters *p_in )  {
+Fields::Fields(  Parameters *p_in, int num ) : wavevector(p_in->lx, p_in->ly, p_in->lz) {
     num_fields = num;
     std::printf("num_fields: %d \n",num_fields);
 
@@ -60,71 +127,6 @@ Fields::Fields( int num, Parameters *p_in ) : wavevector(p_in->lx, p_in->ly, p_i
         dfarray[i]  = all_dfields + i*ntotal_complex;
         dfarray_r[i] = (scalar_type *) dfarray[i];
     }
-
-    // vx = (data_type *) malloc( (size_t) sizeof(data_type) * ntotal_complex);
-    // vy = (data_type *) malloc( (size_t) sizeof(data_type) * ntotal_complex);
-
-
-
-    // same but with thrust
-    // thrust::host_vector<data_type> all_fields_t(ntotal_complex * num_fields);
-    // thrust::host_vector<data_type> all_dfields_t(ntotal_complex * num_fields);
-    //
-    // thrust::fill(all_fields_t.begin(),all_fields_t.end(),data_type(1.0,0.0));
-    // for (int i = 0; i < 5; i++)
-    //     std::cout << all_fields_t[i] << '\n';
-    // std::cout << '\n';
-    //
-    // thrust::host_vector<data_type> farray_t[num_fields];
-    // thrust::host_vector<scalar_type> farray_t_r[num_fields];
-    // thrust::host_vector<data_type> dfarray_t[num_fields];
-    //
-    // for (int i = 0 ; i < num_fields ; i++) {
-    //     // farray_t[i]   = all_fields_t.begin() + i*ntotal_complex;
-    //     farray_t[i]   = thrust::host_vector<data_type>(all_fields_t.begin() + i*ntotal_complex, all_fields_t.begin() + (i+1)*ntotal_complex);
-    //     // farray_t_r[i]   = thrust::host_vector<data_type>(all_fields_t.begin() + i*ntotal_complex, all_fields_t.begin() + (i+1)*ntotal_complex);
-    //     dfarray_t[i]   = thrust::host_vector<data_type>(all_dfields_t.begin() + i*ntotal_complex, all_dfields_t.begin() + (i+1)*ntotal_complex);
-    //     // farray_r[i] = (scalar_type *) farray[i];
-    //     // dfarray[i]  = all_dfields + i*ntotal_complex;
-    //     // dfarray_r[i] = (scalar_type *) dfarray[i];
-    // }
-    //
-    // thrust::fill(farray_t[0].begin(),farray_t[0].end(),data_type(1.0,-1.0));
-    // for (int i = 0; i < 5; i++)
-    //     std::cout << all_fields_t[i] << '\n';
-    // std::cout << '\n';
-
-    // thrust::host_vector<data_type*> d_farray_t(num_fields);
-    // thrust::host_vector<scalar_type*> d_farray_t_r(num_fields);
-    // thrust::host_vector<data_type*> d_dfarray_t(num_fields);
-
-
-    init_Fields();
-    // r_data = (scalar_type *) c_data;
-}
-
-Fields::~Fields() {
-    free(all_fields);
-    // the following can be commented out for production
-    free(all_dfields);
-
-    free(farray);
-    free(farray_r);
-    // the following 2 can be commented out for production
-    free(dfarray);
-    free(dfarray_r);
-    free(d_farray);
-    free(d_farray_r);
-
-    free(d_dfarray);
-    free(d_dfarray_r);
-
-    free(d_tmparray);
-
-}
-
-void Fields::init_Fields()  {
-
     // std::printf("before init wavevec lx = %f \t ly = %f \t lz = %f\n",param->lx, param->ly, param->lz);
     // Wavevector wavevector(param->lx, param->ly, param->lz);
 
@@ -138,6 +140,7 @@ void Fields::init_Fields()  {
     }
 
     init_SpatialStructure();
+    // wavevector.init_Wavevector(p_in);
     // std::printf("num_fields: %d \n",num_fields);
     // for (int n = 0 ; n < num_fields ; n++) {
     //     std::printf("n=%d:\n",n);

@@ -23,9 +23,10 @@ public:
     scalar_type *d_mask;
     scalar_type lx, ly, lz;
 
-    Wavevector(scalar_type Lx, scalar_type Ly, scalar_type Lz);
+    Wavevector(double Lx, double Ly, double Lz);
+    // Wavevector();
 
-    void init_Wavevector();
+    // void init_Wavevector(Parameters *p_in);
     void print_values();
     void allocate_and_move_to_gpu();
     void shear_Wavevector( double t, double dt);
@@ -59,8 +60,8 @@ public:
     
     Wavevector wavevector;
     Parameters *param;
-    Fields( int num, Parameters *p_in );
-    void init_Fields();
+    Fields(Parameters *p_in, int num);
+    // void init_Fields( int num, Parameters *p_in);
     void init_SpatialStructure();
     void print_host_values();
     void print_device_values();

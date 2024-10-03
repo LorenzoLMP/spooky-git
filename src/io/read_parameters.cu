@@ -20,21 +20,23 @@
 // SpookyOutput::~SpookyOutput() {
 // }
 
-Parameters::Parameters() : spookyOutVar(), userOutVar() {
+// Parameters::Parameters() : spookyOutVar(), userOutVar() {
 	// SpookyOutput *spookyOutVar();
 	// UserOutput *userOutVar();
     // double lx, ly, lz;
     // read_Parameters();
 	// field = field_in;
-}
+// }
 
 Parameters::~Parameters() {
 }
 
 // void Parameters::add
 
-void Parameters::read_Parameters(std::string input_dir) {
+// void Parameters::read_Parameters(std::string input_dir) {
+Parameters::Parameters(Fields *fields_in, std::string input_dir) : spookyOutVar(), userOutVar() {
 // void Parameters::read_Parameters() {
+	field = fields_in;
 	// Read the config file and initialize everyting
 	config_t	config;		// Initialize the structure
 	config_setting_t * setting;	// a setting structure

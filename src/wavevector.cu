@@ -2,8 +2,8 @@
 // #include "wavevector.hpp"
 #include "cufft_routines.hpp"
 #include "spooky.hpp"
-// #include "parameters.hpp"
 #include "fields.hpp"
+#include "parameters.hpp"
 #include "common.hpp"
 // extern Parameters param;
 
@@ -32,7 +32,49 @@
 //     init_Wavevector();
 //     }
 
-Wavevector::Wavevector(scalar_type Lx, scalar_type Ly, scalar_type Lz) {
+// Wavevector::Wavevector() {
+    // lx = Lx; ly = Ly; lz = Lz;
+    // // std::printf("baginning of wave\n");
+    // // all_kvec contains kx ky kz sequentially
+    // all_kvec = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex * 3);
+    // // kvec is array of arrays such that kvec[0] = kx, etc
+    // kvec = (scalar_type **) malloc( (size_t) sizeof(scalar_type) * 3);
+    // // init kvec
+    // // std::printf("before init kvec\n");
+    // for (int i = 0 ; i < 3 ; i++) {
+    //     kvec[i]   = all_kvec + i*ntotal_complex;
+    // }
+    //
+    // d_kvec = (scalar_type **) malloc( (size_t) sizeof(scalar_type *) * 3);
+    // // kxt = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
+    // // ky = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
+    // // kz = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
+    // // kz = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
+    //
+    //
+    // mask = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
+    // std::printf("before init wavevector\n");
+    // init_Wavevector();
+    // }
+
+Wavevector::~Wavevector() {
+    // free(kxt);
+    // free(ky);
+    // free(kz);
+    free(all_kvec);
+    free(kvec);
+    free(mask);
+
+    free(d_kvec);
+}
+
+
+// void Wavevector::init_Wavevector(Parameters *p_in) {
+Wavevector::Wavevector(double Lx, double Ly, double Lz) {
+    unsigned int idx;
+
+    // scalar_type Lx, scalar_type Ly, scalar_type Lz
+    // lx = p_in->lx; ly = p_in->ly; lz = p_in->lz;
     lx = Lx; ly = Ly; lz = Lz;
     // std::printf("baginning of wave\n");
     // all_kvec contains kx ky kz sequentially
@@ -53,24 +95,7 @@ Wavevector::Wavevector(scalar_type Lx, scalar_type Ly, scalar_type Lz) {
 
 
     mask = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-    // std::printf("before init wavevector\n");
-    init_Wavevector();
-    }
 
-Wavevector::~Wavevector() {
-    // free(kxt);
-    // free(ky);
-    // free(kz);
-    free(all_kvec);
-    free(kvec);
-    free(mask);
-
-    free(d_kvec);
-}
-
-
-void Wavevector::init_Wavevector() {
-    unsigned int idx;
     for (int i = 0; i < nx; i++){
         for (int j = 0; j < ny; j++){
             for (int k = 0; k < nz/2 + 1; k++){
