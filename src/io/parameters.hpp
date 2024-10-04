@@ -20,7 +20,7 @@ class Fields;
 class Parameters {       // The class
   public:             // Access specifier
 
-	Fields *field;
+	// Fields *field;
     double lx;				/**< Box length in X*/
 	double ly;				/**< Box length in Y*/
 	double lz;				/**< Box length in Z*/
@@ -122,7 +122,8 @@ class Parameters {       // The class
 
 	int	   init_bench;				/**< Init the Benchmark initial conditions */
 
-	Parameters(Fields *fields_in, std::string input_dir);
+	// Parameters(Fields *fields_in, std::string input_dir);
+	Parameters(std::string input_dir);
     ~Parameters();
     // void read_Parameters(std::string input_dir);
 	// void read_Parameters();

@@ -6,6 +6,7 @@
 #include "cublas_routines.hpp"
 #include "cuda_kernels.hpp"
 #include "parameters.hpp"
+#include "timestepping.hpp"
 // #include "wavevector.hpp"
 
 // Fields::Fields( int num, Parameters *p_in ) : wavevector(p_in->lx, p_in->ly, p_in->lz) {
@@ -75,21 +76,22 @@ Fields::~Fields() {
 }
 
 // void Fields::init_Fields( int num, Parameters *p_in )  {
-Fields::Fields(  Parameters *p_in, int num ) : wavevector(p_in->lx, p_in->ly, p_in->lz) {
+Fields::Fields(Parameters &p_in, int num ) : wavevector(p_in.lx, p_in.ly, p_in.lz) {
     num_fields = num;
     std::printf("num_fields: %d \n",num_fields);
 
     num_tmp_array = num_fields + 6; // need to check again why we need all these tmp arrays
     std::printf("num_tmp_array: %d \n",num_tmp_array);
 
-    current_dt = 0.0;
-    current_time = 0.0;
-    current_step = 0;
-    t_lastsnap = 0.0;
-    t_lastvar = 0.0;
-    num_save = 0;
+    // current_dt = 0.0;
+    // current_time = 0.0;
+    // current_step = 0;
+    // t_lastsnap = 0.0;
+    // t_lastvar = 0.0;
+    // num_save = 0;
 
-    param = p_in;
+    param = &p_in;
+    // timestep = timestep_in;
     // r_data = (scalar_type *) malloc( sizeof( scalar_type ) * 2*ntotal_complex ) ;
     // c_data = (data_type *) r_data;
 
@@ -309,9 +311,9 @@ void Fields::print_device_values() {
     // }
 
     for (int n = 0; n < num_fields; n++){
-        for (int i = 0; i < 4; i++){
-            for (int j = 0; j < 4; j++){
-                for (int k = 0; k < 4; k++){
+        for (int i = 0; i < 2; i++){
+            for (int j = 0; j < 2; j++){
+                for (int k = 0; k < 2; k++){
                     idx = k + (nz/2+1) * ( j + i * ny);
                     // std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, farray_bis_r[0][idx], idx, farray_bis_r[1][idx]);
                     std::printf("(i,j,k) = (%02d,%02d,%02d), idx = %06d\t",i,j,k, idx);
@@ -327,15 +329,7 @@ void Fields::print_device_values() {
 
     free(all_fields_bis);
     free(farray_bis);
-    // free(farray_bis_r);
 
-    // free(all_dfields_bis);
-    // free(dfarray_bis);
-    // free(dfarray_bis_r);
-    // for (int i = 0; i < 8; i++){
-    //     std::printf("vx[%d] = %f \t vy[%d] = %f \n", i, farray_bis_r[0][i],i, farray_bis_r[1][i]);
-    //     // std::printf("vy[%d] %f \n", i, farray_r[1][i]);
-    // }
 }
 void Fields::allocate_and_move_to_gpu() {
     std::printf("Allocating to gpu:\n");
@@ -344,8 +338,8 @@ void Fields::allocate_and_move_to_gpu() {
     CUDA_RT_CALL(cudaMalloc(&d_all_fields, (size_t) sizeof(data_type) * ntotal_complex * num_fields));
     // this is the mega array that contains dfields
     CUDA_RT_CALL(cudaMalloc(&d_all_dfields, (size_t) sizeof(data_type) * ntotal_complex * num_fields));
-    // this is the mega array that contains intermediate fields during multi-stage timestepping
-    CUDA_RT_CALL(cudaMalloc(&d_all_scrtimestep, (size_t) sizeof(data_type) * ntotal_complex * num_fields));
+    // // this is the mega array that contains intermediate fields during multi-stage timestepping
+    // CUDA_RT_CALL(cudaMalloc(&d_all_scrtimestep, (size_t) sizeof(data_type) * ntotal_complex * num_fields));
     // this is the mega array that contains temporary scratch arrays
     CUDA_RT_CALL(cudaMalloc(&d_all_tmparray, (size_t) sizeof(data_type) * ntotal_complex * num_tmp_array));
 
@@ -408,73 +402,9 @@ void Fields::allocate_and_move_to_gpu() {
     // }
 
     wavevector.allocate_and_move_to_gpu();
+    std::printf("Finished allocating wavevector and move to gpu\n");
 }
 
-
-
-//the following is unnecessary now
-// void Fields::do_operations() {
-//     // cufftDoubleReal *d_vx_r = (scalar_type *) d_vx;
-//     // cufftDoubleReal *d_vy_r = (scalar_type *) d_vy;
-//
-//     init_plan(fft_size);
-//     cudaEvent_t start, stop;
-//     cudaEventCreate(&start);
-//     cudaEventCreate(&stop);
-//     cudaEventRecord(start);
-//     // Do forward and inverse transform
-//     int Niter=10;
-//     for (int ii = 0; ii < Niter; ii++) {
-//         for (int n = 0 ; n < num_fields ; n++) {
-//             r2c_fft(d_farray_r[n], d_farray[n]);
-//             c2r_fft(d_farray[n], d_farray_r[n]);
-//         }
-//         // r2c_fft(d_farray_r[VX], d_farray[VX]);
-//         // c2r_fft(d_farray[VX], d_farray_r[VX]);
-//     }
-//     cudaEventRecord(stop);
-//     finish_cufft();
-//     float milliseconds = 0;
-//     cudaEventElapsedTime(&milliseconds, start, stop);
-//     // std::printf("Elapsed time (in s): %.5f \t Approx time per FFT (in ms): %.5f \n",milliseconds/1000, milliseconds/Niter);
-//
-//     std::printf("kmax: %.5f \n",wavevector.kmax);
-//
-// }
-
-
-// void Fields::do_multiplications() {
-//     // init_plan(fft_size);
-//     cudaEvent_t start, stop;
-//     cudaEventCreate(&start);
-//     cudaEventCreate(&stop);
-//     cudaEventRecord(start);
-//     // Do forward and inverse transform
-//     int Niter=10;
-//     for (int ii = 0; ii < Niter; ii++) {
-//         std::printf("iter %d \n", ii);
-//         // thrust::transform(thrust::device_pointer_cast(d_farray_r[0]), thrust::device_pointer_cast(d_farray_r[0])+2*ntotal_complex, thrust::device_pointer_cast(d_farray_r[1]), thrust::device_pointer_cast(d_farray_r[0]), thrust::multiplies<scalar_type>());
-//         // for (int n = 0 ; n < num_fields ; n++) {
-//         //     r2c_fft(d_farray_r[n], d_farray[n]);
-//         //     // c2r_fft(d_farray[n], d_farray_r[n]);
-//         // }
-//         // this operation does pointwise kz*vx operation and stores the result in vx
-//         thrust::transform(thrust::device_pointer_cast(d_farray[0]), thrust::device_pointer_cast(d_farray[0])+ntotal_complex, thrust::device_pointer_cast(wavevector.d_kz), thrust::device_pointer_cast(d_farray[0]), thrust::multiplies<data_type>());
-//         thrust::transform(thrust::device_pointer_cast(d_farray[0]), thrust::device_pointer_cast(d_farray[0])+ntotal_complex, thrust::device_pointer_cast(wavevector.d_kz), thrust::device_pointer_cast(d_farray[0]), thrust::divides<data_type>());
-//         // for (int n = 0 ; n < num_fields ; n++) {
-//         //     // r2c_fft(d_farray_r[n], d_farray[n]);
-//         //     c2r_fft(d_farray[n], d_farray_r[n]);
-//         // }
-//     }
-//     cudaEventRecord(stop);
-//     // finish_cufft();
-//     float milliseconds = 0;
-//     cudaEventElapsedTime(&milliseconds, start, stop);
-//     std::printf("Elapsed time (in s): %.5f \t Approx time per multiply (in ms): %.5f \n",milliseconds/1000, milliseconds/Niter);
-//
-//     // std::printf("kmax: %.5f \n",wavevector.kmax);
-//
-// }
 
 void Fields::copy_back_to_host() {
 

@@ -2,9 +2,6 @@ list(APPEND spooky_src
 ${PROJECT_SOURCE_DIR}/src/spooky.cu
 ${PROJECT_SOURCE_DIR}/src/fields.cu
 ${PROJECT_SOURCE_DIR}/src/wavevector.cu
-${PROJECT_SOURCE_DIR}/src/hydro_mhd_advance.cu
-${PROJECT_SOURCE_DIR}/src/compute_dfield.cu
-${PROJECT_SOURCE_DIR}/src/compute_dt.cu
 ${PROJECT_SOURCE_DIR}/src/cublas_routines.cu
 ${PROJECT_SOURCE_DIR}/src/cuda_kernels.cu
 ${PROJECT_SOURCE_DIR}/src/cuda_kernels_generic.cu
@@ -16,9 +13,15 @@ ${PROJECT_SOURCE_DIR}/src/symmetries.cu
 ${PROJECT_SOURCE_DIR}/src/generic/user_defined_cuda_kernels.cu
 ${PROJECT_SOURCE_DIR}/src/generic/user_outputs.cu
 ##### input/output files ######
+${PROJECT_SOURCE_DIR}/src/io/inputoutput.cu
 ${PROJECT_SOURCE_DIR}/src/io/hdf5_io.cu
 ${PROJECT_SOURCE_DIR}/src/io/check_output.cu
 ${PROJECT_SOURCE_DIR}/src/io/output_timevar.cu
 ${PROJECT_SOURCE_DIR}/src/io/spooky_outputs.cu
 ${PROJECT_SOURCE_DIR}/src/io/read_parameters.cu
+##### timestepping files ######
+${PROJECT_SOURCE_DIR}/src/timestepping/timestepping.cu
+${PROJECT_SOURCE_DIR}/src/timestepping/hydro_mhd_advance.cu
+${PROJECT_SOURCE_DIR}/src/timestepping/compute_dfield.cu
+${PROJECT_SOURCE_DIR}/src/timestepping/compute_dt.cu
 )

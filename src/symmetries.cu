@@ -6,8 +6,9 @@
 #include "cublas_routines.hpp"
 #include "cuda_kernels.hpp"
 #include "parameters.hpp"
+#include "timestepping.hpp"
 
-void Fields::CheckSymmetries(){
+void Fields::CheckSymmetries(int current_step){
 #ifdef DEBUG
     if( current_step % 100 == 0) {
         std::printf("Computing divergence of v/B fields \n");

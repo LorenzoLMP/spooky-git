@@ -14,9 +14,11 @@
 // #include "cuda_kernels_generic.hpp"
 #include <argparse/argparse.hpp>
 #include "parameters.hpp"
+#include "inputoutput.hpp"
+#include "timestepping.hpp"
 
 void startup();
-void displayConfiguration(Fields *fields, Parameters *param);
+void displayConfiguration(Fields &fields, Parameters &param);
 
 // Parameters param;
 // int threadsPerBlock = 512;
@@ -55,80 +57,97 @@ int main(int argc, char *argv[]) {
     //----------------------------------------------------------------------------------------
     //! Declare classes
 
-    Parameters *param;
-    Fields *fields;
+    Parameters param(input_dir);
+    Fields fields(param, NUM_FIELDS);
+    TimeStepping timestep(NUM_FIELDS);
+    InputOutput inout;
 
 
     //----------------------------------------------------------------------------------------
     //! Create instances
 
-    param = new Parameters(fields, input_dir);
-    // param->read_Parameters(input_dir);
+    // param = new Parameters(fields, input_dir);
+    // param.read_Parameters(input_dir);
     std::printf("Finished reading in params\n");
 
     if (program.is_used("--output-dir")){
         std::string output_dir = program.get<std::string>("--output-dir");
         std::cout << "output directory will be overriden: " << output_dir << std::endl;
-        param->output_dir = output_dir;
+        param.output_dir = output_dir;
     }
 
-    fields = new Fields(param, NUM_FIELDS);
-    // fields->init_Fields(NUM_FIELDS, param);
+    // timestep = new TimeStepping(param, fields, NUM_FIELDS);
+    // fields = new Fields(param, timestep, NUM_FIELDS);
+    // // fields.init_Fields(NUM_FIELDS, param);
+    // inout = new InputOutput(param, timestep, fields);
+
+
 
     displayConfiguration(fields, param);
 
 #ifdef DDEBUG
-    fields->wavevector.print_values();
-    fields->print_host_values();
+    fields.wavevector.print_values();
+    fields.print_host_values();
 #endif
 
     std::printf("Allocating to gpu...\n");
-    fields->allocate_and_move_to_gpu();
+    fields.allocate_and_move_to_gpu();
 
-    // fields->print_device_values();
+    // fields.print_device_values();
 
-    fields->CheckSymmetries();
+    fields.CheckSymmetries(timestep.current_step);
 
     std::printf("Initial data dump...\n");
     try {
-    // fields->CheckOutput();
-    fields->write_data_file();
-    fields->num_save++;
-    fields->write_data_output_header();
-    fields->write_data_output();
+    // fields.CheckOutput();
+    inout.write_data_file(fields, param, timestep);
+    inout.num_save++;
+    inout.write_data_output_header(param);
+    inout.write_data_output(fields, param, timestep);
     }
     catch (const std::exception& err) {
     std::cerr << err.what() << std::endl;
-    // std::cerr << program;
+    std::cerr << program;
     std::exit(1);
     }
-    
+
     // wavevector is a member of Fields
-    // fields->wavevector.print_values();
+    // fields.wavevector.print_values();
 
-
-
-    while (fields->current_time < param->t_final) {
+    // std::printf("Current dt: %.2e \n", timestep.current_dt);
+    // std::printf("Current time: %.2e \n", timestep.current_time);
+    // int n = 0;
+    // while (n < 1){
+        // timestep.RungeKutta3();
+        // std::printf("Current dt: %.2e \n", timestep.current_dt);
+        // std::printf("Current time: %.2e \n", timestep.current_time);
+        // timestep.current_time = 0.5;
+        // std::printf("Current time: %.2f \n", timestep.current_time);
+        // n++;
+    // }
+    while (timestep.current_time < param.t_final) {
 
         // advance the equations (field(n+1) = field(n) + dfield*dt)
-        fields->RungeKutta3();
+        timestep.RungeKutta3(fields, param);
         // check if we need to output data
-        fields->CheckOutput();
+        inout.CheckOutput(fields, param, timestep);
         // check if we need to enforce symmetries
-        fields->CheckSymmetries();
-        
+        fields.CheckSymmetries(timestep.current_step);
+#ifdef DDEBUG
+        std::printf("step: %d \t dt: %.2e \n", timestep.current_step,timestep.current_dt);
+#endif
     }
 
     // std::printf("Starting copy back to host\n");
-    // fields->copy_back_to_host();
+    fields.copy_back_to_host();
     
 
-    fields->clean_gpu();
+    fields.clean_gpu();
     std::printf("Finished fields gpu cleanup\n");
 
 #ifdef DDEBUG
-    // fields->wavevector.print_values();
-    fields->print_host_values();
+    // fields.wavevector.print_values();
+    fields.print_host_values();
 #endif
 
     std::printf("Finishing cufft\n");
@@ -136,8 +155,6 @@ int main(int argc, char *argv[]) {
 
     std::printf("Finishing cublas\n");
     finish_cublas();
-
-    delete param;
 
     return EXIT_SUCCESS;
 };
@@ -168,19 +185,20 @@ R"abcd(
 }
 
 
-void displayConfiguration(Fields *fields, Parameters *param){
+void displayConfiguration(Fields &fields, Parameters &param){
 
-    std::printf("lx = %f \t ly = %f \t lz = %f\n",param->lx, param->ly, param->lz);
-    std::printf("kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",fields->wavevector.kxmax,fields->wavevector.kymax, fields->wavevector.kzmax);
+    std::printf("lx = %f \t ly = %f \t lz = %f\n",param.lx, param.ly, param.lz);
+    std::printf("kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",fields.wavevector.kxmax,fields.wavevector.kymax, fields.wavevector.kzmax);
+    std::printf("numfields = %d",fields.num_fields);
 #ifdef BOUSSINESQ
-    std::printf("nu_th = %.2e \n",param->nu_th);
+    std::printf("nu_th = %.2e \n",param.nu_th);
 #endif
-    std::printf("nu = %.2e \n",param->nu);
+    std::printf("nu = %.2e \n",param.nu);
 #ifdef STRATIFICATION
-    std::printf("N2 = %.2e \n",param->N2);
+    std::printf("N2 = %.2e \n",param.N2);
 #endif
-    std::printf("t_final = %.2e \n",param->t_final);
-    std::printf("Enforcing symmetries every %d steps \n",param->symmetries_step);
-    std::printf("Saving snapshot every  dt = %.2e \n",param->toutput_flow);
-    std::printf("Saving timevar every  dt = %.2e \n",param->toutput_time);
+    std::printf("t_final = %.2e \n",param.t_final);
+    std::printf("Enforcing symmetries every %d steps \n",param.symmetries_step);
+    std::printf("Saving snapshot every  dt = %.2e \n",param.toutput_flow);
+    std::printf("Saving timevar every  dt = %.2e \n",param.toutput_time);
 }

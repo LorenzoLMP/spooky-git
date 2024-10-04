@@ -7,6 +7,7 @@
 // https://stackoverflow.com/questions/994253/two-classes-that-refer-to-each-other
 
 class Parameters;
+class TimeStepping;
 
 class Wavevector {
 // private:
@@ -43,24 +44,26 @@ class Fields {
 public:
     int num_fields;
     int num_tmp_array;
-    double current_dt;
-    double current_time;
-    int stage_step;
-    double t_lastsnap; // for snapshot
-    double t_lastvar;  // for volume avg/ spectral qts.
-    int num_save;
-    unsigned int current_step;
+    // double current_dt;
+    // double current_time;
+    // int stage_step;
+    // double t_lastsnap; // for snapshot
+    // double t_lastvar;  // for volume avg/ spectral qts.
+    // int num_save;
+    // unsigned int current_step;
     data_type *all_fields, *all_dfields;
     data_type **farray, **dfarray;
     scalar_type **farray_r, **dfarray_r;
  
-    data_type *d_all_fields, *d_all_dfields, *d_all_scrtimestep, *d_all_tmparray;
+    data_type *d_all_fields, *d_all_dfields, *d_all_tmparray;
     data_type **d_farray, **d_dfarray, **d_tmparray;
     scalar_type **d_farray_r, **d_dfarray_r, **d_tmparray_r;
     
     Wavevector wavevector;
     Parameters *param;
-    Fields(Parameters *p_in, int num);
+    // TimeStepping *timestep;
+    // Fields(Parameters *p_in, TimeStepping *timestep_in, int num);
+    Fields(Parameters &p_in, int num);
     // void init_Fields( int num, Parameters *p_in);
     void init_SpatialStructure();
     void print_host_values();
@@ -71,20 +74,20 @@ public:
     // void do_operations();
     // void do_multiplications();
     // double advance_timestep( double t, double t_end, int* p_step);
-    void compute_dfield();
-    void compute_dt();
+    // void compute_dfield(int stage_step);
+    // void compute_dt();
     void copy_back_to_host();
 
-    void CheckOutput();
-    void write_data_file();
-    void write_data_output();
-    void write_data_output_header();
+    // void CheckOutput();
+    // void write_data_file();
+    // void write_data_output();
+    // void write_data_output_header();
 
     void clean_gpu();
-    void RungeKutta3();
+    // void RungeKutta3();
     void ComputeDivergence();
     void CleanFieldDivergence( );
-    void CheckSymmetries();
+    void CheckSymmetries(int current_step);
 
     void Boussinesq();
     void AnisotropicConduction();

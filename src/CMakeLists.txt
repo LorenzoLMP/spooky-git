@@ -7,6 +7,10 @@ ${PROJECT_SOURCE_DIR}/src/io/
 )
 
 include_directories(
+${PROJECT_SOURCE_DIR}/src/timestepping/
+)
+
+include_directories(
 ${PROJECT_SOURCE_DIR}/src/
 )
 

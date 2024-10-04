@@ -8,6 +8,8 @@
 #include "fields.hpp"
 #include "hdf5_io.hpp"
 #include "parameters.hpp"
+#include "inputoutput.hpp"
+#include "timestepping.hpp"
 
 using namespace HighFive;
 
@@ -16,7 +18,7 @@ using namespace HighFive;
 
 // void Fields::CheckOutput(){
 //
-//     if( (current_time-t_lastsnap)>=param->toutput_flow) {
+//     if( (current_time-t_lastsnap)>=param.toutput_flow) {
 //         // ComputeDivergence();
 //         CleanFieldDivergence();
 //         // ComputeDivergence();
@@ -25,29 +27,35 @@ using namespace HighFive;
 //         std::printf("Saving data file at step n. %d \n",current_step);
 //         std::printf("Saving data file at t= %.6e \n",current_time);
 //         write_data_file();
-//         t_lastsnap += param->toutput_flow;
+//         t_lastsnap += param.toutput_flow;
 //         num_save++;
 //     }
 // }
 
-void Fields::write_data_file() {
+void InputOutput::write_data_file(Fields &fields, Parameters &param, TimeStepping &timestep) {
 
-    NVTX3_FUNC_RANGE();
+    // NVTX3_FUNC_RANGE();
 #ifdef DEBUG
     std::printf("Writing data file... \n");
 #endif
 
-    double t0        = param->t_initial;
-    double time_save = current_time;
-    double tend     = param->t_final;
-    // double times[3] = {param->t_initial, current_dt, param->t_final};
+    // std::printf("t0: %.2f \n",param.t_initial);
+    // std::printf("time_save: %.2f \n",timestep.current_time);
+    // std::printf("tend: %.2f \n",param.t_final);
+
+    double t0        = param.t_initial;
+    double time_save = timestep.current_time;
+    double tend     = param.t_final;
+    std::printf("t0: %.2f \t time_save: %.2f \t tend: %.2f \n",t0,time_save,tend);
+
+    // double times[3] = {param.t_initial, current_dt, param.t_final};
     // char file_name[256];
-    // sprintf(filename,"%s/data/v%04i.vtk",param->output_dir,num_save);
-    // std::sprintf(file_name,"%s/data/snap%04i.h5",param->output_dir,num_save);
+    // sprintf(filename,"%s/data/v%04i.vtk",param.output_dir,num_save);
+    // std::sprintf(file_name,"%s/data/snap%04i.h5",param.output_dir,num_save);
 
     char data_snap_name[16];
     std::sprintf(data_snap_name,"snap%04i.h5",num_save);
-    std::string fname = param->output_dir + std::string("/data/") + std::string(data_snap_name);
+    std::string fname = param.output_dir + std::string("/data/") + std::string(data_snap_name);
     // we are assuming that the fields have been copied back to cpu and are real
     // we create a new hdf5 file
     // std::string fname(file_name);
@@ -84,7 +92,7 @@ void Fields::write_data_file() {
     scratch = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal);
     DataSpace data_field(ntotal);
 
-    for (int n = 0; n < num_fields; n++){
+    for (int n = 0; n < fields.num_fields; n++){
 
         for (int i = 0; i < nx; i++){
             for (int j = 0; j < ny; j++){
@@ -94,7 +102,7 @@ void Fields::write_data_file() {
                     idx_complex = k + (nz/2+1)*2 * ( j + i * ny);
                     // idx_complex = k + (nz + 2) * j + (nz + 2) * ny * i;
                     // scratch[idx] = 1.0;
-                    scratch[idx] = farray_r[n][idx_complex];
+                    scratch[idx] = fields.farray_r[n][idx_complex];
                 }
             }
         }

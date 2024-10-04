@@ -1,6 +1,6 @@
 // #define WITH_EXPLICIT_DISSIPATION
 
-// #define DEBUG
+#define DEBUG
 
 #define INCOMPRESSIBLE
 #define WITH_EXPLICIT_DISSIPATION

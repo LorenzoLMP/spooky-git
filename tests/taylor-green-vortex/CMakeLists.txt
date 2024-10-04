@@ -1,9 +1,16 @@
 ### these do not need to be modified
 include_directories(${PROJECT_SOURCE_DIR}/src/)
+
 include_directories(
 ${PROJECT_SOURCE_DIR}/src/io/
 )
+
+include_directories(
+${PROJECT_SOURCE_DIR}/src/timestepping/
+)
+
 include_directories(${CMAKE_CURRENT_LIST_DIR}/)
+
 include(list_source_files.txt)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/data/)
 
