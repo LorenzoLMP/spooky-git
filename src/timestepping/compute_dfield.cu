@@ -7,8 +7,9 @@
 #include "timestepping.hpp"
 #include "parameters.hpp"
 #include "fields.hpp"
+#include "physics.hpp"
 
-void TimeStepping::compute_dfield(Fields &fields, Parameters &param) {
+void TimeStepping::compute_dfield(Fields &fields, Parameters &param, Physics &phys) {
     NVTX3_FUNC_RANGE();
 
     int blocksPerGrid;
@@ -32,7 +33,7 @@ void TimeStepping::compute_dfield(Fields &fields, Parameters &param) {
     // int blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     // nablaOp<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_kvec[KX],  (scalar_type *) wavevector.d_kvec[KY], (scalar_type *) wavevector.d_kvec[KZ], (cufftDoubleComplex *) d_farray[TH], (cufftDoubleComplex *) d_dfarray[TH], param.nu_th, (size_t) ntotal_complex, ASS);
 
-    if (stage_step == 0) compute_dt(fields, param);
+    if (stage_step == 0) compute_dt(fields, param, phys);
 
     // laplacianScalar((scalar_type **)wavevector.d_kvec, (cufftDoubleComplex *) d_farray[TH], (cufftDoubleComplex *) d_dfarray[TH], param.nu_th, ASS);
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
@@ -59,7 +60,7 @@ void TimeStepping::compute_dfield(Fields &fields, Parameters &param) {
     }
 
     // cudaDeviceSynchronize();
-    if (stage_step == 0) compute_dt(fields, param);
+    if (stage_step == 0) compute_dt(fields, param, phys);
 
     // we use Basdevant formulation [1983]
     // compute the elements of the traceless symmetric matrix B_ij = u_i u_j - delta_ij Tr (u_i u_j) / 3. It has only 5 independent components B_xx, B_xy, B_xz, Byy, B_yz. (B_zz = - B_xx - B_yy)
@@ -106,7 +107,7 @@ void TimeStepping::compute_dfield(Fields &fields, Parameters &param) {
 
 #ifdef BOUSSINESQ
     // This function assumes that the real transforms of the fields are stored in tmparrays_r[0] - tmparray_r[num_fields - 1]
-    fields.Boussinesq();
+    phys.Boussinesq(fields, param);
 #endif
 
 // #ifdef BOUSSINESQ

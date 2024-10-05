@@ -1,11 +1,10 @@
 ### these do not need to be modified
-include_directories(${PROJECT_SOURCE_DIR}/src/)
-
 include_directories(
+${PROJECT_SOURCE_DIR}/src/
+${PROJECT_SOURCE_DIR}/src/cuda/
+${PROJECT_SOURCE_DIR}/src/fields/
 ${PROJECT_SOURCE_DIR}/src/io/
-)
-
-include_directories(
+${PROJECT_SOURCE_DIR}/src/physics/
 ${PROJECT_SOURCE_DIR}/src/timestepping/
 )
 

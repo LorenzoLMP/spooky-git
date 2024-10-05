@@ -90,7 +90,7 @@ Fields::Fields(Parameters &p_in, int num ) : wavevector(p_in.lx, p_in.ly, p_in.l
     // t_lastvar = 0.0;
     // num_save = 0;
 
-    param = &p_in;
+    // param = &p_in;
     // timestep = timestep_in;
     // r_data = (scalar_type *) malloc( sizeof( scalar_type ) * 2*ntotal_complex ) ;
     // c_data = (data_type *) r_data;
@@ -141,7 +141,7 @@ Fields::Fields(Parameters &p_in, int num ) : wavevector(p_in.lx, p_in.ly, p_in.l
         all_dfields[i] = data_type(0.0,0.0);
     }
 
-    init_SpatialStructure();
+    init_SpatialStructure(p_in);
     // wavevector.init_Wavevector(p_in);
     // std::printf("num_fields: %d \n",num_fields);
     // for (int n = 0 ; n < num_fields ; n++) {

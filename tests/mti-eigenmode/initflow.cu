@@ -6,7 +6,7 @@
 #include "common.hpp"
 #include "parameters.hpp"
 
-void Fields::init_SpatialStructure(){
+void Fields::init_SpatialStructure(Parameters &param){
 
 	int i,j,k;
 
@@ -29,9 +29,9 @@ void Fields::init_SpatialStructure(){
 	for(i = 0 ; i < nx ; i++) {
 		for(j = 0 ; j < ny ; j++) {
 			for(k = 0 ; k < nz ; k++) {
-				x[k + (nz + 2) * j + (nz + 2) * ny * i] = - param->lx / 2 + (param->lx * i) / nx;
-				y[k + (nz + 2) * j + (nz + 2) * ny * i] = - param->ly / 2 + (param->ly * j ) / ny;
-				z[k + (nz + 2) * j + (nz + 2) * ny * i] = - param->lz / 2 + (param->lz * k ) / nz;
+				x[k + (nz + 2) * j + (nz + 2) * ny * i] = - param.lx / 2 + (param.lx * i) / nx;
+				y[k + (nz + 2) * j + (nz + 2) * ny * i] = - param.ly / 2 + (param.ly * j ) / ny;
+				z[k + (nz + 2) * j + (nz + 2) * ny * i] = - param.lz / 2 + (param.lz * k ) / nz;
 			}
 		}
 		// std::printf("x[%d] = %.2e \t",i,x[(nz + 2) * ny * i]);
@@ -42,9 +42,9 @@ void Fields::init_SpatialStructure(){
 	for(i = 0 ; i < nx ; i++) {
 		for(j = 0 ; j < ny ; j++) {
 			for(k = 0 ; k < nz ; k++) {
-				x[k + (nz) * j + (nz) * (ny + 2) * i] = - param->lx / 2 + (param->lx * i) / nx;
-				y[k + (nz) * j + (nz) * (ny + 2) * i] = - param->ly / 2 + (param->ly * j ) / ny;
-				z[k + (nz) * j + (nz) * (ny + 2) * i] = - param->lz / 2 + (param->lz * k ) / nz;
+				x[k + (nz) * j + (nz) * (ny + 2) * i] = - param.lx / 2 + (param.lx * i) / nx;
+				y[k + (nz) * j + (nz) * (ny + 2) * i] = - param.ly / 2 + (param.ly * j ) / ny;
+				z[k + (nz) * j + (nz) * (ny + 2) * i] = - param.lz / 2 + (param.lz * k ) / nz;
 			}
 		}
 	}
@@ -78,9 +78,9 @@ void Fields::init_SpatialStructure(){
 	///////////////////////////////////////
 
 	double sigma  = 0.9341413811120219;
-	double Pe     = param->reynolds_ani;
-    double Reeta  = param->reynolds_m;
-    double kparallel  = (2.0*M_PI/param->lx)*12.0;
+	double Pe     = param.reynolds_ani;
+    double Reeta  = param.reynolds_m;
+    double kparallel  = (2.0*M_PI/param.lx)*12.0;
 	double B0 = 1e-4;
 
 	for (int i = 0; i < 2*ntotal_complex; i++){
@@ -95,7 +95,7 @@ void Fields::init_SpatialStructure(){
 		farray_r[BY][i] = 0.0 ;
 		farray_r[BZ][i] = -0.00001*cos(kparallel*x[i])*B0*kparallel/(sigma+kparallel*kparallel/Reeta);
 
-		farray_r[TH][i] = 1.0/(sigma + kparallel*kparallel/Pe)*(param->N2 - kparallel*kparallel/Pe/(sigma+kparallel*kparallel/Reeta) ) * farray_r[VZ][i];
+		farray_r[TH][i] = 1.0/(sigma + kparallel*kparallel/Pe)*(param.N2 - kparallel*kparallel/Pe/(sigma+kparallel*kparallel/Reeta) ) * farray_r[VZ][i];
 
 
 	}

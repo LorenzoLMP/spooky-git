@@ -1,6 +1,6 @@
 list(APPEND spooky_src
-${PROJECT_SOURCE_DIR}/src/cublas_routines.cu
-${PROJECT_SOURCE_DIR}/src/cuda_kernels_generic.cu
-${PROJECT_SOURCE_DIR}/src/cufft_routines.cu
+${PROJECT_SOURCE_DIR}/src/cuda/cublas_routines.cu
+${PROJECT_SOURCE_DIR}/src/cuda/cuda_kernels_generic.cu
+${PROJECT_SOURCE_DIR}/src/cuda/cufft_routines.cu
 ${PROJECT_SOURCE_DIR}/src/tests.cu
 )

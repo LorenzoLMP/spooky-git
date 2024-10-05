@@ -6,7 +6,7 @@
 #include "common.hpp"
 #include "parameters.hpp"
 
-void Fields::init_SpatialStructure(){
+void Fields::init_SpatialStructure(Parameters &param){
 
 	int i,j,k;
 
@@ -29,9 +29,9 @@ void Fields::init_SpatialStructure(){
 	for(i = 0 ; i < nx ; i++) {
 		for(j = 0 ; j < ny ; j++) {
 			for(k = 0 ; k < nz ; k++) {
-				x[k + (nz + 2) * j + (nz + 2) * ny * i] = - param->lx / 2 + (param->lx * i) / nx;
-				y[k + (nz + 2) * j + (nz + 2) * ny * i] = - param->ly / 2 + (param->ly * j ) / ny;
-				z[k + (nz + 2) * j + (nz + 2) * ny * i] = - param->lz / 2 + (param->lz * k ) / nz;
+				x[k + (nz + 2) * j + (nz + 2) * ny * i] = - param.lx / 2 + (param.lx * i) / nx;
+				y[k + (nz + 2) * j + (nz + 2) * ny * i] = - param.ly / 2 + (param.ly * j ) / ny;
+				z[k + (nz + 2) * j + (nz + 2) * ny * i] = - param.lz / 2 + (param.lz * k ) / nz;
 			}
 		}
 		// std::printf("x[%d] = %.2e \t",i,x[(nz + 2) * ny * i]);
@@ -42,9 +42,9 @@ void Fields::init_SpatialStructure(){
 	for(i = 0 ; i < nx ; i++) {
 		for(j = 0 ; j < ny ; j++) {
 			for(k = 0 ; k < nz ; k++) {
-				x[k + (nz) * j + (nz) * (ny + 2) * i] = - param->lx / 2 + (param->lx * i) / nx;
-				y[k + (nz) * j + (nz) * (ny + 2) * i] = - param->ly / 2 + (param->ly * j ) / ny;
-				z[k + (nz) * j + (nz) * (ny + 2) * i] = - param->lz / 2 + (param->lz * k ) / nz;
+				x[k + (nz) * j + (nz) * (ny + 2) * i] = - param.lx / 2 + (param.lx * i) / nx;
+				y[k + (nz) * j + (nz) * (ny + 2) * i] = - param.ly / 2 + (param.ly * j ) / ny;
+				z[k + (nz) * j + (nz) * (ny + 2) * i] = - param.lz / 2 + (param.lz * k ) / nz;
 			}
 		}
 	}
@@ -79,15 +79,15 @@ void Fields::init_SpatialStructure(){
 	for (int i = 0; i < 2*ntotal_complex; i++){
 
 		// Taylor - Green vortex
-		// farray_r[VX][i] =   sin(2.0*M_PI*x[i]/param->lx) * cos(2.0*M_PI*y[i]/param->ly);
+		// farray_r[VX][i] =   sin(2.0*M_PI*x[i]/param.lx) * cos(2.0*M_PI*y[i]/param.ly);
 		// // farray_r[VY][i] = 1.0 * sin(2.0*M_PI*x[i]);
-		// farray_r[VY][i] = - cos(2.0*M_PI*x[i]/param->lx) * sin(2.0*M_PI*y[i]/param->ly);
+		// farray_r[VY][i] = - cos(2.0*M_PI*x[i]/param.lx) * sin(2.0*M_PI*y[i]/param.ly);
 		// farray_r[VZ][i] = 0.0;
 
 		farray_r[VX][i] = 0.0 ;
 		// farray_r[VY][i] = 1.0 * sin(2.0*M_PI*x[i]);
-		farray_r[VY][i] = sin(2.0*M_PI*y[i]/param->ly) * cos(2.0*M_PI*z[i]/param->lz) ;
-		farray_r[VZ][i] = - cos(2.0*M_PI*y[i]/param->ly) * sin(2.0*M_PI*z[i]/param->lz);
+		farray_r[VY][i] = sin(2.0*M_PI*y[i]/param.ly) * cos(2.0*M_PI*z[i]/param.lz) ;
+		farray_r[VZ][i] = - cos(2.0*M_PI*y[i]/param.ly) * sin(2.0*M_PI*z[i]/param.lz);
 
 	}
 

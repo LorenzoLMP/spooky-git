@@ -8,9 +8,10 @@
 #include "cuda_kernels_generic.hpp"
 #include "cublas_routines.hpp"
 #include "parameters.hpp"
+#include "physics.hpp"
 
 // we are assuming that the fields have been already fft to real and saved in d_tmparray_r
-void TimeStepping::compute_dt(Fields &fields, Parameters &param) {
+void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) {
 
     NVTX3_FUNC_RANGE();
     double dt;

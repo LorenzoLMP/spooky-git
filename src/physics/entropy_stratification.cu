@@ -1,4 +1,5 @@
 #include "define_types.hpp"
+#include "physics.hpp"
 #include "fields.hpp"
 #include "cufft_routines.hpp"
 #include "spooky.hpp"
@@ -7,7 +8,7 @@
 #include "cuda_kernels_generic.hpp"
 #include "parameters.hpp"
 
-void Fields::EntropyStratification() {
+void Physics::EntropyStratification(Fields &fields, Parameters &param) {
 
     int blocksPerGrid;
 
@@ -18,7 +19,7 @@ void Fields::EntropyStratification() {
     // this is for normalization where theta is in units of g [L/T^2]
     // other normalizations possible
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)d_all_fields, (data_type *) d_all_dfields, param->N2, ntotal_complex, STRAT_DIR);
+    BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)fields.d_all_fields, (data_type *) fields.d_all_dfields, param.N2, ntotal_complex, STRAT_DIR);
 #endif // STRATIFICATION
 #endif // BOUSSINESQ
 

@@ -4,6 +4,7 @@
 // https://stackoverflow.com/questions/994253/two-classes-that-refer-to-each-other
 class Fields;
 class Parameters;
+class Physics;
 
 class TimeStepping {
 public:
@@ -21,9 +22,9 @@ public:
 
     // void compute_dt();
     // void compute_dfield();
-    void compute_dfield(Fields &fields, Parameters &param);
-    void compute_dt(Fields &fields, Parameters &param);
-    void RungeKutta3(Fields &fields, Parameters &param);
+    void compute_dfield(Fields &fields, Parameters &param, Physics &phys);
+    void compute_dt(Fields &fields, Parameters &param, Physics &phys);
+    void RungeKutta3(Fields &fields, Parameters &param, Physics &phys);
 
     ~TimeStepping();
 };

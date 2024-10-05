@@ -8,14 +8,14 @@
 #include "parameters.hpp"
 #include "timestepping.hpp"
 
-void Fields::CheckSymmetries(int current_step){
+void Fields::CheckSymmetries(int current_step, int symmetries_step){
 #ifdef DEBUG
     if( current_step % 100 == 0) {
         std::printf("Computing divergence of v/B fields \n");
         ComputeDivergence();
     }
 #endif
-    if( current_step % param->symmetries_step) {
+    if( current_step % symmetries_step) {
 
         CleanFieldDivergence();
         // if( current_step % 500*param->symmetries_step == 0) ComputeDivergence();
@@ -42,7 +42,7 @@ void Fields::ComputeDivergence( ){
         // reduce sum
         stat = cublasDasum(handle0, 2 * ntotal_complex, d_tmparray_r[0], 1, &divvfield);
         if (stat != CUBLAS_STATUS_SUCCESS) std::printf("-Reduce-sum of div v failed\n");
-        std::printf("----Mean-divergence of v-field is %.2e\n",divvfield*param->lx/(2 * ntotal_complex));
+        std::printf("----Mean-divergence of v-field is %.2e / L\n",divvfield/(2 * ntotal_complex));
 
          #ifdef MHD
             // compute mean divergence for magnetic field    
@@ -56,7 +56,7 @@ void Fields::ComputeDivergence( ){
             // reduce sum
             stat = cublasDasum(handle0, 2 * ntotal_complex, d_tmparray_r[0], 1, &divBfield);
             if (stat != CUBLAS_STATUS_SUCCESS) std::printf("-Reduce-sum of div B failed\n");
-            std::printf("----Mean-divergence of B-field is %.2e\n",divBfield*param->lx/(2 * ntotal_complex));
+            std::printf("----Mean-divergence of B-field is %.2e / L\n",divBfield/(2 * ntotal_complex));
          #endif
     #endif
 

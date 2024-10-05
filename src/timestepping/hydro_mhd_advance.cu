@@ -17,7 +17,7 @@ cublasStatus_t stat;
 // extern int threadsPerBlock;
 
 
-void TimeStepping::RungeKutta3(Fields &fields, Parameters &param) {
+void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys) {
     NVTX3_FUNC_RANGE();
 
 #ifdef DDEBUG
@@ -38,7 +38,7 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param) {
 
     // compute_dt( );
     // note that the following compute_dfield also compute the new current_dt!!
-    compute_dfield(fields, param);
+    compute_dfield(fields, param, phys);
     stage_step++;
 
     // std::printf("...Computing dfield\n");
@@ -74,7 +74,7 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param) {
     std::printf("RK3, doing step n. %d ...\n",stage_step+1);
 #endif
     // std::printf("...Computing dfield\n");
-    compute_dfield(fields, param);
+    compute_dfield(fields, param, phys);
     stage_step++;
     // for( i = 0 ; i < NTOTAL_COMPLEX ; i++) {
     //         fld.farray[n][i] = fld1.farray[n][i] + gammaRK[1] * dfld.farray[n][i] * dt;
@@ -90,7 +90,7 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param) {
     std::printf("RK3, doing step n. %d ...\n",stage_step+1);
 #endif
     // std::printf("...Computing dfield\n");
-    compute_dfield(fields, param);
+    compute_dfield(fields, param, phys);
     stage_step++;
     // for( i = 0 ; i < NTOTAL_COMPLEX ; i++) {
     //     fld.farray[n][i] = fld1.farray[n][i] + gammaRK[2] * dfld.farray[n][i] * dt;

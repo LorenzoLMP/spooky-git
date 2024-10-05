@@ -16,6 +16,7 @@
 #include "parameters.hpp"
 #include "inputoutput.hpp"
 #include "timestepping.hpp"
+#include "physics.hpp"
 
 void startup();
 void displayConfiguration(Fields &fields, Parameters &param);
@@ -59,6 +60,7 @@ int main(int argc, char *argv[]) {
 
     Parameters param(input_dir);
     Fields fields(param, NUM_FIELDS);
+    Physics phys;
     TimeStepping timestep(NUM_FIELDS);
     InputOutput inout;
 
@@ -95,7 +97,7 @@ int main(int argc, char *argv[]) {
 
     // fields.print_device_values();
 
-    fields.CheckSymmetries(timestep.current_step);
+    fields.CheckSymmetries(timestep.current_step, param.symmetries_step);
 
     std::printf("Initial data dump...\n");
     try {
@@ -128,11 +130,11 @@ int main(int argc, char *argv[]) {
     while (timestep.current_time < param.t_final) {
 
         // advance the equations (field(n+1) = field(n) + dfield*dt)
-        timestep.RungeKutta3(fields, param);
+        timestep.RungeKutta3(fields, param, phys);
         // check if we need to output data
         inout.CheckOutput(fields, param, timestep);
         // check if we need to enforce symmetries
-        fields.CheckSymmetries(timestep.current_step);
+        fields.CheckSymmetries(timestep.current_step, param.symmetries_step);
 #ifdef DDEBUG
         std::printf("step: %d \t dt: %.2e \n", timestep.current_step,timestep.current_dt);
 #endif

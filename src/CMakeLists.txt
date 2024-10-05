@@ -1,17 +1,11 @@
 include_directories(
-${PROJECT_SOURCE_DIR}/src/generic/
-)
-
-include_directories(
-${PROJECT_SOURCE_DIR}/src/io/
-)
-
-include_directories(
-${PROJECT_SOURCE_DIR}/src/timestepping/
-)
-
-include_directories(
 ${PROJECT_SOURCE_DIR}/src/
+${PROJECT_SOURCE_DIR}/src/cuda/
+${PROJECT_SOURCE_DIR}/src/fields/
+${PROJECT_SOURCE_DIR}/src/generic/
+${PROJECT_SOURCE_DIR}/src/io/
+${PROJECT_SOURCE_DIR}/src/physics/
+${PROJECT_SOURCE_DIR}/src/timestepping/
 )
 
 include(list_source_files.txt)

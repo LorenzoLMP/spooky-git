@@ -60,12 +60,12 @@ public:
     scalar_type **d_farray_r, **d_dfarray_r, **d_tmparray_r;
     
     Wavevector wavevector;
-    Parameters *param;
+    // Parameters *param;
     // TimeStepping *timestep;
     // Fields(Parameters *p_in, TimeStepping *timestep_in, int num);
     Fields(Parameters &p_in, int num);
     // void init_Fields( int num, Parameters *p_in);
-    void init_SpatialStructure();
+    void init_SpatialStructure(Parameters &param);
     void print_host_values();
     void print_device_values();
     void allocate_and_move_to_gpu();
@@ -87,11 +87,11 @@ public:
     // void RungeKutta3();
     void ComputeDivergence();
     void CleanFieldDivergence( );
-    void CheckSymmetries(int current_step);
+    void CheckSymmetries(int current_step, int symmetries_step);
 
-    void Boussinesq();
-    void AnisotropicConduction();
-    void EntropyStratification();
+    // void Boussinesq();
+    // void AnisotropicConduction();
+    // void EntropyStratification();
 
     ~Fields();
 };
