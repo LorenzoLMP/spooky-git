@@ -16,7 +16,7 @@
 #include "inputoutput.hpp"
 #include "timestepping.hpp"
 
-void InputOutput::write_data_output(Fields &fields, Parameters &param, TimeStepping &timestep) {
+void InputOutput::WriteTimevarOutput(Fields &fields, Parameters &param, TimeStepping &timestep) {
 
     NVTX3_FUNC_RANGE();
 #ifdef DEBUG
@@ -217,7 +217,7 @@ void InputOutput::write_data_output(Fields &fields, Parameters &param, TimeStepp
 }
 
 
-void InputOutput::write_data_output_header(Parameters &param) {
+void InputOutput::WriteTimevarOutputHeader(Parameters &param) {
 
 #ifdef DEBUG
     std::printf("Writing data output... \n");

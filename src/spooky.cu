@@ -26,6 +26,8 @@ void displayConfiguration(Fields &fields, Parameters &param);
 
 int main(int argc, char *argv[]) {
 
+    int restart_num = -1;
+
     argparse::ArgumentParser program("spooky");
 
     program.add_argument("--input-dir")
@@ -34,6 +36,11 @@ int main(int argc, char *argv[]) {
 
     program.add_argument("--output-dir")
     .help("output directory for data files");
+
+    program.add_argument("-r", "--restart")
+    .help("restart from data file")
+    .scan<'i', int>();;
+    // .default_value(int(-1));
 
 
     try {
@@ -50,13 +57,15 @@ int main(int argc, char *argv[]) {
 
     startup();
     
-    std::printf("-----------Initializing fields\n");
+    std::printf("-----------Initializing cufft, cublas...\n");
+
     init_plan(fft_size);
-    std::printf("Initialized fft\n");
     init_cublas();
 
     //----------------------------------------------------------------------------------------
-    //! Declare classes
+    //! Initialize objects
+
+    std::printf("-----------Initializing objects...\n");
 
     Parameters param(input_dir);
     Fields fields(param, NUM_FIELDS);
@@ -64,28 +73,34 @@ int main(int argc, char *argv[]) {
     TimeStepping timestep(NUM_FIELDS);
     InputOutput inout;
 
+    std::printf("Finished reading in params and initializing objects.\n");
+
 
     //----------------------------------------------------------------------------------------
-    //! Create instances
-
-    // param = new Parameters(fields, input_dir);
-    // param.read_Parameters(input_dir);
-    std::printf("Finished reading in params\n");
+    //! Parse runtime flags and override default params
 
     if (program.is_used("--output-dir")){
         std::string output_dir = program.get<std::string>("--output-dir");
         std::cout << "output directory will be overriden: " << output_dir << std::endl;
         param.output_dir = output_dir;
     }
-
-    // timestep = new TimeStepping(param, fields, NUM_FIELDS);
-    // fields = new Fields(param, timestep, NUM_FIELDS);
-    // // fields.init_Fields(NUM_FIELDS, param);
-    // inout = new InputOutput(param, timestep, fields);
-
-
+    // if (program.is_used("-r")){
+    //     restart_num = program.get<int>("-r");
+    //     std::cout << "restarting from file: " << restart_num << std::endl;
+    //     param.restart = 1;
+    // }
+    if (program.is_used("--restart")){
+        // std::cout << "restarting from file: "  << std::endl;
+        restart_num = program.get<int>("--restart");
+        std::cout << "restarting from file: " << restart_num << std::endl;
+        param.restart = 1;
+    }
 
     displayConfiguration(fields, param);
+
+    if (param.restart == 1){
+        inout.ReadDataFile(fields, param, timestep, restart_num);
+    }
 
 #ifdef DDEBUG
     fields.wavevector.print_values();
@@ -99,34 +114,23 @@ int main(int argc, char *argv[]) {
 
     fields.CheckSymmetries(timestep.current_step, param.symmetries_step);
 
-    std::printf("Initial data dump...\n");
-    try {
-    // fields.CheckOutput();
-    inout.write_data_file(fields, param, timestep);
-    inout.num_save++;
-    inout.write_data_output_header(param);
-    inout.write_data_output(fields, param, timestep);
-    }
-    catch (const std::exception& err) {
-    std::cerr << err.what() << std::endl;
-    std::cerr << program;
-    std::exit(1);
+    if (param.restart == 0){
+
+        std::printf("Initial data dump...\n");
+        try {
+        inout.CheckOutput(fields, param, timestep);
+        }
+        catch (const std::exception& err) {
+        std::cerr << err.what() << std::endl;
+        std::cerr << program;
+        std::exit(1);
+        }
     }
 
     // wavevector is a member of Fields
     // fields.wavevector.print_values();
 
-    // std::printf("Current dt: %.2e \n", timestep.current_dt);
-    // std::printf("Current time: %.2e \n", timestep.current_time);
-    // int n = 0;
-    // while (n < 1){
-        // timestep.RungeKutta3();
-        // std::printf("Current dt: %.2e \n", timestep.current_dt);
-        // std::printf("Current time: %.2e \n", timestep.current_time);
-        // timestep.current_time = 0.5;
-        // std::printf("Current time: %.2f \n", timestep.current_time);
-        // n++;
-    // }
+
     while (timestep.current_time < param.t_final) {
 
         // advance the equations (field(n+1) = field(n) + dfield*dt)

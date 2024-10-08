@@ -15,30 +15,23 @@
 
 void InputOutput::CheckOutput(Fields &fields, Parameters &param, TimeStepping &timestep){
 
-    if( (timestep.current_time-t_lastsnap)>=param.toutput_flow) {
-        // ComputeDivergence();
+    if( (timestep.current_time-t_lastvar)>=param.toutput_time || timestep.current_time == 0.0) {
         fields.CleanFieldDivergence();
-        // ComputeDivergence();
+        std::printf("Saving output at t= %.6e \t and step n. %d \n",timestep.current_time, timestep.current_step);
+        if (timestep.current_time == 0.0) WriteTimevarOutputHeader(param);
+        if (timestep.current_time != 0.0) t_lastvar += param.toutput_time;
+        WriteTimevarOutput(fields, param, timestep);
+
+    }
+
+    if( (timestep.current_time-t_lastsnap)>=param.toutput_flow || timestep.current_time == 0.0 ) {
+        fields.CleanFieldDivergence();
         std::printf("Starting copy back to host\n");
         fields.copy_back_to_host();
         std::printf("Saving data snap at t= %.6e \t and step n. %d \n",timestep.current_time, timestep.current_step);
-        // std::printf("Saving data file at t= %.6e \n",current_time);
-        write_data_file(fields, param, timestep);
-        t_lastsnap += param.toutput_flow;
+        if (timestep.current_time != 0.0) t_lastsnap += param.toutput_flow;
+        WriteDataFile(fields, param, timestep);
         num_save++;
     }
 
-    if( (timestep.current_time-t_lastvar)>=param.toutput_time) {
-        // ComputeDivergence();
-        fields.CleanFieldDivergence();
-        // ComputeDivergence();
-        // std::printf("Starting copy back to host\n");
-        // copy_back_to_host();
-        std::printf("Saving output at t= %.6e \t and step n. %d \n",timestep.current_time, timestep.current_step);
-        // std::printf("Saving data file at step n. %d \n",current_step);
-        // std::printf("Saving data file at t= %.6e \n",current_time);
-        write_data_output(fields, param, timestep);
-        t_lastvar += param.toutput_time;
-        // num_save++;
-    }
 }

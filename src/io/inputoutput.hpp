@@ -22,9 +22,10 @@ public:
     int num_save;
 
     void CheckOutput(Fields &fields, Parameters &param, TimeStepping &timestep);
-    void write_data_file(Fields &fields, Parameters &param, TimeStepping &timestep);
-    void write_data_output(Fields &fields, Parameters &param, TimeStepping &timestep);
-    void write_data_output_header(Parameters &param);
+    void WriteDataFile(Fields &fields, Parameters &param, TimeStepping &timestep);
+    void ReadDataFile(Fields &fields, Parameters &param, TimeStepping &timestep, int restart_num);
+    void WriteTimevarOutput(Fields &fields, Parameters &param, TimeStepping &timestep);
+    void WriteTimevarOutputHeader(Parameters &param);
 
     ~InputOutput();
 };
