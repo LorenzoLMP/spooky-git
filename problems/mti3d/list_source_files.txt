@@ -10,10 +10,6 @@ ${PROJECT_SOURCE_DIR}/src/cuda/cufft_routines.cu
 ${PROJECT_SOURCE_DIR}/src/fields/fields.cu
 ${PROJECT_SOURCE_DIR}/src/fields/wavevector.cu
 ${PROJECT_SOURCE_DIR}/src/fields/symmetries.cu
-${PROJECT_SOURCE_DIR}/src/fields/initflow.cu
-##### problem-specific files #####
-${PROJECT_SOURCE_DIR}/src/generic/user_defined_cuda_kernels.cu
-${PROJECT_SOURCE_DIR}/src/generic/user_outputs.cu
 ##### input/output files ######
 ${PROJECT_SOURCE_DIR}/src/io/inputoutput.cu
 ${PROJECT_SOURCE_DIR}/src/io/hdf5_io.cu
@@ -33,3 +29,4 @@ ${PROJECT_SOURCE_DIR}/src/physics/boussinesq.cu
 ${PROJECT_SOURCE_DIR}/src/physics/entropy_stratification.cu
 ${PROJECT_SOURCE_DIR}/src/physics/anisotropic_conduction.cu
 )
+

@@ -100,6 +100,8 @@ else()
 	add_library(hdf5-lib ALIAS HDF5::HDF5)
 endif()
 
+add_library(HighFive INTERFACE)
+target_include_directories(HighFive INTERFACE ${PROJECT_SOURCE_DIR}$/libs/HighFive/include)
 
 include(CTest)
 
@@ -126,7 +128,8 @@ ${PROJECT_SOURCE_DIR}/libs/HighFive/include/
 #)
 
 
-add_subdirectory(src)
+#add_subdirectory(src)
+add_subdirectory(problems)
 
 
 if( BUILD_TESTS )
