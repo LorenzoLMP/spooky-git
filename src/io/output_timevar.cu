@@ -196,21 +196,21 @@ void InputOutput::WriteTimevarOutput(Fields &fields, Parameters &param, TimeStep
         outputfile << std::scientific << std::setprecision(8) << output_var << "\t";
     }
 
-    if (param.userOutVar.length > 0){
-        for (int i = 0; i < param.userOutVar.length; i++){
-
-            if(!param.userOutVar.name[i].compare(std::string("uservar1"))) {
-                output_var = param.userOutVar.customFunction(fields.d_farray[0]);
-            }
-            else if(!param.userOutVar.name[i].compare(std::string("uservar2"))) {
-                output_var = 0.0;
-            }
-            else {
-                output_var = -1.0;
-            }
-            outputfile << std::scientific << std::setprecision(8) << output_var << "\t";
-        }
-    }
+    // if (param.userOutVar.length > 0){
+    //     for (int i = 0; i < param.userOutVar.length; i++){
+    //
+    //         if(!param.userOutVar.name[i].compare(std::string("uservar1"))) {
+    //             output_var = param.userOutVar.customFunction(fields.d_farray[0]);
+    //         }
+    //         else if(!param.userOutVar.name[i].compare(std::string("uservar2"))) {
+    //             output_var = 0.0;
+    //         }
+    //         else {
+    //             output_var = -1.0;
+    //         }
+    //         outputfile << std::scientific << std::setprecision(8) << output_var << "\t";
+    //     }
+    // }
 
     outputfile << "\n";
     outputfile.close();
@@ -238,11 +238,11 @@ void InputOutput::WriteTimevarOutputHeader(Parameters &param) {
         outputfile << param.spookyOutVar.name[i]  << "\t";
     }
 
-    if (param.userOutVar.length > 0){
-        for (int i = 0; i < param.userOutVar.length; i++){
-            outputfile << param.userOutVar.name[i]  << "\t";
-        }
-    }
+    // if (param.userOutVar.length > 0){
+    //     for (int i = 0; i < param.userOutVar.length; i++){
+    //         outputfile << param.userOutVar.name[i]  << "\t";
+    //     }
+    // }
 
     outputfile << "\n";
     outputfile.close();

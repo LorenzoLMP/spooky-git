@@ -18,10 +18,19 @@ void InputOutput::CheckOutput(Fields &fields, Parameters &param, TimeStepping &t
     if( (timestep.current_time-t_lastvar)>=param.toutput_time || timestep.current_time == 0.0) {
         fields.CleanFieldDivergence();
         std::printf("Saving output at t= %.6e \t and step n. %d \n",timestep.current_time, timestep.current_step);
-        if (timestep.current_time == 0.0) WriteTimevarOutputHeader(param);
-        if (timestep.current_time != 0.0) t_lastvar += param.toutput_time;
-        WriteTimevarOutput(fields, param, timestep);
 
+        if (timestep.current_time == 0.0) {
+            WriteTimevarOutputHeader(param);
+            if (param.userOutVar.length > 0){
+                WriteUserTimevarOutputHeader(param);
+            }
+        }
+        if (timestep.current_time != 0.0) t_lastvar += param.toutput_time;
+
+        WriteTimevarOutput(fields, param, timestep);
+        if (param.userOutVar.length > 0){
+            WriteUserTimevarOutput(fields, param, timestep);
+        }
     }
 
     if( (timestep.current_time-t_lastsnap)>=param.toutput_flow || timestep.current_time == 0.0 ) {

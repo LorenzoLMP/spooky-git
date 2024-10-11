@@ -5,6 +5,8 @@
 #include <complex>
 #include "spooky_outputs.hpp"
 
+// class SpookyOutput;
+
 class UserOutput : public SpookyOutput { // The class
     public:
         // int length; // Number of spooky variables

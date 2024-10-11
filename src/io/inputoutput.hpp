@@ -13,10 +13,6 @@ class InputOutput {
 public:
     InputOutput();
 
-    // Fields *fields;
-    // TimeStepping *timestep;
-    // Parameters *param;
-
     double t_lastsnap; // for snapshot
     double t_lastvar;  // for volume avg/ spectral qts.
     int num_save;
@@ -26,6 +22,9 @@ public:
     void ReadDataFile(Fields &fields, Parameters &param, TimeStepping &timestep, int restart_num);
     void WriteTimevarOutput(Fields &fields, Parameters &param, TimeStepping &timestep);
     void WriteTimevarOutputHeader(Parameters &param);
+
+    void WriteUserTimevarOutput(Fields &fields, Parameters &param, TimeStepping &timestep);
+    void WriteUserTimevarOutputHeader(Parameters &param);
 
     ~InputOutput();
 };
