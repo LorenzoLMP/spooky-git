@@ -20,7 +20,8 @@ ${PROJECT_SOURCE_DIR}/src/io/hdf5_io.cu
 ${PROJECT_SOURCE_DIR}/src/io/check_output.cu
 ${PROJECT_SOURCE_DIR}/src/io/output_timevar.cu
 ${PROJECT_SOURCE_DIR}/src/io/spooky_outputs.cu
-${PROJECT_SOURCE_DIR}/src/io/read_parameters.cu
+##### parameters files #####
+${PROJECT_SOURCE_DIR}/src/parameters/read_parameters.cu
 ##### timestepping files ######
 ${PROJECT_SOURCE_DIR}/src/timestepping/timestepping.cu
 ${PROJECT_SOURCE_DIR}/src/timestepping/hydro_mhd_advance.cu

@@ -6,6 +6,7 @@ ${PROJECT_SOURCE_DIR}/src/generic/
 ${PROJECT_SOURCE_DIR}/src/io/
 ${PROJECT_SOURCE_DIR}/src/physics/
 ${PROJECT_SOURCE_DIR}/src/timestepping/
+${PROJECT_SOURCE_DIR}/src/parameters/
 )
 
 include(list_source_files.txt)
