@@ -79,23 +79,25 @@ void Fields::init_SpatialStructure(Parameters &param){
 
 	double sigma  = 0.9341413811120219;
 	double Pe     = param.reynolds_ani;
-    double Reeta  = param.reynolds_m;
-    double kparallel  = (2.0*M_PI/param.lx)*12.0;
+ 	double Reeta  = param.reynolds_m;
+    	double kparallel  = (2.0*M_PI/param.lx)*12.0;
 	double B0 = 1e-4;
 
 	for (int i = 0; i < 2*ntotal_complex; i++){
 
 		// MTI eigenmode
 
-		farray_r[VX][i] = 0.0 ;
-		farray_r[VY][i] = 0.0 ;
-		farray_r[VZ][i] = -0.00001*sin(kparallel*x[i]);
+		farray_r[VX][i] =  0.0001*cos(0.5*kparallel*y[i]);
+		farray_r[VY][i] =  0.0001*sin(0.25*kparallel*z[i]);
+		farray_r[VZ][i] = -0.001*sin(kparallel*x[i]);
 
 		farray_r[BX][i] = B0 ;
 		farray_r[BY][i] = 0.0 ;
-		farray_r[BZ][i] = -0.00001*cos(kparallel*x[i])*B0*kparallel/(sigma+kparallel*kparallel/Reeta);
+		// farray_r[BZ][i] = -0.001*cos(kparallel*x[i])*B0*kparallel/(sigma+kparallel*kparallel/Reeta);
+		farray_r[BZ][i] = 0.00;
 
-		farray_r[TH][i] = 1.0/(sigma + kparallel*kparallel/Pe)*(param.N2 - kparallel*kparallel/Pe/(sigma+kparallel*kparallel/Reeta) ) * farray_r[VZ][i];
+		// farray_r[TH][i] = 1.0/(sigma + kparallel*kparallel/Pe)*(param.N2 - kparallel*kparallel/Pe/(sigma+kparallel*kparallel/Reeta) ) * farray_r[VZ][i];
+		farray_r[TH][i] = 0.00;
 
 
 	}
