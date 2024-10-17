@@ -16,7 +16,9 @@
 // #include "define_types.hpp"
 
 
-Physics::Physics(){
+Physics::Physics(Supervisor &sup){
+
+    supervisor = &sup;
 
 }
 

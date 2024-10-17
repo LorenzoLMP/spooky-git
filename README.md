@@ -80,11 +80,11 @@ $ ctest -V -R "spooky"
 
 which will run all the spooky tests and show the output.
 
-## On Newton (last update: 2024-08-06)
+## On Newton (last update: 2024-10-11)
 
 For interactive jobs:
 ```
-srun -p a100 --gres=gpu:1 --job-name "GpuInteractiveJob" --time=02:00:00 --pty bash
+srun -p a100 --gres=gpu:1 --job-name "GpuInteractiveJob" --time=04:00:00 --pty bash
 ```
 
 ```
@@ -97,7 +97,8 @@ rm -rf *
 ```
 
 ```
-$ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.5/bin/nvcc -DCMAKE_CUDA_FLAGS="-ccbin /usr/bin/g++" -DHDF5_ROOT=/home/lperrone/myhdf5/hdf5/ -DLIBCONFIG_ROOT=/home/lperrone/mylibconfig/libconfig/ ..
+$ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.5/bin/nvcc -DCMAKE_CUDA_FLAGS="" -DHDF5_ROOT=/home/lperrone/myhdf5/hdf5/ -DLIBCONFIG_ROOT=/home/lperrone/mylibconfig/libconfig/ -DCMAKE_CUDA_ARCHITECTURES="80" ..
+
 ```
 
 

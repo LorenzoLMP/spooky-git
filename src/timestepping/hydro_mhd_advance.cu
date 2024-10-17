@@ -9,6 +9,7 @@
 #include "cuda_kernels_generic.hpp"
 #include "parameters.hpp"
 #include "fields.hpp"
+#include "supervisor.hpp"
 
 
 const double gammaRK[3] = {8.0 / 15.0 , 5.0 / 12.0 , 3.0 / 4.0};
@@ -19,6 +20,8 @@ cublasStatus_t stat;
 
 void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys) {
     NVTX3_FUNC_RANGE();
+
+    cudaEventRecord(supervisor->start_2);
 
 #ifdef DDEBUG
     std::printf("Now entering RungeKutta3 function \n");
@@ -101,6 +104,10 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys)
 #ifdef DDEBUG
     std::printf("End of RK3 integrator, t: %.5e \t dt: %.5e \n",current_time,current_dt);
 #endif
+
+    cudaEventRecord(supervisor->stop_2);
+    cudaEventSynchronize(supervisor->stop_2);
+    supervisor->updateMainLooptime();
 
     return ;
 

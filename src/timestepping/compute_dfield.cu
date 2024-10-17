@@ -56,7 +56,7 @@ void TimeStepping::compute_dfield(Fields &fields, Parameters &param, Physics &ph
 
     // compute FFTs from complex to real fields to start computation of shear traceless matrix
     for (int n = 0; n < fields.num_fields; n++){
-        c2r_fft(fields.d_tmparray[n], fields.d_tmparray_r[n]);
+        c2r_fft(fields.d_tmparray[n], fields.d_tmparray_r[n], supervisor);
     }
 
     // cudaDeviceSynchronize();
@@ -75,7 +75,7 @@ void TimeStepping::compute_dfield(Fields &fields, Parameters &param, Physics &ph
 
     // take fft of 5 independent components of B_ij
     for (int n = fields.num_fields ; n < fields.num_fields + 5; n++) {
-        r2c_fft(fields.d_tmparray_r[n], fields.d_tmparray[n]);
+        r2c_fft(fields.d_tmparray_r[n], fields.d_tmparray[n], supervisor);
     }
 
     // compute derivative of traceless shear matrix and assign to dfields
@@ -94,7 +94,7 @@ void TimeStepping::compute_dfield(Fields &fields, Parameters &param, Physics &ph
 
     // take fourier transforms of the 3 independent components of the antisymmetric shear matrix
     for (int n = fields.num_fields ; n < fields.num_fields + 3; n++) {
-        r2c_fft(fields.d_tmparray_r[n], fields.d_tmparray[n]);
+        r2c_fft(fields.d_tmparray_r[n], fields.d_tmparray[n], supervisor);
     }
 
     // compute derivative of antisymmetric magnetic shear matrix and assign to dfields

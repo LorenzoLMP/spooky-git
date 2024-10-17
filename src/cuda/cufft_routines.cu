@@ -4,6 +4,7 @@
 #include "cufft_routines.hpp"
 #include "cuda_kernels_generic.hpp"
 #include "spooky.hpp"
+#include "supervisor.hpp"
 // cufftHandle plan_r2c{}, plan_c2r{};
 
 cufftHandle plan_r2c{};
@@ -19,14 +20,29 @@ void r2c_fft(void *r_data_in, void *c_data_out) {
 
 };
 
+void r2c_fft(void *r_data_in, void *c_data_out, Supervisor *supervisor) {
+
+    // increase FFT count
+    supervisor->NumFFTs += 1;
+
+    cudaEventRecord(supervisor->start);
+    // Execute the plan_r2c
+    CUFFT_CALL(cufftXtExec(plan_r2c, r_data_in, c_data_out, CUFFT_FORWARD));
+
+    cudaEventRecord(supervisor->stop);
+    cudaEventSynchronize(supervisor->stop);
+    supervisor->updateFFTtime();
+
+
+};
+
 void c2r_fft(void *c_data_in, void *r_data_out) {
 
     // Scale complex results
     int dimGrid, dimBlock;
     dimGrid = (ntotal + threadsPerBlock - 1) / threadsPerBlock;
     dimBlock = threadsPerBlock;
-//printf("dimGrid = %d \t dimBlock = %d \n",dimGrid,dimBlock);
-//printf("ntotal = %d \t ntotal_complex = %d \n",fft_size[0] * fft_size[1] * fft_size[2], fft_size[0] * fft_size[1] * ((fft_size[2] / 2) + 1) );
+
     scaleKernel<<<dimGrid, dimBlock>>>(reinterpret_cast<cufftDoubleComplex *>(c_data_in), (double) 1./(fft_size[0] * fft_size[1] * fft_size[2]), fft_size[0] * fft_size[1] * ((fft_size[2] / 2) + 1));
     //CUDA_RT_CALL( cudaPeekAtLastError() );
     //CUDA_RT_CALL( cudaDeviceSynchronize() );
@@ -35,6 +51,30 @@ void c2r_fft(void *c_data_in, void *r_data_out) {
     CUFFT_CALL(cufftXtExec(plan_c2r, c_data_in, r_data_out, CUFFT_INVERSE));
 
 
+
+};
+
+void c2r_fft(void *c_data_in, void *r_data_out, Supervisor *supervisor) {
+
+    // increase FFT count
+    supervisor->NumFFTs += 1;
+    cudaEventRecord(supervisor->start);
+
+    // Scale complex results
+    int dimGrid, dimBlock;
+    dimGrid = (ntotal + threadsPerBlock - 1) / threadsPerBlock;
+    dimBlock = threadsPerBlock;
+
+    scaleKernel<<<dimGrid, dimBlock>>>(reinterpret_cast<cufftDoubleComplex *>(c_data_in), (double) 1./(fft_size[0] * fft_size[1] * fft_size[2]), fft_size[0] * fft_size[1] * ((fft_size[2] / 2) + 1));
+    //CUDA_RT_CALL( cudaPeekAtLastError() );
+    //CUDA_RT_CALL( cudaDeviceSynchronize() );
+
+    // Execute the plan_c2r
+    CUFFT_CALL(cufftXtExec(plan_c2r, c_data_in, r_data_out, CUFFT_INVERSE));
+
+    cudaEventRecord(supervisor->stop);
+    cudaEventSynchronize(supervisor->stop);
+    supervisor->updateFFTtime();
 
 };
 

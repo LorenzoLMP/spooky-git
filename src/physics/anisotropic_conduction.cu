@@ -28,7 +28,7 @@ void Physics::AnisotropicConduction(Fields &fields, Parameters &param) {
     Gradient<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)fields.wavevector.d_all_kvec, (data_type *) fields.d_farray[TH], (data_type *)fields.d_all_tmparray + fields.num_fields * ntotal_complex, ntotal_complex);
     // compute complex to real iFFTs
     for (int n = fields.num_fields; n < fields.num_fields + 3; n++){
-        c2r_fft(fields.d_tmparray[n], fields.d_tmparray_r[n]);
+        c2r_fft(fields.d_tmparray[n], fields.d_tmparray_r[n], supervisor);
     }
     // compute the scalar B grad theta (real space) and assign it to 7th scratch array
     blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
@@ -37,7 +37,7 @@ void Physics::AnisotropicConduction(Fields &fields, Parameters &param) {
     ComputeAnisotropicHeatFlux<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *) fields.d_tmparray_r[BX], (scalar_type *) fields.d_tmparray_r[fields.num_fields + 3], (scalar_type *) fields.d_tmparray_r[fields.num_fields], param.OmegaT2, (1./param.reynolds_ani), 2 * ntotal_complex, STRAT_DIR);
     // take fourier transforms of the heat flux
     for (int n = fields.num_fields ; n < fields.num_fields + 3; n++) {
-        r2c_fft(fields.d_tmparray_r[n], fields.d_tmparray[n]);
+        r2c_fft(fields.d_tmparray_r[n], fields.d_tmparray[n], supervisor);
     }
     // take divergence of heat flux
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;

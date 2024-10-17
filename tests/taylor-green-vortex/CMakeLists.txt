@@ -7,6 +7,7 @@ ${PROJECT_SOURCE_DIR}/src/io/
 ${PROJECT_SOURCE_DIR}/src/physics/
 ${PROJECT_SOURCE_DIR}/src/timestepping/
 ${PROJECT_SOURCE_DIR}/src/parameters/
+${PROJECT_SOURCE_DIR}/src/supervisor/
 )
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/)

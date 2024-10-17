@@ -5,13 +5,15 @@
 class Fields;
 class Parameters;
 class Physics;
+class Supervisor;
 
 class TimeStepping {
 public:
-    TimeStepping(int num);
+    TimeStepping(int num, Supervisor &sup);
 
     // Fields *fields;
     // Parameters *param;
+    Supervisor *supervisor;
 
     int stage_step;
     unsigned int current_step;

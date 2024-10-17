@@ -4,10 +4,13 @@
 // https://stackoverflow.com/questions/994253/two-classes-that-refer-to-each-other
 class Fields;
 class Parameters;
+class Supervisor;
 
 class Physics {
 public:
-    Physics();
+    Physics(Supervisor &sup);
+
+    Supervisor *supervisor;
 
     // Fields *fields;
     // Parameters *param;

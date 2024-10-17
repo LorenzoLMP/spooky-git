@@ -21,7 +21,7 @@ void Physics::Boussinesq(Fields &fields, Parameters &param) {
 
     // take fourier transforms of the 3 energy flux vector components
     for (int n = fields.num_fields ; n < fields.num_fields + 3; n++) {
-        r2c_fft(fields.d_tmparray_r[n], fields.d_tmparray[n]);
+        r2c_fft(fields.d_tmparray_r[n], fields.d_tmparray[n], supervisor);
     }
 
 

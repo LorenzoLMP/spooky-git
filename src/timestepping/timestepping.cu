@@ -13,11 +13,14 @@
 // #include "spooky.hpp"
 #include "cufft_utils.h"
 // #include "define_types.hpp"
+#include "supervisor.hpp"
 
-TimeStepping::TimeStepping(int num) {
+TimeStepping::TimeStepping(int num, Supervisor &sup) {
     // param = &p_in;
     // fields = &f_in;
 
+    supervisor = &sup;
+    // std::printf("The TimeSpentInFFTs is: %.4e",supervisor->TimeSpentInFFTs);
     current_dt = 0.0;
     current_time = 0.0;
     current_step = 0;

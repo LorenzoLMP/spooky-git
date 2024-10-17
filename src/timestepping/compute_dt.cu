@@ -96,11 +96,6 @@ void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) 
     int idx_max_bx, idx_max_by, idx_max_bz;
     // cublasStatus_t stat;
 
-    // here we need to do a c2r transform first when in production
-
-    // c2r_fft(d_farray[BX], d_farray_r[BX]);
-    // c2r_fft(d_farray[BY], d_farray_r[BY]);
-    // c2r_fft(d_farray[BZ], d_farray_r[BZ]);
 
     stat = cublasIdamax(handle0, 2 * ntotal_complex, fields.d_tmparray_r[BX], 1, &idx_max_bx);
     stat = cublasIdamax(handle0, 2 * ntotal_complex, fields.d_tmparray_r[BY], 1, &idx_max_by);
@@ -135,19 +130,12 @@ void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) 
 
     dt = param.cfl / (gamma_v  + gamma_b);
 
-    // r2c_fft(d_farray_r[BX], d_farray[BX]);
-    // r2c_fft(d_farray_r[BY], d_farray[VY]);
-    // r2c_fft(d_farray_r[BZ], d_farray[BZ]);
-
 #else //not MHD
 
     dt = param.cfl / (gamma_v );
 
 #endif //end MHD
 
-    // r2c_fft(d_farray_r[VX], d_farray[VX]);
-    // r2c_fft(d_farray_r[VY], d_farray[VY]);
-    // r2c_fft(d_farray_r[VZ], d_farray[VZ]);
 
 #endif //end INCOMPRESSIBLE
 
