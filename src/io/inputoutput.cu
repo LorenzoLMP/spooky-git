@@ -8,8 +8,14 @@
 #include "parameters.hpp"
 #include "inputoutput.hpp"
 #include "timestepping.hpp"
+#include "supervisor.hpp"
 
-InputOutput::InputOutput() {
+InputOutput::InputOutput(Supervisor &sup) {
+
+    supervisor = &sup;
+
+    // timevar_timer = new Timer();
+    // datadump_timer = new Timer();
 
     t_lastsnap = 0.0;
     t_lastvar = 0.0;
@@ -17,5 +23,7 @@ InputOutput::InputOutput() {
 }
 
 InputOutput::~InputOutput(){
+    // delete timevar_timer;
+    // delete datadump_timer;
 
 }

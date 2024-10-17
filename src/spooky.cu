@@ -28,6 +28,7 @@ void displayConfiguration(Fields &fields, Parameters &param);
 int main(int argc, char *argv[]) {
 
     int restart_num = -1;
+    int stats_frequency = -1;
 
     argparse::ArgumentParser program("spooky");
 
@@ -40,8 +41,13 @@ int main(int argc, char *argv[]) {
 
     program.add_argument("-r", "--restart")
     .help("restart from data file")
-    .scan<'i', int>();;
+    .scan<'i', int>();
     // .default_value(int(-1));
+
+    program.add_argument("--stats")
+    .help("whether to print stats: -1 (none), n > 0 (every n steps)")
+    .scan<'i', int>()
+    .default_value(int(-1));
 
 
     try {
@@ -56,6 +62,11 @@ int main(int argc, char *argv[]) {
     std::string input_dir = program.get<std::string>("--input-dir");
     std::cout << "Input directory: " << input_dir << std::endl;
 
+    if (program.is_used("--stats")){
+        stats_frequency = program.get<int>("--stats");
+        std::cout << "printing stats every " << stats_frequency << " steps " << std::endl;
+    }
+
     startup();
     
     std::printf("-----------Initializing cufft, cublas...\n");
@@ -68,13 +79,13 @@ int main(int argc, char *argv[]) {
 
     std::printf("-----------Initializing objects...\n");
 
-    Supervisor supervisor;
+    Supervisor supervisor(stats_frequency);
 
     Parameters param(input_dir);
     Fields fields(param, NUM_FIELDS);
     Physics phys(supervisor);
     TimeStepping timestep(NUM_FIELDS, supervisor);
-    InputOutput inout;
+    InputOutput inout(supervisor);
 
 
     std::printf("Finished reading in params and initializing objects.\n");
@@ -146,13 +157,17 @@ int main(int argc, char *argv[]) {
 #ifdef DDEBUG
         std::printf("step: %d \t dt: %.2e \n", timestep.current_step,timestep.current_dt);
 #endif
+
+        if (stats_frequency > 0){
+            if ( timestep.current_step % stats_frequency == 0)
+            supervisor.print_partial_stats();
+        }
+
+
     }
 
-    std::printf("The mainloop took %d FFTs to complete \n",supervisor.NumFFTs);
-    std::printf("The time spent in FFTs in the mainloop was %.4e [s]  \n",supervisor.TimeSpentInFFTs);
 
-    std::printf("The time spent in the mainloop was %.4e [s]  \n",supervisor.TimeSpentInMainLoop);
-    std::printf("The avg number of cell updates / sec is %.4e [cell_updates/s]  \n",ntotal*timestep.current_step/supervisor.TimeSpentInMainLoop);
+    supervisor.print_final_stats(timestep.current_step);
 
     // std::printf("Starting copy back to host\n");
     fields.copy_back_to_host();

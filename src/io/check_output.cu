@@ -10,12 +10,15 @@
 #include "hdf5_io.hpp"
 // #include "output_timevar.hpp"
 #include "parameters.hpp"
-
+#include "supervisor.hpp"
 #include "timestepping.hpp"
 
 void InputOutput::CheckOutput(Fields &fields, Parameters &param, TimeStepping &timestep){
 
     if( (timestep.current_time-t_lastvar)>=param.toutput_time || timestep.current_time == 0.0) {
+
+        supervisor->timevar_timer.reset();
+
         fields.CleanFieldDivergence();
         std::printf("Saving output at t= %.6e \t and step n. %d \n",timestep.current_time, timestep.current_step);
 
@@ -31,9 +34,15 @@ void InputOutput::CheckOutput(Fields &fields, Parameters &param, TimeStepping &t
         if (param.userOutVar.length > 0){
             WriteUserTimevarOutput(fields, param, timestep);
         }
+
+        supervisor->TimeIOTimevar += supervisor->timevar_timer.elapsed();
     }
 
     if( (timestep.current_time-t_lastsnap)>=param.toutput_flow || timestep.current_time == 0.0 ) {
+
+        supervisor->datadump_timer.reset();
+
+
         fields.CleanFieldDivergence();
         std::printf("Starting copy back to host\n");
         fields.copy_back_to_host();
@@ -41,6 +50,8 @@ void InputOutput::CheckOutput(Fields &fields, Parameters &param, TimeStepping &t
         if (timestep.current_time != 0.0) t_lastsnap += param.toutput_flow;
         WriteDataFile(fields, param, timestep);
         num_save++;
+
+        supervisor->TimeIODatadump += supervisor->datadump_timer.elapsed();
     }
 
 }
