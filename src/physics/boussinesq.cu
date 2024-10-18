@@ -51,7 +51,9 @@ void Physics::Boussinesq(Fields &fields, Parameters &param) {
     nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) fields.wavevector.d_all_kvec, (data_type *) fields.d_farray[TH], (data_type *) fields.d_dfarray[TH], param.nu_th, (size_t) ntotal_complex, ADD);
 #else
 #ifdef MHD
-    AnisotropicConduction(fields, param);
+    // AnisotropicConduction(fields, param);
+    AnisotropicConduction(fields, param, (data_type *) fields.d_farray[TH], (data_type *) (data_type *) fields.d_dfarray[TH]);
+
     /*
     // assign Bx, By, Bz to first 3 scratch arrays
     blocksPerGrid = ( 3 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;

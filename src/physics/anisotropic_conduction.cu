@@ -8,7 +8,7 @@
 #include "cuda_kernels_generic.hpp"
 #include "parameters.hpp"
 
-void Physics::AnisotropicConduction(Fields &fields, Parameters &param) {
+void Physics::AnisotropicConduction(Fields &fields, Parameters &param, data_type *temp_in, data_type *dtemp) {
 
     int blocksPerGrid;
 
@@ -16,16 +16,12 @@ void Physics::AnisotropicConduction(Fields &fields, Parameters &param) {
 #ifdef MHD
 #ifdef ANISOTROPIC_DIFFUSION
 
-    // not needed anymore!
-    // assign Bx, By, Bz to first 3 scratch arrays
-    // blocksPerGrid = ( 3 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    // ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((cufftDoubleComplex *)d_all_fields + ntotal_complex * BX, (cufftDoubleComplex *)d_all_tmparray, 3 * ntotal_complex);
 
 
     // Bx, By, Bz real fields are already in the 4-5-6 tmp arrays
     // compute gradient of theta and assign it to next 3 scratch arrays [num_fields -- num_fields + 3] (the first num_fields arrays are reserved for the real-valued fields)
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    Gradient<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)fields.wavevector.d_all_kvec, (data_type *) fields.d_farray[TH], (data_type *)fields.d_all_tmparray + fields.num_fields * ntotal_complex, ntotal_complex);
+    Gradient<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)fields.wavevector.d_all_kvec, temp_in, (data_type *)fields.d_all_tmparray + fields.num_fields * ntotal_complex, ntotal_complex);
     // compute complex to real iFFTs
     for (int n = fields.num_fields; n < fields.num_fields + 3; n++){
         c2r_fft(fields.d_tmparray[n], fields.d_tmparray_r[n], supervisor);
@@ -41,7 +37,7 @@ void Physics::AnisotropicConduction(Fields &fields, Parameters &param) {
     }
     // take divergence of heat flux
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)fields.wavevector.d_all_kvec, (data_type *) fields.d_tmparray[fields.num_fields], (data_type *) fields.d_all_dfields + TH * ntotal_complex, (scalar_type *)fields.wavevector.d_mask, ntotal_complex, ADD);
+    DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)fields.wavevector.d_all_kvec, (data_type *) fields.d_tmparray[fields.num_fields], (data_type *) dtemp, (scalar_type *)fields.wavevector.d_mask, ntotal_complex, ADD);
 
 #endif // ANISOTROPIC_DIFFUSION
 #endif // MHD
