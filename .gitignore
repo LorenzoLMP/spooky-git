@@ -4,3 +4,6 @@ external/
 *.h5
 load_modules
 load_modules_old
+*.err
+*.out
+problems/mti3d/spooky-mti3d
