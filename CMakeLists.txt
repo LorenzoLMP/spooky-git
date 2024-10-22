@@ -25,9 +25,9 @@ endif()
 
 option(BUILD_TESTS "Build test programs" OFF)
 
-set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CUDA_STANDARD 17)
+set(CMAKE_CXX_FLAGS "-O3 -std=c++20")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CUDA_STANDARD 20)
 
 project(spooky-git VERSION 0.1 LANGUAGES CUDA CXX C)
 include(CMakePrintHelpers)
@@ -112,6 +112,7 @@ check_language(CUDA)
 FetchContent_Declare(
     argparse
     GIT_REPOSITORY https://github.com/p-ranav/argparse.git
+    GIT_TAG v3.0
 )
 FetchContent_MakeAvailable(argparse)
 

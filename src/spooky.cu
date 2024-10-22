@@ -99,11 +99,6 @@ int main(int argc, char *argv[]) {
         std::cout << "output directory will be overriden: " << output_dir << std::endl;
         param.output_dir = output_dir;
     }
-    // if (program.is_used("-r")){
-    //     restart_num = program.get<int>("-r");
-    //     std::cout << "restarting from file: " << restart_num << std::endl;
-    //     param.restart = 1;
-    // }
     if (program.is_used("--restart")){
         // std::cout << "restarting from file: "  << std::endl;
         restart_num = program.get<int>("--restart");
@@ -141,9 +136,6 @@ int main(int argc, char *argv[]) {
         std::exit(1);
         }
     }
-
-    // wavevector is a member of Fields
-    // fields.wavevector.print_values();
 
 
     while (timestep.current_time < param.t_final) {
