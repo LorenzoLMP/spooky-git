@@ -274,6 +274,7 @@ Parameters::Parameters(std::string input_dir) : spookyOutVar(), userOutVar() {
 		setting = config_lookup(&config, "output.user_timevar_vars");
 		if(setting == NULL) {
 			std::cout << "Warning: you did not provide any variable in user outputs!" << std::endl;
+			userOutVar.length = 0;
 		}
 		else {
 			std::cout << "User outputs were provided" << std::endl;

@@ -1,4 +1,5 @@
 #include "define_types.hpp"
+#include <vector>
 
 // use forward declarations in the header files to get around the circular dependencies
 // https://stackoverflow.com/questions/994253/two-classes-that-refer-to-each-other
@@ -6,7 +7,7 @@ class Fields;
 class Parameters;
 class Physics;
 class Supervisor;
-class Timestepping;
+class TimeStepping;
 
 class RKLegendre {
 public:
@@ -22,8 +23,12 @@ public:
     // double current_time;
 
     double dt, cfl_rkl, rmax_par;
+    const int STS_MAX_STEPS = 1024;
+    std::vector<double> ts;
+    double STS_NU = 0.01;
 
     int stage;
+    int blocksPerGrid;
 
     data_type *d_all_dU;
     data_type *d_all_dU0;
@@ -32,7 +37,7 @@ public:
 
     // void compute_dt();
     // void compute_dfield();
-    void compute_cycle(Fields &fields, Timestepping &timestep, Physics &phys);
+    void compute_cycle_STS(Fields &fields, TimeStepping &timestep, Physics &phys);
     // void compute_dt(Fields &fields, Parameters &param, Physics &phys);
     // void RungeKutta3(Fields &fields, Parameters &param, Physics &phys);
 

@@ -5,7 +5,7 @@ import h5py
 import glob
 import subprocess
 import argparse
-
+import sys
 
 py_savename = 'py_snap'
 sp_savename = 'snap'

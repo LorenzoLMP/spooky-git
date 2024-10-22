@@ -18,6 +18,8 @@ public:
     int stage_step;
     unsigned int current_step;
     double current_dt;
+    double dt_par;
+    double dt_hyp;
     double current_time;
 
     data_type *d_all_scrtimestep;

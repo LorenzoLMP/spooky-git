@@ -43,7 +43,7 @@ void InputOutput::WriteUserTimevarOutput(Fields &fields, Parameters &param, Time
     double tend     = param.t_final;
     double output_var = 0.0;
 
-    char data_output_name[16];
+    char data_output_name[64];
     std::sprintf(data_output_name,"timevar-user.spooky");
     std::string fname = param.output_dir + std::string("/data/") + std::string(data_output_name);
 
@@ -81,7 +81,7 @@ void InputOutput::WriteUserTimevarOutputHeader(Parameters &param) {
     std::printf("Writing data output... \n");
 #endif
 
-    char data_output_name[16];
+    char data_output_name[64];
     std::sprintf(data_output_name,"timevar-user.spooky");
     std::string fname = param.output_dir + std::string("/data/") + std::string(data_output_name);
 

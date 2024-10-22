@@ -5,7 +5,7 @@ import numpy as np
 # import matplotlib.pyplot as plt
 import h5py
 import glob
-
+import sys
 # test script expects the executable as argument
 
 nx = 512

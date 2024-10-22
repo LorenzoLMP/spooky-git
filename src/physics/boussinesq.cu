@@ -52,7 +52,7 @@ void Physics::Boussinesq(Fields &fields, Parameters &param) {
 #else
 #ifdef MHD
     // AnisotropicConduction(fields, param);
-    AnisotropicConduction(fields, param, (data_type *) fields.d_farray[TH], (data_type *) (data_type *) fields.d_dfarray[TH]);
+    AnisotropicConduction(fields, param, (data_type *) fields.d_farray[TH], (data_type *) fields.d_dfarray[TH]);
 
     /*
     // assign Bx, By, Bz to first 3 scratch arrays
