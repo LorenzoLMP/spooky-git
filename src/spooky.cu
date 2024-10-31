@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
     Parameters param(input_dir);
     Fields fields(param, NUM_FIELDS);
     Physics phys(supervisor);
-    TimeStepping timestep(NUM_FIELDS, supervisor);
+    TimeStepping timestep(NUM_FIELDS, param, supervisor);
     InputOutput inout(supervisor);
 
 

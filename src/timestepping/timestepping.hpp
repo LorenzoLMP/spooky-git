@@ -1,4 +1,5 @@
 #include "define_types.hpp"
+// #include "rkl.hpp"
 
 // use forward declarations in the header files to get around the circular dependencies
 // https://stackoverflow.com/questions/994253/two-classes-that-refer-to-each-other
@@ -6,14 +7,16 @@ class Fields;
 class Parameters;
 class Physics;
 class Supervisor;
+class RKLegendre;
 
 class TimeStepping {
 public:
-    TimeStepping(int num, Supervisor &sup);
+    TimeStepping(int num, Parameters &param, Supervisor &sup);
 
     // Fields *fields;
     // Parameters *param;
     Supervisor *supervisor;
+    RKLegendre *rkl;
 
     int stage_step;
     unsigned int current_step;

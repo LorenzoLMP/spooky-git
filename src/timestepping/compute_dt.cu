@@ -16,7 +16,7 @@ void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) 
     NVTX3_FUNC_RANGE();
     dt_par = 0.0;
     dt_hyp = 0.0;
-    double dt_tot = 0.0;
+    // double dt_tot = 0.0;
     double gamma_v = 0.0, gamma_th = 0.0, gamma_par = 0.0, gamma_b = 0.0;
 
 #ifdef DDEBUG
@@ -67,9 +67,9 @@ void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) 
 #endif
 
 // #ifdef INCOMPRESSIBLE
-#ifdef WITH_EXPLICIT_DISSIPATION
+// #ifdef WITH_EXPLICIT_DISSIPATION
 	gamma_v += ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * param.nu;	// CFL condition on viscosity in incompressible regime
-#endif
+// #endif
 // #endif
 
 #ifdef BOUSSINESQ
@@ -84,7 +84,8 @@ void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) 
 #endif // BOUSSINESQ
 
 #ifdef DDEBUG
-    if (current_step == 1 || current_step % 100 == 0 ) std::printf("maxfx: %.4e \t maxfy: %.4e \t maxfz: %.4e \t gamma_v: %.4e \n",maxfx,maxfy,maxfz,gamma_v);
+    // if (current_step == 1 || current_step % 10 == 0 ) std::printf("maxfx: %.4e \t maxfy: %.4e \t maxfz: %.4e \t gamma_v: %.4e \n",maxfx,maxfy,maxfz,gamma_v);
+    std::printf("maxfx: %.6e \t maxfy: %.6e \t maxfz: %.6e \t gamma_v: %.6e \n",maxfx,maxfy,maxfz,gamma_v);
 #endif
 
 #ifdef MHD
@@ -125,7 +126,8 @@ void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) 
     gamma_b += ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * param.nu_m;	// CFL condition on resistivity
 
 #ifdef DDEBUG
-    if (current_step == 1 || current_step % 100 == 0 ) std::printf("maxbx: %.4e \t maxby: %.4e \t maxbz: %.4e \t gamma_b: %.4e \n",maxbx,maxby,maxbz,gamma_b);
+    // if (current_step == 1 || current_step % 10 == 0 ) std::printf("maxbx: %.4e \t maxby: %.4e \t maxbz: %.4e \t gamma_b: %.4e \n",maxbx,maxby,maxbz,gamma_b);
+    std::printf("maxbx: %.6e \t maxby: %.6e \t maxbz: %.6e \t gamma_b: %.6e \n",maxbx,maxby,maxbz,gamma_b);
 #endif
 
 
@@ -133,10 +135,12 @@ void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) 
 
     dt_hyp = param.cfl / (gamma_v + gamma_th + gamma_b);
     dt_par = param.cfl_par / gamma_par;
-    dt_tot = param.cfl / (gamma_v + gamma_th + gamma_b + gamma_par);
+    // dt_tot = param.cfl / (gamma_v + gamma_th + gamma_b + gamma_par);
+    // dt_tot = 1.0 / (1.0/dt_hyp + 1.0/dt_par);
 
 #ifndef SUPERTIMESTEPPING
-    current_dt = dt_tot;
+    current_dt = param.cfl / (gamma_v + gamma_th + gamma_b + gamma_par);
+
 #else
     if ( dt_hyp > dt_par * param.safety_sts) {
         dt_hyp =  dt_par * param.safety_sts;
@@ -156,8 +160,14 @@ void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) 
     current_dt = param.cfl / (gamma_v );
 #endif
 
-#ifdef DDEBUG
-    if (current_step == 1 || current_step % 100 == 0 ) std::printf("t: %.4e \t dt: %.4e \n", current_time, current_dt);
+    if ( current_time + current_dt > param.t_final) current_dt = param.t_final - current_time;
+
+// #ifdef DDEBUG
+//     if (current_step == 1 || current_step % 100 == 0 ) std::printf("t: %.4e \t dt: %.4e \n", current_time, current_dt);
+// #endif
+#ifdef DEBUG
+    // if (current_step == 1 || current_step % 10 == 0 ) std::printf("t: %.4e \t gamma_par = %.4e \t gamma_v = %.4e \t gamma_b = %.4e \t dt_hyp: %.4e \t dt_par: %.4e \t dt_current: %.4e \n", current_time, gamma_par, gamma_v + gamma_th, gamma_b, dt_hyp, dt_par, current_dt);
+    std::printf("t: %.4e \t gamma_par = %.4e \t gamma_v = %.4e \t gamma_b = %.4e \t dt_hyp: %.4e \t dt_par: %.4e \t dt_current: %.4e \n", current_time, gamma_par, gamma_v + gamma_th, gamma_b, dt_hyp, dt_par, current_dt);
 #endif
 
 }

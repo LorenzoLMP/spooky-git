@@ -6,9 +6,11 @@
 #define MHD
 #define ANISOTROPIC_DIFFUSION
 
-// #define DEBUG
-
+#define DEBUG
+#define DDEBUG
 
 #define BOUSSINESQ
 #define STRATIFICATION
 #define STRAT_DIR    2
+#define SUPERTIMESTEPPING
+#define RKL

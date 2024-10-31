@@ -62,7 +62,7 @@ class Parameters {       // The class
 
 	double cfl;				/**< CFL safety factor. Should be smaller than sqrt(3) for RK3 to be stable.*/
 	double cfl_par;				/**< CFL safety factor for parabolic STS*/
-	double safety_sts;     //num max of sts steps allowed
+	int safety_sts;     //num max of sts steps allowed
 	double safety_source;	/**< Safety factor for SHEAR, Coriolis and Boussinesq terms (should be ~0.2 for accuracy) */
 
 	double t_initial;		/**< Initial time of the simulation */

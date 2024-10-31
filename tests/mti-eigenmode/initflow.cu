@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "parameters.hpp"
 
+
 void Fields::init_SpatialStructure(Parameters &param){
 
 	int i,j,k;

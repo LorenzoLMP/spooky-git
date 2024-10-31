@@ -404,7 +404,7 @@ void test_axpy() {
     cudaEventRecord(start);
     for (int ii = 0; ii < Niter; ii++) {
         // using complex
-        axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( (cufftDoubleComplex *)dev_data1, (cufftDoubleComplex *)dev_data2, (cufftDoubleComplex *)scratch, scale, (scalar_type) 1.0, ntotal_complex);
+        axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)dev_data1, (data_type *)dev_data2, (data_type *)scratch, scale, (scalar_type) 1.0, ntotal_complex);
     }
     cudaEventRecord(stop);
     cudaDeviceSynchronize();

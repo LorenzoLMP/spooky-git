@@ -171,8 +171,8 @@ Parameters::Parameters(std::string input_dir) : spookyOutVar(), userOutVar() {
 		if(!config_lookup_float(&config, "code.cfl_par",&cfl_par)) {
 			cfl_par = 1.0;
 		}
-		if(!config_lookup_float(&config, "code.safety_sts",&safety_sts)) {
-			safety_sts = 50.0;
+		if(!config_lookup_int(&config, "code.safety_sts",&safety_sts)) {
+			safety_sts = 1;
 		}
 		if(!config_lookup_float(&config, "code.safety_source",&safety_source)) {
 			safety_source = 0.2;

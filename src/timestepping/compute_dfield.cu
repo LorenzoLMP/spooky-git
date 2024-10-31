@@ -52,7 +52,7 @@ void TimeStepping::compute_dfield(Fields &fields, Parameters &param, Physics &ph
 
      // assign fields to [num_fields] tmparray (memory block starts at d_all_tmparray)
     blocksPerGrid = ( fields.num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((cufftDoubleComplex *)fields.d_all_fields, (cufftDoubleComplex *)fields.d_all_tmparray, fields.num_fields * ntotal_complex);
+    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields.d_all_fields, (data_type *)fields.d_all_tmparray, fields.num_fields * ntotal_complex);
 
     // compute FFTs from complex to real fields to start computation of shear traceless matrix
     for (int n = 0; n < fields.num_fields; n++){

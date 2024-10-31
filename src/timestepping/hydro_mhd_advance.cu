@@ -10,6 +10,7 @@
 #include "parameters.hpp"
 #include "fields.hpp"
 #include "supervisor.hpp"
+#include "rkl.hpp"
 
 
 const double gammaRK[3] = {8.0 / 15.0 , 5.0 / 12.0 , 3.0 / 4.0};
@@ -39,14 +40,18 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys)
     std::printf("RK3, doing step n. %d ...\n",stage_step+1);
 #endif
 
-    // compute_dt( );
     // note that the following compute_dfield also compute the new current_dt!!
+    // also it transforms fields from complex to real and stores the real fields
+    // into the first [num_fields] tmparray (memory block starts at d_all_tmparray)
     compute_dfield(fields, param, phys);
     stage_step++;
 
-    // std::printf("...Computing dfield\n");
+    // now we do the supertimestepping?
+    // if we want to do it later we need to transform fields to real explicitely
+// #if defined(SUPERTIMESTEPPING) && defined( ANISOTROPIC_DIFFUSION)
+//     rkl->compute_cycle_STS(fields, param, *this, phys);
+// #endif
     
-    if ( current_time + current_dt > param.t_final) current_dt = param.t_final - current_time;
     dt_RK = current_dt; // in theory one can do strang splitting so dt_RK can be 1/2 dt
     
 #ifdef DDEBUG
@@ -56,7 +61,7 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys)
     if (current_step == 1 || current_step % 100 == 0 ) std::printf("t: %.5e \t dt: %.5e \n",current_time,dt_RK);
     if (current_step == 1 || current_step % 100 == 0 ) fields.print_device_values();
 #endif
-    current_time += current_dt;
+
 
 
 
@@ -101,8 +106,27 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys)
     // d_all_fields = d_all_scrtimestep + gammaRK[2] * dt * d_all_dfields;
     axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)d_all_scrtimestep, (scalar_type *)fields.d_all_dfields, (scalar_type *)fields.d_all_fields, (scalar_type) 1.0, gammaRK[2]*dt_RK,  2 * ntotal_complex * fields.num_fields);
 
+    current_time += current_dt;
 #ifdef DDEBUG
     std::printf("End of RK3 integrator, t: %.5e \t dt: %.5e \n",current_time,current_dt);
+#endif
+
+    // if we want to do supertimestepping now we need to transform fields to real explicitely
+#if defined(SUPERTIMESTEPPING) && defined( ANISOTROPIC_DIFFUSION)
+    // assign fields to [num_fields] tmparray (memory block starts at d_all_tmparray)
+    blocksPerGrid = ( fields.num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields.d_all_fields, (data_type *)fields.d_all_tmparray, fields.num_fields * ntotal_complex);
+
+    // compute FFTs from complex to real fields to start computation of shear traceless matrix
+    for (int n = 0; n < fields.num_fields; n++){
+        c2r_fft(fields.d_tmparray[n], fields.d_tmparray_r[n], supervisor);
+    }
+#if !defined(RKL)
+    rkl->compute_cycle_STS(fields, param, *this, phys);
+#else
+    rkl->compute_cycle_RKL(fields, param, *this, phys);
+#endif
+
 #endif
 
     cudaEventRecord(supervisor->stop_2);

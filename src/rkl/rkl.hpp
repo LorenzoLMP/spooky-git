@@ -24,20 +24,18 @@ public:
 
     double dt, cfl_rkl, rmax_par;
     const int STS_MAX_STEPS = 1024;
-    std::vector<double> ts;
+    double *ts;
     double STS_NU = 0.01;
 
     int stage;
     int blocksPerGrid;
 
-    data_type *d_all_dU;
-    data_type *d_all_dU0;
-    data_type *d_all_Uc0;
-    data_type *d_all_Uc1;
+    data_type *d_all_dU, *d_all_dU0, *d_all_Uc0, *d_all_Uc1;
 
     // void compute_dt();
     // void compute_dfield();
-    void compute_cycle_STS(Fields &fields, TimeStepping &timestep, Physics &phys);
+    void compute_cycle_STS(Fields &fields, Parameters &param, TimeStepping &timestep, Physics &phys);
+    void compute_cycle_RKL(Fields &fields, Parameters &param, TimeStepping &timestep, Physics &phys);
     // void compute_dt(Fields &fields, Parameters &param, Physics &phys);
     // void RungeKutta3(Fields &fields, Parameters &param, Physics &phys);
 
