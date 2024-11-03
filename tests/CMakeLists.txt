@@ -1,6 +1,7 @@
 add_subdirectory(fft-forward-inverse)
 add_subdirectory(taylor-green-vortex)
 add_subdirectory(heat-diffusion)
+add_subdirectory(heat-diffusion-sts)
 add_subdirectory(alfven-wave)
 add_subdirectory(advected-mhd-vortex)
 add_subdirectory(mti-eigenmode)

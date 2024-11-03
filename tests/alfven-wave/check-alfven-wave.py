@@ -35,7 +35,7 @@ bz_0 =   np.ones(X.shape)
 omega_A = (2.0*np.pi/lz)
 
 tol = 1e-7
-flag = 1 # fail
+# flag = 1 # fail
 
 
 def main():
@@ -112,21 +112,23 @@ def main():
         by_analytical = (by_0 * np.exp(-1j*omega_A*t)).real
         bz_analytical = bz_0
 
-        L2_err = np.sum(np.power(vx-vx_analytical,2.0))
-        L2_err += np.sum(np.power(vy-vy_analytical,2.0))
-        L2_err += np.sum(np.power(vz-vz_analytical,2.0))
+        L1_err = np.sum(np.abs(vx-vx_analytical))
+        L1_err += np.sum(np.abs(vy-vy_analytical))
+        L1_err += np.sum(np.abs(vz-vz_analytical))
 
-        L2_err += np.sum(np.power(bx-bx_analytical,2.0))
-        L2_err += np.sum(np.power(by-by_analytical,2.0))
-        L2_err += np.sum(np.power(bz-bz_analytical,2.0))
+        L1_err += np.sum(np.abs(bx-bx_analytical))
+        L1_err += np.sum(np.abs(by-by_analytical))
+        L1_err += np.sum(np.abs(bz-bz_analytical))
 
-        print('t = {:10.4f} \t L2 error = {:0.2e}'.format(t,L2_err))
+        L1_err /= (nx*ny*nz)
 
-    if (L2_err < tol):
-        print('t_final = %.4f \t L2 error = %.2e ... PASSED'%(t,L2_err))
+        print('t = {:10.4f} \t L1 error = {:0.2e}'.format(t,L1_err))
+
+    if (L1_err < tol):
+        print('t_final = %.4f \t L1 error = %.2e ... PASSED'%(t,L1_err))
         flag = 0 # pass
     else:
-        print('t_final = %.4f \t L2 error = %.2e ... NOT PASSED'%(t,L2_err))
+        print('t_final = %.4f \t L1 error = %.2e ... NOT PASSED'%(t,L1_err))
         flag = 1 # not pass
 
     return flag

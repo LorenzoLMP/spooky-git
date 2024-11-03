@@ -17,11 +17,9 @@ ny = 1
 nz = 2
 
 tol = 1e-15
-
+flag = 1 # fail
 
 def main():
-
-    flag = 1 # fail
 
     parser = argparse.ArgumentParser()
 
@@ -107,16 +105,14 @@ def main():
             print('problem: some values in y-z direction are not same')
             return 1
 
-        L1_err = np.sum(np.abs(T_py-T_sp[:,0,0]))
-        L1_err /= (nx*ny*nz)
-
-        if (L1_err < tol):
-            print('i = %10.4f \t L1 error = %.2e ... PASSED'%(t,L1_err))
+        L2_err = np.sum(np.power(T_py-T_sp[:,0,0],2.0))
+        if (L2_err < tol):
+            print('i = %10.4f \t L2 error = %.2e ... PASSED'%(t,L2_err))
         else:
-            print('i = %10.4f \t L1 error = %.2e ... NOT PASSED'%(t,L1_err))
+            print('i = %10.4f \t L2 error = %.2e ... NOT PASSED'%(t,L2_err))
 
-    if (L1_err < tol):
-        print('t_fin = %10.4f \t L1 error = %.2e ... PASSED'%(t,L1_err))
+    if (L2_err < tol):
+        print('t_fin = %10.4f \t L2 error = %.2e ... PASSED'%(t,L2_err))
         flag = 0 #success
 
     return flag

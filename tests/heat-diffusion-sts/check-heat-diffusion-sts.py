@@ -8,22 +8,16 @@ import glob
 import sys
 # test script expects the executable as argument
 
-nx = 512
-ny = 4
-nz = 4
+nx = 256
+ny = 1
+nz = 2
 
 lx = 1.0
 ly = 1.0
 lz = 1.0
 
-reynolds_m = 100000
-reynolds_ani = 100
-sigma  = 0.9341413811120219
-Pe     = reynolds_ani
-Reeta  = reynolds_m
-kparallel  = (2.0*np.pi/lx)*12.0
-B0 = 1e-4
-N2 = 0.1
+nu_th = 100.
+sigma = 0.1
 
 
 x = -0.5 + lx * (np.arange(nx)) / nx
@@ -32,19 +26,15 @@ z = -0.5 + lz * (np.arange(nz)) / nz
 
 X, Y, Z = np.meshgrid(x,y,z,indexing='ij')
 
-vx_0 = np.zeros(X.shape)
-vy_0 = np.zeros(X.shape)
-vz_0 = -0.00001*np.sin(kparallel*X)
+def T_analytical_func(X,Y,Z,t):
+    fac = (1. + 2 * nu_th * t / sigma**2)
+    T =   1./np.sqrt(fac)*np.exp(- X**2/(2*sigma**2*fac))
+    return T
 
-bx_0 = B0*np.ones(X.shape)
-by_0 = np.zeros(X.shape)
-bz_0 = -0.00001*np.cos(kparallel*X)*B0*kparallel/(sigma+kparallel*kparallel/Reeta)
-
-th_0 = 1.0/(sigma + kparallel*kparallel/Pe)*(N2 - kparallel*kparallel/Pe/(sigma+kparallel*kparallel/Reeta) ) * vz_0
-
+T_0 = T_analytical_func(X,Y,Z,0.0)
 
 tol = 1e-7
-# flag = 1 # fail
+flag = 1 # fail
 
 
 def main():
@@ -95,55 +85,26 @@ def main():
     # if (len(py_data_list) != len(sp_data_list)):
     #     print('Number of datafiles not the same!')
 
-    for i in range(len(sp_data_list)):
+    # for i in range(len(sp_data_list)):
+    i = len(sp_data_list) - 1
     # for i in range(3,4):
-        data_sp = h5py.File(sp_savedir+'{:s}{:04d}.h5'.format(sp_savename,i), 'r')
-        vx = np.reshape(data_sp['vx'],(nx,ny,nz))
-        vy = np.reshape(data_sp['vy'],(nx,ny,nz))
-        vz = np.reshape(data_sp['vz'],(nx,ny,nz))
+    data_sp = h5py.File(sp_savedir+'{:s}{:04d}.h5'.format(sp_savename,i), 'r')
+    T = np.reshape(data_sp['th'],(nx,ny,nz))
+    t =  data_sp['t_save'][0]
 
-        bx = np.reshape(data_sp['bx'],(nx,ny,nz))
-        by = np.reshape(data_sp['by'],(nx,ny,nz))
-        bz = np.reshape(data_sp['bz'],(nx,ny,nz))
+    data_sp.close()
 
-        th = np.reshape(data_sp['th'],(nx,ny,nz))
+    T_analytical = T_analytical_func(X,Y,Z,t)
 
-        t =  data_sp['t_save'][0]
-        data_sp.close()
+    L1_err = np.sum(np.abs(T-T_analytical))/(nx*ny*nz)
 
-        # vx_analytical = vx_0 * np.exp(-2.0*nu*t*(2.0*np.pi)**2)
-        # vy_analytical = vy_0 * np.exp(-2.0*nu*t*(2.0*np.pi)**2)
-        # vz_analytical = vz_0 * np.exp(-2.0*nu*t*(2.0*np.pi)**2)
-
-        vx_analytical = vx_0
-        vy_analytical = vy_0
-        vz_analytical = vz_0 * np.exp(sigma*t)
-
-        bx_analytical = bx_0
-        by_analytical = by_0
-        bz_analytical = bz_0 * np.exp(sigma*t)
-
-        th_analytical = th_0 * np.exp(sigma*t)
-
-        L1_err = np.sum(np.abs(vx-vx_analytical))
-        L1_err += np.sum(np.abs(vy-vy_analytical))
-        L1_err += np.sum(np.abs(vz-vz_analytical))
-
-        L1_err += np.sum(np.abs(bx-bx_analytical))
-        L1_err += np.sum(np.abs(by-by_analytical))
-        L1_err += np.sum(np.abs(bz-bz_analytical))
-
-        L1_err += np.sum(np.abs(th-th_analytical))
-
-        L1_err /= (nx*ny*nz)
-
-        print('t = {:10.4f} \t L1 error = {:0.2e}'.format(t,L1_err))
+    print('t = {:10.4f} \t L1 error = {:0.6e}'.format(t,L1_err))
 
     if (L1_err < tol):
-        print('t_final = %.4f \t L1 error = %.2e ... PASSED'%(t,L1_err))
+        print('t_final = %.4f \t L1 error = %.6e ... PASSED'%(t,L1_err))
         flag = 0 # pass
     else:
-        print('t_final = %.4f \t L1 error = %.2e ... NOT PASSED'%(t,L1_err))
+        print('t_final = %.4f \t L1 error = %.6e ... NOT PASSED'%(t,L1_err))
         flag = 1 # not pass
 
     return flag

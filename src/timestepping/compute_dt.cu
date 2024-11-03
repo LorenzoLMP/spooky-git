@@ -155,10 +155,16 @@ void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) 
 #endif //end INCOMPRESSIBLE
 
 #ifdef HEAT_EQ
-    gamma_v = ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * param.nu_th;
-
-    current_dt = param.cfl / (gamma_v );
+    gamma_par = ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * param.nu_th;
+    dt_par = param.cfl_par / gamma_par;
+    current_dt = dt_par;
+#if defined(SUPERTIMESTEPPING) && defined(TEST)
+    // replicate Vaidya 2017
+    dt_hyp = 0.00703125 * (param.lx/nx);
+    current_dt = dt_hyp;
 #endif
+
+#endif // HEAT_EQ
 
     if ( current_time + current_dt > param.t_final) current_dt = param.t_final - current_time;
 

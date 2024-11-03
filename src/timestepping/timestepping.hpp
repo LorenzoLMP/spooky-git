@@ -27,11 +27,13 @@ public:
 
     data_type *d_all_scrtimestep;
 
-    // void compute_dt();
-    // void compute_dfield();
-    void compute_dfield(Fields &fields, Parameters &param, Physics &phys);
+
     void compute_dt(Fields &fields, Parameters &param, Physics &phys);
     void RungeKutta3(Fields &fields, Parameters &param, Physics &phys);
+
+    void compute_dfield(Fields &fields, Parameters &param, Physics &phys);
+
+
 
     ~TimeStepping();
 };

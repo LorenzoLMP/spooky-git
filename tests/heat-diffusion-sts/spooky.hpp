@@ -27,8 +27,8 @@
 const int threadsPerBlock{512};
 // extern int dimGrid, dimBlock;
 
-const  size_t nx = 512;        // Attribute (int variable)
-const  size_t ny = 512;        // Attribute (int variable)
+const  size_t nx = 256;        // Attribute (int variable)
+const  size_t ny = 1;        // Attribute (int variable)
 const  size_t nz = 2;        // Attribute (int variable)
 
 const size_t fft_size[3] = {nx, ny, nz};

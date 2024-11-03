@@ -51,7 +51,7 @@ RKLegendre::RKLegendre(int num, Parameters &param, Supervisor &sup) {
     CUDA_RT_CALL(cudaMalloc(&d_all_Uc0, (size_t) sizeof(data_type) * ntotal_complex));
     CUDA_RT_CALL(cudaMalloc(&d_all_Uc1, (size_t) sizeof(data_type) * ntotal_complex));
 
-    VecInit<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)d_all_dU, 0.0, 2 * ntotal_complex);
+    VecInit<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)d_all_dU,  0.0, 2 * ntotal_complex);
     VecInit<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)d_all_dU0, 0.0, 2 * ntotal_complex);
     VecInit<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)d_all_Uc0, 0.0, 2 * ntotal_complex);
     VecInit<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)d_all_Uc1, 0.0, 2 * ntotal_complex);

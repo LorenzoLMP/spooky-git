@@ -18,15 +18,16 @@ sp_data_list = glob.glob(sp_savedir+'*.h5')
 # if (len(py_data_list) != len(sp_data_list)):
 #     print('Number of datafiles not the same!')
 
-nx = 64
-ny = 64
-nz = 64
+nx = 512
+ny = 512
+nz = 2
 
 lx = 1.0
 ly = 1.0
 lz = 1.0
 
 nu = 1./10000.
+eta = 1./10000.
 
 v0 = 0.1
 u0 = 0.1
@@ -44,6 +45,11 @@ def vel_analytical(X,Y,Z,t):
     vx =   v0 - 1./(2.0 * np.pi) * np.exp( (1.0  - 100.*R2t)/2.0 ) * Yt
     vy =   u0 + 1./(2.0 * np.pi) * np.exp( (1.0  - 100.*R2t)/2.0 ) * Xt
     vz =   np.zeros(X.shape)
+
+    # vx *= np.exp(-2.0*nu*t*(2.0*np.pi)**2)
+    # vy *= np.exp(-2.0*nu*t*(2.0*np.pi)**2)
+    # vz *= np.exp(-2.0*nu*t*(2.0*np.pi)**2)
+
     return vx, vy, vz
 
 def mag_analytical(X,Y,Z,t):
@@ -53,6 +59,11 @@ def mag_analytical(X,Y,Z,t):
     Bx =   - 1./(2.0 * np.pi) * np.exp( (1.0  - 100.*R2t)/2.0 ) * Yt
     By =     1./(2.0 * np.pi) * np.exp( (1.0  - 100.*R2t)/2.0 ) * Xt
     Bz =   np.zeros(X.shape)
+
+    # Bx *= np.exp(-2.0*eta*t*(2.0*np.pi)**2)
+    # By *= np.exp(-2.0*eta*t*(2.0*np.pi)**2)
+    # Bz *= np.exp(-2.0*eta*t*(2.0*np.pi)**2)
+
     return Bx, By, Bz
 
 vx_0, vy_0, vz_0 = vel_analytical(X,Y,Z,0.0)
