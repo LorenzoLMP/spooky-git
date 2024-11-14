@@ -131,11 +131,11 @@ void Physics::ParabolicTerms(Fields &fields, Parameters &param, data_type *field
     nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) fields.wavevector.d_all_kvec, (data_type *) fields_in + ntotal_complex * TH, (data_type *) dfields_out + ntotal_complex * TH, param.nu_th, (size_t) ntotal_complex, ADD);
 #else
 #ifdef MHD
-#ifndef SUPERTIMESTEPPING
+// #ifndef SUPERTIMESTEPPING
     // AnisotropicConduction(fields, param);
     // this function requires that the real fields are saved in the first num_fields temp arrays
     AnisotropicConduction(fields, param, (data_type *) fields_in + ntotal_complex * TH, (data_type *) dfields_out + ntotal_complex * TH);
-#endif
+// #endif
 
 #endif   // MHD
 #endif   // ANISOTROPIC_DIFFUSION

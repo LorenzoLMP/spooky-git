@@ -11,7 +11,7 @@ class TimeStepping;
 
 class RKLegendre {
 public:
-    RKLegendre(int num, Parameters &param, Supervisor &sup);
+    RKLegendre(int num_fields, Parameters &param, Supervisor &sup);
 
     // Fields *fields;
     // Parameters *param;
@@ -31,6 +31,7 @@ public:
     int blocksPerGrid;
 
     data_type *d_all_dU, *d_all_dU0, *d_all_Uc0, *d_all_Uc1;
+    data_type **d_farray_dU, **d_farray_dU0, **d_farray_Uc0, **d_farray_Uc1;
 
     // void compute_dt();
     // void compute_dfield();

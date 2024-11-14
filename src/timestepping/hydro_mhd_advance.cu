@@ -112,7 +112,8 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys)
 #endif
 
     // if we want to do supertimestepping now we need to transform fields to real explicitely
-#if defined(SUPERTIMESTEPPING) && defined( ANISOTROPIC_DIFFUSION)
+// #if defined(SUPERTIMESTEPPING) && defined( ANISOTROPIC_DIFFUSION)
+#if defined(SUPERTIMESTEPPING)
     // assign fields to [num_fields] tmparray (memory block starts at d_all_tmparray)
     blocksPerGrid = ( fields.num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields.d_all_fields, (data_type *)fields.d_all_tmparray, fields.num_fields * ntotal_complex);
@@ -127,7 +128,7 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys)
     rkl->compute_cycle_RKL(fields, param, *this, phys);
 #endif
 
-#endif
+#endif // supertimestepping
 
     cudaEventRecord(supervisor->stop_2);
     cudaEventSynchronize(supervisor->stop_2);

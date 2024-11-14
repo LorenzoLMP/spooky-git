@@ -72,9 +72,10 @@ void TimeStepping::compute_dfield(Fields &fields, Parameters &param, Physics &ph
 #endif //end INCOMPRESSIBLE
 
 
-
+#ifndef SUPERTIMESTEPPING
     // compute parabolic terms
     phys.ParabolicTerms(fields, param,  fields.d_all_fields, fields.d_all_dfields);
+#endif
 
 }
 
