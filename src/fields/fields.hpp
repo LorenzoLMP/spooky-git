@@ -8,6 +8,7 @@
 
 class Parameters;
 class TimeStepping;
+class Supervisor;
 
 class Wavevector {
 // private:
@@ -44,6 +45,7 @@ class Fields {
 public:
     int num_fields;
     int num_tmp_array;
+    Supervisor *supervisor;
     // double current_dt;
     // double current_time;
     // int stage_step;
@@ -63,7 +65,7 @@ public:
     // Parameters *param;
     // TimeStepping *timestep;
     // Fields(Parameters *p_in, TimeStepping *timestep_in, int num);
-    Fields(Parameters &p_in, int num);
+    Fields(Supervisor &sup_in, Parameters &p_in);
     // void init_Fields( int num, Parameters *p_in);
     void init_SpatialStructure(Parameters &param);
     void print_host_values();
@@ -86,8 +88,8 @@ public:
     void clean_gpu();
     // void RungeKutta3();
     void ComputeDivergence();
-    void CleanFieldDivergence( );
-    void CheckSymmetries(int current_step, int symmetries_step);
+    void CleanFieldDivergence();
+    void CheckSymmetries();
 
     // void Boussinesq();
     // void AnisotropicConduction();

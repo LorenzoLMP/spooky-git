@@ -1,4 +1,5 @@
 #include "define_types.hpp"
+#include <memory>
 // #include "rkl.hpp"
 
 // use forward declarations in the header files to get around the circular dependencies
@@ -11,12 +12,13 @@ class RKLegendre;
 
 class TimeStepping {
 public:
-    TimeStepping(int num, Parameters &param, Supervisor &sup);
+    TimeStepping(Supervisor &sup_in, Parameters &param);
 
     // Fields *fields;
     // Parameters *param;
     Supervisor *supervisor;
-    RKLegendre *rkl;
+    std::unique_ptr<RKLegendre> rkl;
+    // RKLegendre *rkl;
 
     int stage_step;
     unsigned int current_step;
@@ -28,10 +30,9 @@ public:
     data_type *d_all_scrtimestep;
 
 
-    void compute_dt(Fields &fields, Parameters &param, Physics &phys);
-    void RungeKutta3(Fields &fields, Parameters &param, Physics &phys);
-
-    void compute_dfield(Fields &fields, Parameters &param, Physics &phys);
+    void compute_dt();
+    void RungeKutta3();
+    void compute_dfield();
 
 
 

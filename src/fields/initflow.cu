@@ -5,10 +5,12 @@
 #include "spooky.hpp"
 #include "common.hpp"
 #include "parameters.hpp"
+// #include "supervisor.hpp"
 
 void Fields::init_SpatialStructure(Parameters &param){
 
 	int i,j,k;
+	// std::shared_ptr<Parameters> param = supervisor->param;
 
 	/*******************************************************************
 	** This part does not need to be modified **************************

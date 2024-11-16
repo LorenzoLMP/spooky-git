@@ -7,8 +7,11 @@
 #include "cuda_kernels.hpp"
 #include "parameters.hpp"
 #include "timestepping.hpp"
+#include "supervisor.hpp"
 
-void Fields::CheckSymmetries(int current_step, int symmetries_step){
+void Fields::CheckSymmetries(){
+    int current_step = supervisor->timestep.current_step;
+    int symmetries_step = supervisor->param.symmetries_step;
 #ifdef DEBUG
     if( current_step % 100 == 0) {
         std::printf("Computing divergence of v/B fields \n");

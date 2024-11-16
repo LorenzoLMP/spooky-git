@@ -8,11 +8,11 @@
 #include "parameters.hpp"
 #include "inputoutput.hpp"
 #include "timestepping.hpp"
-#include "supervisor.hpp"
+// #include "supervisor.hpp"
 
-InputOutput::InputOutput(Supervisor &sup) {
+InputOutput::InputOutput(Supervisor &sup_in) {
 
-    supervisor = &sup;
+    supervisor = &sup_in;
 
     // timevar_timer = new Timer();
     // datadump_timer = new Timer();

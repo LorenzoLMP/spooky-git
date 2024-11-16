@@ -7,10 +7,13 @@
 #include "cuda_kernels.hpp"
 #include "cuda_kernels_generic.hpp"
 #include "parameters.hpp"
+#include "supervisor.hpp"
 
-void Physics::EntropyStratification(Fields &fields, Parameters &param) {
+void Physics::EntropyStratification() {
 
     int blocksPerGrid;
+    std::shared_ptr<Fields> fields = supervisor->fields;
+    std::shared_ptr<Parameters> param = supervisor->param;
 
 #ifdef BOUSSINESQ
 #ifdef STRATIFICATION
@@ -19,7 +22,7 @@ void Physics::EntropyStratification(Fields &fields, Parameters &param) {
     // this is for normalization where theta is in units of g [L/T^2]
     // other normalizations possible
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)fields.d_all_fields, (data_type *) fields.d_all_dfields, param.N2, ntotal_complex, STRAT_DIR);
+    BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)fields->d_all_fields, (data_type *) fields->d_all_dfields, param->N2, ntotal_complex, STRAT_DIR);
 #endif // STRATIFICATION
 #endif // BOUSSINESQ
 

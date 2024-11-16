@@ -8,20 +8,20 @@ class Supervisor;
 
 class Physics {
 public:
-    Physics(Supervisor &sup);
+    Physics(Supervisor &sup_in);
 
     Supervisor *supervisor;
 
     // Fields *fields;
     // Parameters *param;
 
-    void Boussinesq(Fields &fields, Parameters &param);
+    void Boussinesq();
     // void AnisotropicConduction(Fields &fields, Parameters &param);
-    void AnisotropicConduction(Fields &fields, Parameters &param, data_type *temp_in, data_type *dtemp);
-    void EntropyStratification(Fields &fields, Parameters &param);
+    void AnisotropicConduction(data_type *temp_in, data_type *dtemp);
+    void EntropyStratification();
 
-    void ParabolicTerms(Fields &fields, Parameters &param, data_type *fields_in, data_type *dfields_out);
-    void HyperbolicTerms(Fields &fields, Parameters &param);
+    void ParabolicTerms(data_type *fields_in, data_type *dfields_out);
+    void HyperbolicTerms();
 
     // int stage_step;
     // unsigned int current_step;

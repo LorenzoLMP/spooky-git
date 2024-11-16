@@ -35,8 +35,8 @@ public:
 
     // void compute_dt();
     // void compute_dfield();
-    void compute_cycle_STS(Fields &fields, Parameters &param, TimeStepping &timestep, Physics &phys);
-    void compute_cycle_RKL(Fields &fields, Parameters &param, TimeStepping &timestep, Physics &phys);
+    void compute_cycle_STS();
+    void compute_cycle_RKL();
     // void compute_dt(Fields &fields, Parameters &param, Physics &phys);
     // void RungeKutta3(Fields &fields, Parameters &param, Physics &phys);
 

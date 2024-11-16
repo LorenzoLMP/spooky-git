@@ -4,13 +4,13 @@
 #include "spooky.hpp"
 #include "hydro_mhd_advance.hpp"
 #include "cublas_routines.hpp"
-// #include "compute_timestep.hpp"
 #include "cuda_kernels.hpp"
 #include "cuda_kernels_generic.hpp"
 #include "parameters.hpp"
 #include "fields.hpp"
 #include "supervisor.hpp"
 #include "rkl.hpp"
+#include "physics.hpp"
 
 
 const double gammaRK[3] = {8.0 / 15.0 , 5.0 / 12.0 , 3.0 / 4.0};
@@ -19,8 +19,12 @@ cublasStatus_t stat;
 // extern int threadsPerBlock;
 
 
-void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys) {
+void TimeStepping::RungeKutta3() {
     NVTX3_FUNC_RANGE();
+
+    std::shared_ptr<Fields> fields = supervisor->fields;
+    std::shared_ptr<Parameters> param = supervisor->param;
+    std::shared_ptr<Physics> phys = supervisor->phys;
 
     cudaEventRecord(supervisor->start_2);
 
@@ -29,21 +33,21 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys)
 #endif
 
     double dt_RK = 0.0;
-    int blocksPerGrid = (2 * ntotal_complex * fields.num_fields + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = (2 * ntotal_complex * fields->num_fields + threadsPerBlock - 1) / threadsPerBlock;
     stage_step = 0;
     current_step += 1;
 
 #ifdef DDEBUG
     // std::printf("After 1st RK:\n");
     // print_device_values();
-    // std::printf("num_fields : %d \n",fields.num_fields);
+    // std::printf("num_fields : %d \n",fields->num_fields);
     std::printf("RK3, doing step n. %d ...\n",stage_step+1);
 #endif
 
     // note that the following compute_dfield also compute the new current_dt!!
     // also it transforms fields from complex to real and stores the real fields
     // into the first [num_fields] tmparray (memory block starts at d_all_tmparray)
-    compute_dfield(fields, param, phys);
+    compute_dfield();
     stage_step++;
 
     // now we do the supertimestepping?
@@ -59,7 +63,7 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys)
     // std::printf("After compute dfield, RK, 1st step:\n");
     // print_device_values();
     if (current_step == 1 || current_step % 100 == 0 ) std::printf("t: %.5e \t dt: %.5e \n",current_time,dt_RK);
-    if (current_step == 1 || current_step % 100 == 0 ) fields.print_device_values();
+    if (current_step == 1 || current_step % 100 == 0 ) fields->print_device_values();
 #endif
 
 
@@ -74,15 +78,15 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys)
     // }
 
     // d_all_fields = d_all_fields + gammaRK[0] * dt * d_all_dfields;
-    axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)fields.d_all_fields, (scalar_type *)fields.d_all_dfields, (scalar_type *)fields.d_all_fields, (scalar_type) 1.0, gammaRK[0]*dt_RK,  2 * ntotal_complex * fields.num_fields);
+    axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)fields->d_all_fields, (scalar_type *)fields->d_all_dfields, (scalar_type *)fields->d_all_fields, (scalar_type) 1.0, gammaRK[0]*dt_RK,  2 * ntotal_complex * fields->num_fields);
     // // d_all_scrtimestep = d_all_fields + xiRK[0] * dt * d_all_dfields;
-    axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)fields.d_all_fields, (scalar_type *)fields.d_all_dfields, (scalar_type *)d_all_scrtimestep, (scalar_type) 1.0, xiRK[0]*dt_RK,  2 * ntotal_complex * fields.num_fields);
+    axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)fields->d_all_fields, (scalar_type *)fields->d_all_dfields, (scalar_type *)d_all_scrtimestep, (scalar_type) 1.0, xiRK[0]*dt_RK,  2 * ntotal_complex * fields->num_fields);
 
 #ifdef DDEBUG
     std::printf("RK3, doing step n. %d ...\n",stage_step+1);
 #endif
     // std::printf("...Computing dfield\n");
-    compute_dfield(fields, param, phys);
+    compute_dfield();
     stage_step++;
     // for( i = 0 ; i < NTOTAL_COMPLEX ; i++) {
     //         fld.farray[n][i] = fld1.farray[n][i] + gammaRK[1] * dfld.farray[n][i] * dt;
@@ -90,21 +94,21 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys)
     //     }
 
     // d_all_fields = d_all_scrtimestep + gammaRK[1] * dt * d_all_dfields;
-    axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)d_all_scrtimestep, (scalar_type *)fields.d_all_dfields, (scalar_type *)fields.d_all_fields, (scalar_type) 1.0, gammaRK[1]*dt_RK,  2 * ntotal_complex * fields.num_fields);
+    axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)d_all_scrtimestep, (scalar_type *)fields->d_all_dfields, (scalar_type *)fields->d_all_fields, (scalar_type) 1.0, gammaRK[1]*dt_RK,  2 * ntotal_complex * fields->num_fields);
     // d_all_scrtimestep = d_all_fields + xiRK[1] * dt * d_all_dfields;
-    axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)fields.d_all_fields, (scalar_type *)fields.d_all_dfields, (scalar_type *)d_all_scrtimestep, (scalar_type) 1.0, xiRK[1]*dt_RK,  2 * ntotal_complex * fields.num_fields);
+    axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)fields->d_all_fields, (scalar_type *)fields->d_all_dfields, (scalar_type *)d_all_scrtimestep, (scalar_type) 1.0, xiRK[1]*dt_RK,  2 * ntotal_complex * fields->num_fields);
 
 #ifdef DDEBUG
     std::printf("RK3, doing step n. %d ...\n",stage_step+1);
 #endif
     // std::printf("...Computing dfield\n");
-    compute_dfield(fields, param, phys);
+    compute_dfield();
     stage_step++;
     // for( i = 0 ; i < NTOTAL_COMPLEX ; i++) {
     //     fld.farray[n][i] = fld1.farray[n][i] + gammaRK[2] * dfld.farray[n][i] * dt;
     // }
     // d_all_fields = d_all_scrtimestep + gammaRK[2] * dt * d_all_dfields;
-    axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)d_all_scrtimestep, (scalar_type *)fields.d_all_dfields, (scalar_type *)fields.d_all_fields, (scalar_type) 1.0, gammaRK[2]*dt_RK,  2 * ntotal_complex * fields.num_fields);
+    axpyDouble<<<blocksPerGrid, threadsPerBlock>>>( (scalar_type *)d_all_scrtimestep, (scalar_type *)fields->d_all_dfields, (scalar_type *)fields->d_all_fields, (scalar_type) 1.0, gammaRK[2]*dt_RK,  2 * ntotal_complex * fields->num_fields);
 
     current_time += current_dt;
 #ifdef DDEBUG
@@ -115,17 +119,17 @@ void TimeStepping::RungeKutta3(Fields &fields, Parameters &param, Physics &phys)
 // #if defined(SUPERTIMESTEPPING) && defined( ANISOTROPIC_DIFFUSION)
 #if defined(SUPERTIMESTEPPING)
     // assign fields to [num_fields] tmparray (memory block starts at d_all_tmparray)
-    blocksPerGrid = ( fields.num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields.d_all_fields, (data_type *)fields.d_all_tmparray, fields.num_fields * ntotal_complex);
+    blocksPerGrid = ( fields->num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields->d_all_fields, (data_type *)fields->d_all_tmparray, fields->num_fields * ntotal_complex);
 
     // compute FFTs from complex to real fields to start computation of shear traceless matrix
-    for (int n = 0; n < fields.num_fields; n++){
-        c2r_fft(fields.d_tmparray[n], fields.d_tmparray_r[n], supervisor);
+    for (int n = 0; n < fields->num_fields; n++){
+        c2r_fft(fields->d_tmparray[n], fields->d_tmparray_r[n], supervisor);
     }
 #if !defined(RKL)
-    rkl->compute_cycle_STS(fields, param, *this, phys);
+    rkl->compute_cycle_STS();
 #else
-    rkl->compute_cycle_RKL(fields, param, *this, phys);
+    rkl->compute_cycle_RKL();
 #endif
 
 #endif // supertimestepping

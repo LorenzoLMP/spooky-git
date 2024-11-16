@@ -8,6 +8,7 @@
 #include "parameters.hpp"
 #include "timestepping.hpp"
 // #include "wavevector.hpp"
+#include "supervisor.hpp"
 
 
 Fields::~Fields() {
@@ -31,8 +32,10 @@ Fields::~Fields() {
 }
 
 // void Fields::init_Fields( int num, Parameters *p_in )  {
-Fields::Fields(Parameters &p_in, int num ) : wavevector(p_in.lx, p_in.ly, p_in.lz) {
-    num_fields = num;
+Fields::Fields(Supervisor &sup_in, Parameters &p_in) : wavevector(p_in.lx, p_in.ly, p_in.lz) {
+
+    supervisor = &sup_in;
+    num_fields = NUM_FIELDS;
     std::printf("num_fields: %d \n",num_fields);
 
     num_tmp_array = num_fields + 6; // need to check again why we need all these tmp arrays
