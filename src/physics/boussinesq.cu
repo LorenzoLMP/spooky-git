@@ -1,6 +1,6 @@
 #include "define_types.hpp"
 #include "physics.hpp"
-#include "fields->hpp"
+#include "fields.hpp"
 #include "cufft_routines.hpp"
 #include "spooky.hpp"
 #include "common.hpp"
