@@ -9,10 +9,13 @@
 class Supervisor;
 
 void r2c_fft(void *r_data_in, void *c_data_out);
-void r2c_fft(void *r_data_in, void *c_data_out, Supervisor *supervisor);
-
 void c2r_fft(void *c_data_in, void *r_data_out);
+
+
+#ifndef FFT_TEST
+void r2c_fft(void *r_data_in, void *c_data_out, Supervisor *supervisor);
 void c2r_fft(void *c_data_in, void *r_data_out, Supervisor *supervisor);
+#endif
 
 void init_plan(const size_t *fft_size);
 void finish_cufft();
