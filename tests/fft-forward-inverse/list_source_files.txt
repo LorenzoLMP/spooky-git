@@ -3,7 +3,7 @@ ${PROJECT_SOURCE_DIR}/src/cuda/cublas_routines.cu
 ${PROJECT_SOURCE_DIR}/src/cuda/cuda_kernels_generic.cu
 ${PROJECT_SOURCE_DIR}/src/tests.cu
 ##### supervisor class ######
-${PROJECT_SOURCE_DIR}/src/supervisor/supervisor.cu
+#${PROJECT_SOURCE_DIR}/src/supervisor/supervisor.cu
 ##### cuda files #####
 ${PROJECT_SOURCE_DIR}/src/cuda/cublas_routines.cu
 ${PROJECT_SOURCE_DIR}/src/cuda/cuda_kernels.cu

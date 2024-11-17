@@ -12,7 +12,7 @@
 // #include "parameters.hpp"
 #include "cuda_kernels.hpp"
 #include <argparse/argparse.hpp>
-
+#include "physics_modules.hpp"
 
 
 // Parameters param;
