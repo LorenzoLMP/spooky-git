@@ -84,6 +84,8 @@ void InputOutput::WriteUserTimevarOutputHeader() {
     std::printf("Writing data output... \n");
 #endif
 
+    std::shared_ptr<Parameters> param = supervisor->param;
+
     char data_output_name[16];
     std::sprintf(data_output_name,"timevar-user.spooky");
     std::string fname = param->output_dir + std::string("/data/") + std::string(data_output_name);
