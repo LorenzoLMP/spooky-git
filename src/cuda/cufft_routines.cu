@@ -20,21 +20,6 @@ void r2c_fft(void *r_data_in, void *c_data_out) {
 
 };
 
-void r2c_fft(void *r_data_in, void *c_data_out, Supervisor *supervisor) {
-
-    // increase FFT count
-    supervisor->NumFFTs += 1;
-
-    cudaEventRecord(supervisor->start);
-    // Execute the plan_r2c
-    CUFFT_CALL(cufftXtExec(plan_r2c, r_data_in, c_data_out, CUFFT_FORWARD));
-
-    cudaEventRecord(supervisor->stop);
-    cudaEventSynchronize(supervisor->stop);
-    supervisor->updateFFTtime();
-
-
-};
 
 void c2r_fft(void *c_data_in, void *r_data_out) {
 
@@ -53,6 +38,25 @@ void c2r_fft(void *c_data_in, void *r_data_out) {
 
 
 };
+
+#ifndef FFT_TEST
+
+void r2c_fft(void *r_data_in, void *c_data_out, Supervisor *supervisor) {
+
+    // increase FFT count
+    supervisor->NumFFTs += 1;
+
+    cudaEventRecord(supervisor->start);
+    // Execute the plan_r2c
+    CUFFT_CALL(cufftXtExec(plan_r2c, r_data_in, c_data_out, CUFFT_FORWARD));
+
+    cudaEventRecord(supervisor->stop);
+    cudaEventSynchronize(supervisor->stop);
+    supervisor->updateFFTtime();
+
+
+};
+
 
 void c2r_fft(void *c_data_in, void *r_data_out, Supervisor *supervisor) {
 
@@ -77,6 +81,8 @@ void c2r_fft(void *c_data_in, void *r_data_out, Supervisor *supervisor) {
     supervisor->updateFFTtime();
 
 };
+
+#endif
 
 void init_plan(const size_t *fft_size) {
     // Initiate cufft plans, one for r2c and one for c2r
