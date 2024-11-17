@@ -17,6 +17,7 @@ include(list_source_files.txt)
 ### these can be modified
 add_executable(test_fft-forward-inverse
 spooky.cu
+cufft_routines.cu
 ${spooky_src})
 
 
