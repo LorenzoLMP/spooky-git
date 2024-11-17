@@ -6,6 +6,7 @@ import numpy as np
 import h5py
 import glob
 import sys
+
 # test script expects the executable as argument
 
 nx = 512

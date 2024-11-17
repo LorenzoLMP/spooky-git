@@ -87,17 +87,17 @@ void Fields::init_SpatialStructure(Parameters &param){
 
 		// MTI eigenmode
 
-		farray_r[VX][i] =  0.0001*cos(0.5*kparallel*y[i]);
-		farray_r[VY][i] =  0.0001*sin(0.25*kparallel*z[i]);
-		farray_r[VZ][i] = -0.001*sin(kparallel*x[i]);
+		farray_r[VX][i] =  0.01*cos(0.5*kparallel*y[i])+0.02*sin(kparallel*z[i]/6.0);
+		farray_r[VY][i] =  0.0001*sin(0.25*kparallel*z[i])-0.003*cos(kparallel*x[i]/6.0);
+		farray_r[VZ][i] = -0.001*sin(kparallel*x[i])+0.004*cos(0.5*kparallel*y[i]);
 
 		farray_r[BX][i] = B0 ;
-		farray_r[BY][i] = 0.0 ;
+		farray_r[BY][i] = 0.0001*sin(kparallel*z[i]/4.0) ;
 		// farray_r[BZ][i] = -0.001*cos(kparallel*x[i])*B0*kparallel/(sigma+kparallel*kparallel/Reeta);
 		farray_r[BZ][i] = 0.00;
 
 		// farray_r[TH][i] = 1.0/(sigma + kparallel*kparallel/Pe)*(param.N2 - kparallel*kparallel/Pe/(sigma+kparallel*kparallel/Reeta) ) * farray_r[VZ][i];
-		farray_r[TH][i] = 0.00;
+		farray_r[TH][i] = 0.004*sin(kparallel*x[i]/4.)-0.00003*cos(kparallel*y[i]/2.0);
 
 
 	}
