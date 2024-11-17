@@ -23,12 +23,20 @@ __global__ void RRvectorMultiply(const scalar_type *A, const scalar_type *B, sca
     }
 }
 
-__global__ void ComplexVecAssign(const cufftDoubleComplex *A, cufftDoubleComplex *B, size_t N) {
+// __global__ void ComplexVecAssign(const cufftDoubleComplex *A, cufftDoubleComplex *B, size_t N) {
+//     size_t i = i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+//
+//     if (i < N) {
+//         B[i].x = A[i].x;
+//         B[i].y = A[i].y;
+//     }
+// }
+
+__global__ void ComplexVecAssign(const data_type *A, data_type *B, size_t N) {
     size_t i = i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
 
     if (i < N) {
-        B[i].x = A[i].x;
-        B[i].y = A[i].y;
+        B[i] = A[i];
     }
 }
 
@@ -92,22 +100,71 @@ __global__ void RvectorReciprocal(const scalar_type *A, scalar_type *B, size_t N
 //     }
 // }
 
+__global__ void VecInit( scalar_type *X, scalar_type a, size_t N) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+
+    if (i < N) {
+        X[i] = a;
+    }
+}
+
+__global__ void VecInitComplex( data_type *X, data_type a, size_t N) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+
+    if (i < N) {
+        X[i] = a;
+    }
+}
+
 // equivalent of a*X + b*Y: I interpret complex vector as double, out-of-place (unless Z = X), a is double
 __global__ void axpyDouble( scalar_type *X,  scalar_type *Y, scalar_type *Z, scalar_type a, scalar_type b, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
 
     if (i < N) {
         Z[i] = a*X[i] + b*Y[i];
+        // Y[i] = 0.0*Y[i];
     }
 }
 
 // equivalent of a*X + b*Y: I use complex vectors, out-of-place (unless Z = X), a is double
-__global__ void axpyComplex( const cufftDoubleComplex *X, const cufftDoubleComplex *Y, cufftDoubleComplex *Z, scalar_type a, scalar_type b, size_t N) {
+// __global__ void axpyComplex( const cufftDoubleComplex *X, const cufftDoubleComplex *Y, cufftDoubleComplex *Z, scalar_type a, scalar_type b, size_t N) {
+//     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+//
+//     if (i < N) {
+//         Z[i].x = a*X[i].x + b*Y[i].x;
+//         Z[i].y = a*X[i].y + b*Y[i].y;
+//     }
+// }
+
+__global__ void axpyComplex( const data_type *X, data_type *Y, data_type *Z, scalar_type a, scalar_type b, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
 
     if (i < N) {
-        Z[i].x = a*X[i].x + b*Y[i].x;
-        Z[i].y = a*X[i].y + b*Y[i].y;
+        Z[i] = a*X[i] + b*Y[i];
+        // Y[i] = data_type(0.0,0.0);
+    }
+}
+
+__global__ void axpy5ComplexAssign( data_type *A, data_type *B, data_type *C, data_type *D, data_type *E, scalar_type a, scalar_type b, scalar_type c, scalar_type d, scalar_type e, size_t N) {
+    // real Y = mu_j*Uc(nv,k,j,i) + nu_j*Uc1(nv,k,j,i);
+    // Uc1(nv,k,j,i) = Uc(nv,k,j,i);
+    // Uc <- Y + (1.0 - mu_j - nu_j)*Uc0 + dt_hyp*mu_tilde_j*dU +  gamma_j*dt_hyp*dU0;
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    data_type Y = data_type(0.0,0.0);
+
+    if (i < N) {
+        Y = a*A[i] + b*B[i];
+        B[i] = A[i];
+        A[i] = Y + c*C[i] + d*D[i] + e*E[i];
+    }
+}
+
+__global__ void addReset( const data_type *X, data_type *Y, data_type *Z, scalar_type a, scalar_type b, size_t N) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+
+    if (i < N) {
+        Z[i] = a*X[i] + b*Y[i];
+        Y[i] = data_type(0.0,0.0);
     }
 }
 

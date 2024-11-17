@@ -171,8 +171,8 @@ Parameters::Parameters(std::string input_dir) : spookyOutVar(), userOutVar() {
 		if(!config_lookup_float(&config, "code.cfl_par",&cfl_par)) {
 			cfl_par = 1.0;
 		}
-		if(!config_lookup_float(&config, "code.safety_sts",&safety_sts)) {
-			safety_sts = 50.0;
+		if(!config_lookup_int(&config, "code.safety_sts",&safety_sts)) {
+			safety_sts = 1;
 		}
 		if(!config_lookup_float(&config, "code.safety_source",&safety_source)) {
 			safety_source = 0.2;
@@ -274,6 +274,7 @@ Parameters::Parameters(std::string input_dir) : spookyOutVar(), userOutVar() {
 		setting = config_lookup(&config, "output.user_timevar_vars");
 		if(setting == NULL) {
 			std::cout << "Warning: you did not provide any variable in user outputs!" << std::endl;
+			userOutVar.length = 0;
 		}
 		else {
 			std::cout << "User outputs were provided" << std::endl;

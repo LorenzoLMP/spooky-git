@@ -28,8 +28,17 @@ __global__ void RRvectorDivide(const scalar_type *A, const scalar_type *B, scala
 // __global__ void RvectorReciprocal(scalar_type *A, size_t N);
 __global__ void RvectorReciprocal(const scalar_type *A, scalar_type *B, size_t N);
 __global__ void axpyDouble( scalar_type *X,  scalar_type *Y, scalar_type *Z, scalar_type a, scalar_type b, size_t N);
-__global__ void axpyComplex( const cufftDoubleComplex *X, const cufftDoubleComplex *Y, cufftDoubleComplex *Z, scalar_type a, scalar_type b, size_t N);
+// __global__ void axpyComplex( const cufftDoubleComplex *X, const cufftDoubleComplex *Y, cufftDoubleComplex *Z, scalar_type a, scalar_type b, size_t N);
 
-__global__ void ComplexVecAssign(const cufftDoubleComplex *A, cufftDoubleComplex *B, size_t N);
+__global__ void axpyComplex( const data_type *X, data_type *Y, data_type *Z, scalar_type a, scalar_type b, size_t N);
 
+__global__ void addReset( const data_type *X, data_type *Y, data_type *Z, scalar_type a, scalar_type b, size_t N);
+
+__global__ void ComplexVecAssign(const data_type *A, data_type *B, size_t N);
+
+__global__ void VecInit( scalar_type *X, scalar_type a, size_t N);
+
+__global__ void VecInitComplex( data_type *X, data_type a, size_t N);
+
+__global__ void axpy5ComplexAssign( data_type *A, data_type *B, data_type *C, data_type *D, data_type *E, scalar_type a, scalar_type b, scalar_type c, scalar_type d, scalar_type e, size_t N);
 // __global__ void scalarDissipation( const scalar_type *d_all_kvec, const data_type *X, scalar_type *Z, size_t N);

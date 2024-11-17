@@ -16,8 +16,12 @@ public:
     // Parameters *param;
 
     void Boussinesq(Fields &fields, Parameters &param);
-    void AnisotropicConduction(Fields &fields, Parameters &param);
+    // void AnisotropicConduction(Fields &fields, Parameters &param);
+    void AnisotropicConduction(Fields &fields, Parameters &param, data_type *temp_in, data_type *dtemp);
     void EntropyStratification(Fields &fields, Parameters &param);
+
+    void ParabolicTerms(Fields &fields, Parameters &param, data_type *fields_in, data_type *dfields_out);
+    void HyperbolicTerms(Fields &fields, Parameters &param);
 
     // int stage_step;
     // unsigned int current_step;

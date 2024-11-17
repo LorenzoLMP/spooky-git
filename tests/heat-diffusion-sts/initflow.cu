@@ -76,27 +76,15 @@ void Fields::init_SpatialStructure(Parameters &param){
 	///////////////////////////////////////
 	// initial conditions on host data
 	///////////////////////////////////////
-
-	double R2 = 0.0;
-	double sigma  = 200.;
-	double v0 = 0.05;
-	double u0 = 0.05;
-
-
+	double sigma = 0.1;
 	for (int i = 0; i < 2*ntotal_complex; i++){
 
-		// Dinshaw S. Balsara 2004 ApJS 151 149 DOI 10.1086/381377
-
-		R2 = x[i]*x[i] + y[i]*y[i];
-
-		farray_r[VX][i] = v0 - 1./(2.0 * M_PI) * exp( (1.0  - sigma*R2)/2.0 ) * y[i] ;
-		farray_r[VY][i] = u0 + 1./(2.0 * M_PI) * exp( (1.0  - sigma*R2)/2.0 ) * x[i] ;
-		farray_r[VZ][i] = 0.0 ;
-
-		farray_r[BX][i] = - 1./(2.0 * M_PI) * exp( (1.0  - sigma*R2)/2.0 ) * y[i] ;
-		farray_r[BY][i] =   1./(2.0 * M_PI) * exp( (1.0  - sigma*R2)/2.0 ) * x[i] ;
-		farray_r[BZ][i] = 0.0 ;
-
+		// 1D heat diffusion
+	#ifdef HEAT_EQ
+		// farray_r[TH][i] = 1.0 +  0.5 * (tanh((x[i] + 0.375) / a) - tanh((x[i] + 0.125) / a)) + 0.5 * (tanh((x[i] - 0.125) / a) - tanh((x[i] - 0.375) / a));
+		// gaussian profile
+		farray_r[TH][i] = exp(-x[i]*x[i]/(2.*sigma*sigma));
+	#endif
 
 	}
 

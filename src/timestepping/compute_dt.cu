@@ -14,14 +14,17 @@
 void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) {
 
     NVTX3_FUNC_RANGE();
-    double dt;
+    dt_par = 0.0;
+    dt_hyp = 0.0;
+    // double dt_tot = 0.0;
+    double gamma_v = 0.0, gamma_th = 0.0, gamma_par = 0.0, gamma_b = 0.0;
 
 #ifdef DDEBUG
     std::printf("Now entering compute_dt function \n");
 #endif
 
 #ifdef INCOMPRESSIBLE
-    double gamma_v = 0.0, gamma_tot = 0.0;
+
     double maxfx, maxfy, maxfz;
 
     maxfx=0.0;
@@ -64,28 +67,29 @@ void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) 
 #endif
 
 // #ifdef INCOMPRESSIBLE
-#ifdef WITH_EXPLICIT_DISSIPATION
+// #ifdef WITH_EXPLICIT_DISSIPATION
 	gamma_v += ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * param.nu;	// CFL condition on viscosity in incompressible regime
-#endif
+// #endif
 // #endif
 
 #ifdef BOUSSINESQ
-    gamma_v += pow(fabs(param.N2), 0.5) / param.safety_source;
-#ifdef WITH_EXPLICIT_DISSIPATION
-#ifndef ANISOTROPIC_DIFFUSION
-    gamma_v += ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * param.nu_th; // NB: this is very conservative. It should be combined with the condition on nu
+    gamma_th += pow(fabs(param.N2), 0.5) / param.safety_source;
+#ifdef ANISOTROPIC_DIFFUSION
+    gamma_th += pow(fabs(param.OmegaT2), 0.5) / param.safety_source;
+
+    gamma_par += ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * (1./param.reynolds_ani);
 #else
-    gamma_v += ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * (1./param.reynolds_ani); //
+    gamma_par += ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * param.nu_th; // NB: this is very conservative. It should be combined with the condition on nu
 #endif // ANISOTROPIC_DIFFUSION
-#endif // WITH_EXPLICIT_DISSIPATION
 #endif // BOUSSINESQ
 
 #ifdef DDEBUG
-    if (current_step == 1 || current_step % 100 == 0 ) std::printf("maxfx: %.4e \t maxfy: %.4e \t maxfz: %.4e \t gamma_v: %.4e \n",maxfx,maxfy,maxfz,gamma_v);
+    // if (current_step == 1 || current_step % 10 == 0 ) std::printf("maxfx: %.4e \t maxfy: %.4e \t maxfz: %.4e \t gamma_v: %.4e \n",maxfx,maxfy,maxfz,gamma_v);
+    std::printf("maxfx: %.6e \t maxfy: %.6e \t maxfz: %.6e \t gamma_v: %.6e \n",maxfx,maxfy,maxfz,gamma_v);
 #endif
 
 #ifdef MHD
-    double gamma_b;
+
     double maxbx, maxby, maxbz;
 
 
@@ -119,100 +123,58 @@ void TimeStepping::compute_dt(Fields &fields, Parameters &param, Physics &phys) 
 
     gamma_b = ( fields.wavevector.kxmax ) * maxbx + fields.wavevector.kymax * maxby + fields.wavevector.kzmax * maxbz;
 
-
-#ifdef WITH_EXPLICIT_DISSIPATION
     gamma_b += ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * param.nu_m;	// CFL condition on resistivity
-#endif
 
 #ifdef DDEBUG
-    if (current_step == 1 || current_step % 100 == 0 ) std::printf("maxbx: %.4e \t maxby: %.4e \t maxbz: %.4e \t gamma_b: %.4e \n",maxbx,maxby,maxbz,gamma_b);
+    // if (current_step == 1 || current_step % 10 == 0 ) std::printf("maxbx: %.4e \t maxby: %.4e \t maxbz: %.4e \t gamma_b: %.4e \n",maxbx,maxby,maxbz,gamma_b);
+    std::printf("maxbx: %.6e \t maxby: %.6e \t maxbz: %.6e \t gamma_b: %.6e \n",maxbx,maxby,maxbz,gamma_b);
 #endif
 
-    dt = param.cfl / (gamma_v  + gamma_b);
-
-#else //not MHD
-
-    dt = param.cfl / (gamma_v );
 
 #endif //end MHD
+
+    dt_hyp = param.cfl / (gamma_v + gamma_th + gamma_b);
+    dt_par = param.cfl_par / gamma_par;
+    // dt_tot = param.cfl / (gamma_v + gamma_th + gamma_b + gamma_par);
+    // dt_tot = 1.0 / (1.0/dt_hyp + 1.0/dt_par);
+
+#ifndef SUPERTIMESTEPPING
+    current_dt = param.cfl / (gamma_v + gamma_th + gamma_b + gamma_par);
+
+#else
+    if ( dt_hyp > dt_par * param.safety_sts) {
+        dt_hyp =  dt_par * param.safety_sts;
+    }
+    if ( dt_hyp < dt_par ) {
+        dt_par = dt_hyp;
+    }
+    current_dt = dt_hyp;
+#endif
 
 
 #endif //end INCOMPRESSIBLE
 
 #ifdef HEAT_EQ
-    double gamma_v = ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * param.nu_th;
-
-    dt = param.cfl / (gamma_v );
+    gamma_par = ((fields.wavevector.kxmax )*( fields.wavevector.kxmax )+fields.wavevector.kymax*fields.wavevector.kymax+fields.wavevector.kzmax*fields.wavevector.kzmax) * param.nu_th;
+    dt_par = param.cfl_par / gamma_par;
+    current_dt = dt_par;
+#if defined(SUPERTIMESTEPPING) && defined(TEST)
+    // replicate Vaidya 2017
+    dt_hyp = 0.00703125 * (param.lx/nx);
+    current_dt = dt_hyp;
 #endif
 
-#ifdef DDEBUG
-    if (current_step == 1 || current_step % 100 == 0 ) std::printf("t: %.4e \t dt: %.4e \n", current_time, dt);
+#endif // HEAT_EQ
+
+    if ( current_time + current_dt > param.t_final) current_dt = param.t_final - current_time;
+
+// #ifdef DDEBUG
+//     if (current_step == 1 || current_step % 100 == 0 ) std::printf("t: %.4e \t dt: %.4e \n", current_time, current_dt);
+// #endif
+#ifdef DEBUG
+    // if (current_step == 1 || current_step % 10 == 0 ) std::printf("t: %.4e \t gamma_par = %.4e \t gamma_v = %.4e \t gamma_b = %.4e \t dt_hyp: %.4e \t dt_par: %.4e \t dt_current: %.4e \n", current_time, gamma_par, gamma_v + gamma_th, gamma_b, dt_hyp, dt_par, current_dt);
+    std::printf("t: %.4e \t gamma_par = %.4e \t gamma_v = %.4e \t gamma_b = %.4e \t dt_hyp: %.4e \t dt_par: %.4e \t dt_current: %.4e \n", current_time, gamma_par, gamma_v + gamma_th, gamma_b, dt_hyp, dt_par, current_dt);
 #endif
 
-    current_dt = dt;
-    // *p_dt = dt;
 }
 
-
-
-
-
-
-
-    // absolute3<scalar_type>        unary_op;
-    // thrust::maximum<scalar_type> binary_op;
-    // maxfx = thrust::reduce(thrust::device_pointer_cast(d_farray_r[0]), thrust::device_pointer_cast(d_farray_r[0]) + 2*ntotal_complex, (double) 0, thrust::maximum<double>());
-    // maxfx = thrust::transform_reduce(thrust::device_pointer_cast(d_farray_r[0]), thrust::device_pointer_cast(d_farray_r[0]) + 2*ntotal_complex, unary_op, (double) 0, binary_op);
-
-    // old code that zips vx vy vz into a vector
-    // Tuple3 temp;
-    // auto begin = thrust::make_zip_iterator(thrust::make_tuple(thrust::device_pointer_cast(d_farray_r[0]),thrust::device_pointer_cast(d_farray_r[1]), thrust::device_pointer_cast(d_farray_r[2])));
-    // auto end = thrust::make_zip_iterator(thrust::make_tuple(thrust::device_pointer_cast(d_farray_r[0]) + 2*ntotal_complex,thrust::device_pointer_cast(d_farray_r[1]) + 2*ntotal_complex, thrust::device_pointer_cast(d_farray_r[2]) + 2*ntotal_complex));
-    // then finds 3-tuple with max vals
-    // temp = thrust::transform_reduce(begin, end, absolute3<scalar_type>(), thrust::make_tuple<scalar_type,scalar_type,scalar_type>(0,0,0), MaxAbs<scalar_type>());
-    // retrieve values
-    // maxfx=thrust::get<0>(temp);
-    // maxfy=thrust::get<1>(temp);
-    // maxfz=thrust::get<2>(temp);
-
-
-    // for timing
-    // cudaEvent_t start, stop;
-    // cudaEventCreate(&start);
-    // cudaEventCreate(&stop);
-    // float milliseconds;
-    //
-    // int Niter = 100;
-    // cudaEventRecord(start);
-    // for (int ii = 0; ii < Niter; ii++) {
-    //     temp = thrust::transform_reduce(begin, end, absolute3<scalar_type>(), thrust::make_tuple<scalar_type,scalar_type,scalar_type>(0,0,0), MaxAbs<scalar_type>());
-    // }
-    // cudaEventRecord(stop);
-    // cudaDeviceSynchronize();
-    // cudaEventElapsedTime(&milliseconds, start, stop);
-    // std::printf("THRUST elapsed time (in s): %.5f \t Approx time per reduce (in ms): %.5f \n",milliseconds/1000, milliseconds/Niter);
-
-
-    // equivalent code with CUBLAS (similar speed)
-    // std::printf("now with CUBLAS \n");
-    // int idx_max_vx, idx_max_vy, idx_max_vz;
-    // cublasStatus_t stat;
-    //
-    // // int Niter = 100;
-    // cudaEventRecord(start);
-    // for (int ii = 0; ii < Niter; ii++) {
-    //     stat = cublasIdamax(handle0, 2 * ntotal_complex, d_farray_r[0], 1, &idx_max_vx);
-    //     stat = cublasIdamax(handle0, 2 * ntotal_complex, d_farray_r[1], 1, &idx_max_vy);
-    //     stat = cublasIdamax(handle0, 2 * ntotal_complex, d_farray_r[2], 1, &idx_max_vz);
-    // }
-    // cudaEventRecord(stop);
-    // cudaDeviceSynchronize();
-    // cudaEventElapsedTime(&milliseconds, start, stop);
-    // std::printf("CUBLAS elapsed time (in s): %.5f \t Approx time per reduce (in ms): %.5f \n",milliseconds/1000, milliseconds/Niter);
-    // std::printf("idx_max_vx: %d \n",idx_max_vx);
-    // std::printf("idx_max_vy: %d \n",idx_max_vy);
-    // std::printf("idx_max_vz: %d \n",idx_max_vz);
-    //
-    // maxfx=d_farray_r[0][idx_max_vx];
-    // maxfy=d_farray_r[1][idx_max_vy];
-    // maxfz=d_farray_r[2][idx_max_vz];

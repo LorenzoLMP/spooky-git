@@ -12,3 +12,5 @@
 #define BOUSSINESQ
 #define STRATIFICATION
 #define STRAT_DIR    2
+
+#define SUPERTIMESTEPPING

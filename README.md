@@ -106,6 +106,50 @@ $ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.5/bin/nvcc -DC
 $ make clean && make -j 8
 ```
 
+or just for one executable:
+
+```
+$ make clean && make spooky -j 8
+```
+
+For the generic test problem:
+
+```
+./problems/generic/spooky --input-dir ../problems/generic/ --output-dir /lustre/lperrone/spooky/tests/tmp --stats 100
+
+```
+
+You can also submit a job using slurm as follows:
+
+```
+#!/bin/bash
+#! Which partition (queue) should be used
+#SBATCH -p a100
+#SBATCH -J SPOOKY_job
+#SBATCH -o job.%j.out
+#SBATCH -e job.%j.err
+
+### compute nodes
+#SBATCH --nodes=1
+###  MPI ranks
+#SBATCH --ntasks=1
+###  MPI ranks per node
+#SBATCH --ntasks-per-node=1
+###  tasks per MPI rank(eg OMP tasks)
+#SBATCH --cpus-per-task=1
+###  gpu per node
+#SBATCH --gres=gpu:1
+
+#!How much wallclock time will be required (HH:MM:SS)
+#SBATCH --time=04:00:00
+#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-user=lperrone@aip.de
+##SBATCH --begin=now+16hours
+
+source /home/lperrone/spooky-git/load_modules
+
+./spooky-mti3d --input-dir ./ --output-dir /lustre/lperrone/spooky/tests/Pm4_beta5e5T_Re_6400_Rm_12800_Pe_1600_N2_2e-1_new --stats 1000
+```
 
 ## Steps for profiling
 ```
