@@ -25,7 +25,10 @@ endif()
 
 option(BUILD_TESTS "Build test programs" OFF)
 
-set(CMAKE_CXX_FLAGS "-O3 -std=c++20")
+if (NOT DEFINED CMAKE_CXX_FLAGS)
+  set(CMAKE_CXX_FLAGS "-O3 -std=c++20")
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CUDA_STANDARD 20)
 
