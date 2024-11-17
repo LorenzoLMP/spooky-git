@@ -80,7 +80,7 @@ $ ctest -V -R "spooky"
 
 which will run all the spooky tests and show the output.
 
-## On Newton (last update: 2024-10-11)
+## On Newton (last update: 2024-11-17)
 
 For interactive jobs:
 ```
@@ -97,7 +97,7 @@ rm -rf *
 ```
 
 ```
-$ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.5/bin/nvcc -DCMAKE_CUDA_FLAGS="" -DHDF5_ROOT=/home/lperrone/myhdf5/hdf5/ -DLIBCONFIG_ROOT=/home/lperrone/mylibconfig/libconfig/ -DCMAKE_CUDA_ARCHITECTURES="80" ..
+$ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.5/bin/nvcc -DCMAKE_CUDA_FLAGS="" -DCMAKE_CXX_FLAGS="-O3 -std=c++2a" -DHDF5_ROOT=/home/lperrone/myhdf5/hdf5/ -DLIBCONFIG_ROOT=/home/lperrone/mylibconfig/libconfig/ -DCMAKE_CUDA_ARCHITECTURES="80" ..
 
 ```
 

@@ -9,6 +9,7 @@
 #include "cublas_routines.hpp"
 #include "parameters.hpp"
 #include "physics.hpp"
+#include "supervisor.hpp"
 
 // we are assuming that the fields have been already fft to real and saved in d_tmparray_r
 void TimeStepping::compute_dt() {
