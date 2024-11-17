@@ -28,9 +28,9 @@ Supervisor::Supervisor(std::string input_dir, int stats_frequency) :
         datadump_timer() {
 
     param = std::shared_ptr<Parameters> (new Parameters(*this, input_dir));
-    fields = std::shared_ptr<Fields> (new Fields(*this, param));
+    fields = std::shared_ptr<Fields> (new Fields(*this, *param));
     phys = std::shared_ptr<Physics> (new Physics(*this));
-    timestep = std::shared_ptr<TimeStepping> (new TimeStepping(*this, param));
+    timestep = std::shared_ptr<TimeStepping> (new TimeStepping(*this, *param));
     inout = std::shared_ptr<InputOutput> (new InputOutput(*this));
 
     // param(this, input_dir),
@@ -165,7 +165,7 @@ void Supervisor::initialDataDump(){
 
 void Supervisor::Restart(int restart_num){
     if (param->restart == 1){
-        inout->ReadDataFile(fields, param, timestep, restart_num);
+        inout->ReadDataFile(restart_num);
     }
 }
 
