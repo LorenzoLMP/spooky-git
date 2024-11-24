@@ -15,13 +15,13 @@ public:
     // Fields *fields;
     // Parameters *param;
 
-    void Boussinesq();
+    void AdvectTemperature(scalar_type *rfields_in, data_type *dfields_out);
     // void AnisotropicConduction(Fields &fields, Parameters &param);
-    void AnisotropicConduction(data_type *temp_in, data_type *dtemp);
-    void EntropyStratification();
+    void AnisotropicConduction(data_type *fields_in, data_type *dfields_out);
+    void EntropyStratification(data_type *fields_in, data_type *dfields_out);
 
     void ParabolicTerms(data_type *fields_in, data_type *dfields_out);
-    void HyperbolicTerms();
+    void HyperbolicTerms(scalar_type *rfields_in, data_type *dfields_out);
 
     // int stage_step;
     // unsigned int current_step;

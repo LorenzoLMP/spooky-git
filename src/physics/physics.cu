@@ -29,7 +29,7 @@ Physics::~Physics(){
 
 }
 
-void Physics::HyperbolicTerms(){
+void Physics::HyperbolicTerms(scalar_type *rfields_in, data_type *dfields_out){
     /*
     *
     * Here we do the hyperbolic terms
@@ -44,27 +44,33 @@ void Physics::HyperbolicTerms(){
 
     int blocksPerGrid;
 
+    scalar_type* kvec = fields->wavevector.d_all_kvec;
+    scalar_type* mask = fields->wavevector.d_mask;
+
 #ifdef INCOMPRESSIBLE
+
     // we use Basdevant formulation [1983]
     // compute the elements of the traceless symmetric matrix B_ij = u_i u_j - delta_ij Tr (u_i u_j) / 3. It has only 5 independent components B_xx, B_xy, B_xz, Byy, B_yz. (B_zz = - B_xx - B_yy)
     // the results are saved in the temp_arrays from [num_fields -- num_fields + 5] (the first num_fields arrays are reserved for the real-valued fields)
+    scalar_type* shear_matrix = fields->d_all_tmparray + 2 * ntotal_complex * fields->num_fields;
+
     blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
 #ifndef MHD
-    TracelessShearMatrix<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)fields->d_all_tmparray, (scalar_type *)fields->d_all_tmparray + 2 * ntotal_complex * fields->num_fields,  2 * ntotal_complex);
+    TracelessShearMatrix<<<blocksPerGrid, threadsPerBlock>>>(rfields_in, shear_matrix,  2 * ntotal_complex);
 #else
-    TracelessShearMatrixMHD<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)fields->d_all_tmparray, (scalar_type *)fields->d_all_tmparray + 2 * ntotal_complex * fields->num_fields,  2 * ntotal_complex);
+    TracelessShearMatrixMHD<<<blocksPerGrid, threadsPerBlock>>>(rfields_in, shear_matrix,  2 * ntotal_complex);
 #endif
 
 
     // take fft of 5 independent components of B_ij
     for (int n = fields->num_fields ; n < fields->num_fields + 5; n++) {
-        r2c_fft(fields->d_tmparray_r[n], fields->d_tmparray[n], supervisor);
+        r2c_fft(shear_matrix + 2*n*ntotal_complex, (data_type*) shear_matrix + n*ntotal_complex, supervisor);
     }
 
     // compute derivative of traceless shear matrix and assign to dfields
     // this kernel works also if MHD
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    NonLinHydroAdv<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)fields->wavevector.d_all_kvec, (data_type *)fields->d_all_tmparray + ntotal_complex * fields->num_fields, (data_type *) fields->d_all_dfields, (scalar_type *)fields->wavevector.d_mask, ntotal_complex);
+    NonLinHydroAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type*) shear_matrix, dfields_out, mask, ntotal_complex);
 
 
 #ifdef MHD
@@ -72,24 +78,27 @@ void Physics::HyperbolicTerms(){
     // emf_x = u_y B_z - u_z B_y , emf_y = u_z B_x - u_x B_z , emf_z = u_x B_y - u_y B_x
     // the results are saved in the first 3 temp_arrays (after those reserved for the fields, the memory block points already at the right location) as [emf_x, emf_y, emf_z] (they are the x,y,z components of the emf)
     // We can re-utilize tmparrays and store result in tmparray_r[num_fields] - tmparray_r[num_fields + 3]
+
+    scalar_type* emf = fields->d_all_tmparray + 2 * ntotal_complex * fields->num_fields;
+
     blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    MagneticEmf<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)fields->d_all_tmparray, (scalar_type *)fields->d_all_tmparray + 2 * ntotal_complex * fields->num_fields,  2 * ntotal_complex);
+    MagneticEmf<<<blocksPerGrid, threadsPerBlock>>>(rfields_in, emf,  2 * ntotal_complex);
 
     // take fourier transforms of the 3 independent components of the antisymmetric shear matrix
     for (int n = fields->num_fields ; n < fields->num_fields + 3; n++) {
-        r2c_fft(fields->d_tmparray_r[n], fields->d_tmparray[n], supervisor);
+        r2c_fft(emf + 2*n*ntotal_complex, (data_type*) emf + n*ntotal_complex, supervisor);
     }
 
     // compute derivative of antisymmetric magnetic shear matrix and assign to dfields
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    MagneticShear<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)fields->wavevector.d_all_kvec, (data_type *)fields->d_all_tmparray + ntotal_complex * fields->num_fields, (data_type *) fields->d_all_dfields, (scalar_type *)fields->wavevector.d_mask, ntotal_complex);
+    MagneticShear<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type *)emf, dfields_out, mask, ntotal_complex);
 
 #endif
 
 #ifdef BOUSSINESQ
     // does the advection of the temperature
     // This function assumes that the real transforms of the fields are stored in tmparrays_r[0] - tmparray_r[num_fields - 1]
-    Boussinesq();
+    AdvectTemperature(rfields_in, dfields_out);
 #endif
 
 #endif // INCOMPRESSIBLE
@@ -141,7 +150,7 @@ void Physics::ParabolicTerms(data_type *fields_in, data_type *dfields_out){
 // #ifndef SUPERTIMESTEPPING
     // AnisotropicConduction(fields, param);
     // this function requires that the real fields are saved in the first num_fields temp arrays
-    AnisotropicConduction((data_type *) fields_in + ntotal_complex * TH, (data_type *) dfields_out + ntotal_complex * TH);
+    AnisotropicConduction(fields_in, dfields_out);
 // #endif
 
 #endif   // MHD

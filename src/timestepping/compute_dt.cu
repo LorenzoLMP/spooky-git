@@ -29,7 +29,45 @@ void TimeStepping::compute_dt() {
     std::printf("Now entering compute_dt function \n");
 #endif
 
+
+#ifdef HEAT_EQ
+
+    // for heat eq we do not need to transform from complex
+    // to real, because we can just use complex variables
+    // and the dt is fixed (given by nu_th)
+
+    gamma_par = ((fields->wavevector.kxmax )*( fields->wavevector.kxmax )+fields->wavevector.kymax*fields->wavevector.kymax+fields->wavevector.kzmax*fields->wavevector.kzmax) * param->nu_th;
+    dt_par = param->cfl_par / gamma_par;
+    current_dt = dt_par;
+#if defined(SUPERTIMESTEPPING) && defined(TEST)
+    // replicate Vaidya 2017
+    dt_hyp = 0.00703125 * (param->lx/nx);
+    current_dt = dt_hyp;
+#endif
+
+#endif // HEAT_EQ
+
+
 #ifdef INCOMPRESSIBLE
+
+    // for incompressible we need to first transform from
+    // complex to real in order to compute dt
+
+    // int blocksPerGrid = (2 * ntotal_complex * fields->num_fields + threadsPerBlock - 1) / threadsPerBlock;
+    //
+    // // assign fields to [num_fields] tmparray (memory block starts at d_all_tmparray)
+    // blocksPerGrid = ( fields->num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    // ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields->d_all_fields, (data_type *)fields->d_all_tmparray, fields->num_fields * ntotal_complex);
+    //
+    // // compute FFTs from complex to real fields to start computation of shear traceless matrix
+    // for (int n = 0; n < fields->num_fields; n++){
+    //     c2r_fft(fields->d_tmparray[n], fields->d_tmparray_r[n], supervisor);
+    // }
+
+    Complex2RealFields(fields->d_all_fields, (scalar_type*)fields->d_all_tmparray, fields->num_fields);
+
+    // now we have all the real fields
+
 
     double maxfx, maxfy, maxfz;
 
@@ -160,17 +198,7 @@ void TimeStepping::compute_dt() {
 
 #endif //end INCOMPRESSIBLE
 
-#ifdef HEAT_EQ
-    gamma_par = ((fields->wavevector.kxmax )*( fields->wavevector.kxmax )+fields->wavevector.kymax*fields->wavevector.kymax+fields->wavevector.kzmax*fields->wavevector.kzmax) * param->nu_th;
-    dt_par = param->cfl_par / gamma_par;
-    current_dt = dt_par;
-#if defined(SUPERTIMESTEPPING) && defined(TEST)
-    // replicate Vaidya 2017
-    dt_hyp = 0.00703125 * (param->lx/nx);
-    current_dt = dt_hyp;
-#endif
 
-#endif // HEAT_EQ
 
     if ( current_time + current_dt > param->t_final) current_dt = param->t_final - current_time;
 

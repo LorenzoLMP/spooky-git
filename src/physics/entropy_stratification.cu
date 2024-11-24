@@ -9,7 +9,7 @@
 #include "parameters.hpp"
 #include "supervisor.hpp"
 
-void Physics::EntropyStratification() {
+void Physics::EntropyStratification(data_type *fields_in, data_type *dfields_out) {
 
     int blocksPerGrid;
     std::shared_ptr<Fields> fields = supervisor->fields;
@@ -22,7 +22,7 @@ void Physics::EntropyStratification() {
     // this is for normalization where theta is in units of g [L/T^2]
     // other normalizations possible
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)fields->d_all_fields, (data_type *) fields->d_all_dfields, param->N2, ntotal_complex, STRAT_DIR);
+    BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( fields_in, dfields_out, param->N2, ntotal_complex, STRAT_DIR);
 #endif // STRATIFICATION
 #endif // BOUSSINESQ
 

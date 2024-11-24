@@ -31,8 +31,9 @@ public:
 
 
     void compute_dt();
-    void RungeKutta3();
     void compute_dfield();
+    void hydro_mhd_advance();
+    void RungeKutta3();
 
 
 

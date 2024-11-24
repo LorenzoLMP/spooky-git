@@ -486,3 +486,17 @@ void Fields::clean_gpu(){
 
     wavevector.clean_gpu();
 }
+
+void Fields::Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields){
+
+
+    // assign fields to [num_fields] tmparray (memory block starts at d_all_tmparray)
+    int blocksPerGrid = ( num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(ComplexField_in, (data_type*) RealField_out, num_fields * ntotal_complex);
+
+    // compute FFTs from complex to real fields
+    for (int n = 0; n < num_fields; n++){
+        c2r_fft((data_type*) RealField_out + n * ntotal_complex,  RealField_out + n * 2*ntotal_complex, supervisor);
+    }
+
+}

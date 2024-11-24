@@ -91,6 +91,8 @@ public:
     void CleanFieldDivergence();
     void CheckSymmetries();
 
+    void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);
+
     // void Boussinesq();
     // void AnisotropicConduction();
     // void EntropyStratification();
