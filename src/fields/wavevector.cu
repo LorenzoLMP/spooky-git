@@ -5,57 +5,7 @@
 #include "fields.hpp"
 #include "parameters.hpp"
 #include "common.hpp"
-// extern Parameters param;
 
-// Wavevector::Wavevector() {
-//     lx = 0.0; ly = 0.0; lz = 0.0;
-//     // std::printf("baginning of wave\n");
-//     // all_kvec contains kx ky kz sequentially
-//     all_kvec = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex * 3);
-//     // kvec is array of arrays such that kvec[0] = kx, etc
-//     kvec = (scalar_type **) malloc( (size_t) sizeof(scalar_type) * 3);
-//     // init kvec
-//     // std::printf("before init kvec\n");
-//     for (int i = 0 ; i < 3 ; i++) {
-//         kvec[i]   = all_kvec + i*ntotal_complex;
-//     }
-//
-//     d_kvec = (scalar_type **) malloc( (size_t) sizeof(scalar_type *) * 3);
-//     // kxt = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-//     // ky = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-//     // kz = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-//     // kz = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-//
-//
-//     mask = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-//     // std::printf("before init wavevector\n");
-//     init_Wavevector();
-//     }
-
-// Wavevector::Wavevector() {
-    // lx = Lx; ly = Ly; lz = Lz;
-    // // std::printf("baginning of wave\n");
-    // // all_kvec contains kx ky kz sequentially
-    // all_kvec = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex * 3);
-    // // kvec is array of arrays such that kvec[0] = kx, etc
-    // kvec = (scalar_type **) malloc( (size_t) sizeof(scalar_type) * 3);
-    // // init kvec
-    // // std::printf("before init kvec\n");
-    // for (int i = 0 ; i < 3 ; i++) {
-    //     kvec[i]   = all_kvec + i*ntotal_complex;
-    // }
-    //
-    // d_kvec = (scalar_type **) malloc( (size_t) sizeof(scalar_type *) * 3);
-    // // kxt = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-    // // ky = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-    // // kz = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-    // // kz = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-    //
-    //
-    // mask = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-    // std::printf("before init wavevector\n");
-    // init_Wavevector();
-    // }
 
 Wavevector::~Wavevector() {
     // free(kxt);
@@ -193,15 +143,10 @@ void Wavevector::allocate_and_move_to_gpu() {
 
     CUDA_RT_CALL(cudaMalloc(&d_all_kvec, (size_t) sizeof(scalar_type) * ntotal_complex * 3));
 
-    // CUDA_RT_CALL(cudaMalloc(&d_kxt, (size_t) sizeof(scalar_type) * ntotal_complex));
-    // CUDA_RT_CALL(cudaMalloc(&d_ky,  (size_t) sizeof(scalar_type) * ntotal_complex));
-    // CUDA_RT_CALL(cudaMalloc(&d_kz,  (size_t) sizeof(scalar_type) * ntotal_complex));
     CUDA_RT_CALL(cudaMalloc(&d_mask,  (size_t) sizeof(scalar_type) * ntotal_complex));
 
     CUDA_RT_CALL(cudaMemcpy(d_all_kvec, all_kvec, (size_t) sizeof(scalar_type) * ntotal_complex * 3, cudaMemcpyHostToDevice));
-    // CUDA_RT_CALL(cudaMemcpy(d_kxt, kxt, (size_t) sizeof(scalar_type) * ntotal_complex, cudaMemcpyHostToDevice));
-    // CUDA_RT_CALL(cudaMemcpy(d_ky,  ky,  (size_t) sizeof(scalar_type) * ntotal_complex, cudaMemcpyHostToDevice));
-    // CUDA_RT_CALL(cudaMemcpy(d_kz,  kz,  (size_t) sizeof(scalar_type) * ntotal_complex, cudaMemcpyHostToDevice));
+
     CUDA_RT_CALL(cudaMemcpy(d_mask, mask, (size_t) sizeof(scalar_type) * ntotal_complex, cudaMemcpyHostToDevice));
 
     for (int i = 0 ; i < 3 ; i++) {

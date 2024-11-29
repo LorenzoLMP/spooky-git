@@ -21,7 +21,7 @@ class Supervisor;
 class Parameters {       // The class
   public:             // Access specifier
 
-	Supervisor *supervisor;
+	Supervisor *supervisor_ptr;
 	// Fields *field;
     double lx;				/**< Box length in X*/
 	double ly;				/**< Box length in Y*/

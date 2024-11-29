@@ -16,7 +16,7 @@ public:
 
     // Fields *fields;
     // Parameters *param;
-    Supervisor *supervisor;
+    Supervisor *supervisor_ptr;
     std::unique_ptr<RKLegendre> rkl;
     // RKLegendre *rkl;
 

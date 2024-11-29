@@ -21,7 +21,7 @@
 
 Physics::Physics(Supervisor &sup_in){
 
-    supervisor = &sup_in;
+    supervisor_ptr = &sup_in;
 
 }
 
@@ -39,8 +39,8 @@ void Physics::HyperbolicTerms(scalar_type *rfields_in, data_type *dfields_out){
     std::printf("Now entering compute_parabolic_terms function \n");
 #endif
 
-    std::shared_ptr<Fields> fields = supervisor->fields;
-    std::shared_ptr<Parameters> param = supervisor->param;
+    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
+    std::shared_ptr<Parameters> param = supervisor_ptr->param;
 
     int blocksPerGrid;
 
@@ -114,8 +114,8 @@ void Physics::ParabolicTerms(data_type *fields_in, data_type *dfields_out){
     std::printf("Now entering compute_parabolic_terms function \n");
 #endif
 
-    std::shared_ptr<Fields> fields = supervisor->fields;
-    std::shared_ptr<Parameters> param = supervisor->param;
+    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
+    std::shared_ptr<Parameters> param = supervisor_ptr->param;
 
     int blocksPerGrid;
 

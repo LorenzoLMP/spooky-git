@@ -15,13 +15,13 @@
 
 void InputOutput::CheckOutput(){
 
-    std::shared_ptr<Fields> fields = supervisor->fields;
-    std::shared_ptr<Parameters> param = supervisor->param;
-    std::shared_ptr<TimeStepping> timestep = supervisor->timestep;
+    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
+    std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<TimeStepping> timestep = supervisor_ptr->timestep;
 
     if( (timestep->current_time-t_lastvar)>=param->toutput_time || timestep->current_time == 0.0) {
 
-        supervisor->timevar_timer.reset();
+        supervisor_ptr->timevar_timer.reset();
 
         fields->CleanFieldDivergence();
         std::printf("Saving output at t= %.6e \t and step n. %d \n",timestep->current_time, timestep->current_step);
@@ -39,12 +39,12 @@ void InputOutput::CheckOutput(){
             WriteUserTimevarOutput();
         }
 
-        supervisor->TimeIOTimevar += supervisor->timevar_timer.elapsed();
+        supervisor_ptr->TimeIOTimevar += supervisor_ptr->timevar_timer.elapsed();
     }
 
     if( (timestep->current_time-t_lastsnap)>=param->toutput_flow || timestep->current_time == 0.0 ) {
 
-        supervisor->datadump_timer.reset();
+        supervisor_ptr->datadump_timer.reset();
 
 
         fields->CleanFieldDivergence();
@@ -55,7 +55,7 @@ void InputOutput::CheckOutput(){
         WriteDataFile();
         num_save++;
 
-        supervisor->TimeIODatadump += supervisor->datadump_timer.elapsed();
+        supervisor_ptr->TimeIODatadump += supervisor_ptr->datadump_timer.elapsed();
     }
 
 }

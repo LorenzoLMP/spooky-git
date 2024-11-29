@@ -19,9 +19,9 @@
 
 void InputOutput::WriteTimevarOutput() {
 
-    std::shared_ptr<Fields> fields = supervisor->fields;
-    std::shared_ptr<Parameters> param = supervisor->param;
-    std::shared_ptr<TimeStepping> timestep = supervisor->timestep;
+    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
+    std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<TimeStepping> timestep = supervisor_ptr->timestep;
 
     NVTX3_FUNC_RANGE();
 #ifdef DEBUG
@@ -224,7 +224,7 @@ void InputOutput::WriteTimevarOutput() {
 
 void InputOutput::WriteTimevarOutputHeader() {
 
-    std::shared_ptr<Parameters> param = supervisor->param;
+    std::shared_ptr<Parameters> param = supervisor_ptr->param;
 
 #ifdef DEBUG
     std::printf("Writing data output... \n");

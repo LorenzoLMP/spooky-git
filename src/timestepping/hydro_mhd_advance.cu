@@ -21,11 +21,11 @@ cublasStatus_t stat;
 void TimeStepping::hydro_mhd_advance() {
     NVTX3_FUNC_RANGE();
 
-    std::shared_ptr<Fields> fields = supervisor->fields;
-    std::shared_ptr<Parameters> param = supervisor->param;
-    std::shared_ptr<Physics> phys = supervisor->phys;
+    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
+    std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<Physics> phys = supervisor_ptr->phys;
 
-    cudaEventRecord(supervisor->start_2);
+    cudaEventRecord(supervisor_ptr->start_2);
 
 
     // int blocksPerGrid = (2 * ntotal_complex * fields->num_fields + threadsPerBlock - 1) / threadsPerBlock;
@@ -67,9 +67,9 @@ void TimeStepping::hydro_mhd_advance() {
 
 #endif // supertimestepping
 
-    cudaEventRecord(supervisor->stop_2);
-    cudaEventSynchronize(supervisor->stop_2);
-    supervisor->updateMainLooptime();
+    cudaEventRecord(supervisor_ptr->stop_2);
+    cudaEventSynchronize(supervisor_ptr->stop_2);
+    supervisor_ptr->updateMainLooptime();
 
     return ;
 
@@ -87,8 +87,8 @@ void TimeStepping::RungeKutta3() {
     std::printf("Now entering RungeKutta3 function \n");
 #endif
 
-    std::shared_ptr<Fields> fields = supervisor->fields;
-    std::shared_ptr<Parameters> param = supervisor->param;
+    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
+    std::shared_ptr<Parameters> param = supervisor_ptr->param;
 
     double dt_RK = 0.0;
     int blocksPerGrid = (2 * ntotal_complex * fields->num_fields + threadsPerBlock - 1) / threadsPerBlock;

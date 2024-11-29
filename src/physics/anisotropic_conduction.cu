@@ -13,8 +13,8 @@ void Physics::AnisotropicConduction(data_type *fields_in, data_type *dfields_out
 
     int blocksPerGrid;
 
-    std::shared_ptr<Fields> fields = supervisor->fields;
-    std::shared_ptr<Parameters> param = supervisor->param;
+    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
+    std::shared_ptr<Parameters> param = supervisor_ptr->param;
 
     scalar_type* kvec = fields->wavevector.d_all_kvec;
     scalar_type* mask = fields->wavevector.d_mask;

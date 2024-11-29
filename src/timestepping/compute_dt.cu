@@ -16,9 +16,9 @@ void TimeStepping::compute_dt() {
 
     NVTX3_FUNC_RANGE();
 
-    std::shared_ptr<Fields> fields = supervisor->fields;
-    std::shared_ptr<Parameters> param = supervisor->param;
-    std::shared_ptr<Physics> phys = supervisor->phys;
+    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
+    std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<Physics> phys = supervisor_ptr->phys;
 
     dt_par = 0.0;
     dt_hyp = 0.0;

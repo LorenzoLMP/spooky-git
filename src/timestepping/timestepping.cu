@@ -21,10 +21,10 @@ TimeStepping::TimeStepping(Supervisor &sup_in, Parameters &param) {
     // param = &p_in;
     // fields = &f_in;
 
-    supervisor = &sup_in;
+    supervisor_ptr = &sup_in;
     // rkl = new RKLegendre(NUM_FIELDS, param, supervisor);
     rkl = std::unique_ptr<RKLegendre> (new RKLegendre(NUM_FIELDS, param, sup_in));
-    // std::printf("The TimeSpentInFFTs is: %.4e",supervisor->TimeSpentInFFTs);
+    // std::printf("The TimeSpentInFFTs is: %.4e",supervisor_ptr->TimeSpentInFFTs);
     current_dt = 0.0;
     current_time = 0.0;
     current_step = 0;

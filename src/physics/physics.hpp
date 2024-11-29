@@ -10,7 +10,7 @@ class Physics {
 public:
     Physics(Supervisor &sup_in);
 
-    Supervisor *supervisor;
+    Supervisor *supervisor_ptr;
 
     // Fields *fields;
     // Parameters *param;

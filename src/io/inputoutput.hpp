@@ -14,7 +14,7 @@ public:
 
     // Timer *timevar_timer, *datadump_timer;
 
-    Supervisor *supervisor;
+    Supervisor *supervisor_ptr;
 
     double t_lastsnap; // for snapshot
     double t_lastvar;  // for volume avg/ spectral qts.

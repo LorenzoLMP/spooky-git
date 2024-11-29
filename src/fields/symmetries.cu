@@ -10,8 +10,8 @@
 #include "supervisor.hpp"
 
 void Fields::CheckSymmetries(){
-    int current_step = supervisor->timestep->current_step;
-    int symmetries_step = supervisor->param->symmetries_step;
+    int current_step = supervisor_ptr->timestep->current_step;
+    int symmetries_step = supervisor_ptr->param->symmetries_step;
 #ifdef DEBUG
     if( current_step % 100 == 0) {
         std::printf("Computing divergence of v/B fields \n");

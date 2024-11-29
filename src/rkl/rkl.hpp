@@ -15,7 +15,7 @@ public:
 
     // Fields *fields;
     // Parameters *param;
-    Supervisor *supervisor;
+    Supervisor *supervisor_ptr;
 
     // int stage_step;
     // unsigned int current_step;

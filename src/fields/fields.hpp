@@ -45,7 +45,7 @@ class Fields {
 public:
     int num_fields;
     int num_tmp_array;
-    Supervisor *supervisor;
+    Supervisor *supervisor_ptr;
     // double current_dt;
     // double current_time;
     // int stage_step;

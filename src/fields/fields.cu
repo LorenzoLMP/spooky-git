@@ -34,7 +34,7 @@ Fields::~Fields() {
 // void Fields::init_Fields( int num, Parameters *p_in )  {
 Fields::Fields(Supervisor &sup_in, Parameters &p_in) : wavevector(p_in.lx, p_in.ly, p_in.lz) {
 
-    supervisor = &sup_in;
+    supervisor_ptr = &sup_in;
     num_fields = NUM_FIELDS;
     std::printf("num_fields: %d \n",num_fields);
 
@@ -496,7 +496,7 @@ void Fields::Complex2RealFields(data_type* ComplexField_in, scalar_type* RealFie
 
     // compute FFTs from complex to real fields
     for (int n = 0; n < num_fields; n++){
-        c2r_fft((data_type*) RealField_out + n * ntotal_complex,  RealField_out + n * 2*ntotal_complex, supervisor);
+        c2r_fft((data_type*) RealField_out + n * ntotal_complex,  RealField_out + n * 2*ntotal_complex, supervisor_ptr);
     }
 
 }

@@ -25,14 +25,14 @@ RKLegendre::RKLegendre(int num_fields, Parameters &param, Supervisor &sup) {
     // param = &p_in;
     // fields = &f_in;
 
-    supervisor = &sup;
+    supervisor_ptr = &sup;
     // ts = (double*)malloc(sizeof(double)*STS_MAX_STEPS);
     ts = new double[STS_MAX_STEPS];
     for (int i = 0; i < STS_MAX_STEPS; i++){
       ts[i] = 0.0;
     }
 
-    // std::printf("The TimeSpentInFFTs is: %.4e",supervisor->TimeSpentInFFTs);
+    // std::printf("The TimeSpentInFFTs is: %.4e",supervisor_ptr->TimeSpentInFFTs);
     dt = 0.0;
     stage = 0;
     cfl_rkl = param.cfl_par;
@@ -88,10 +88,10 @@ void STS_ComputeSubSteps(double dtex, double* tau, int N, double STS_NU);
 
 void RKLegendre::compute_cycle_STS(){
 
-    std::shared_ptr<Fields> fields = supervisor->fields;
-    std::shared_ptr<Parameters> param = supervisor->param;
-    std::shared_ptr<TimeStepping> timestep = supervisor->timestep;
-    std::shared_ptr<Physics> phys = supervisor->phys;
+    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
+    std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<TimeStepping> timestep = supervisor_ptr->timestep;
+    std::shared_ptr<Physics> phys = supervisor_ptr->phys;
 
     double dt_hyp = timestep->current_dt;
     double dt_par = timestep->dt_par;
@@ -163,10 +163,10 @@ void RKLegendre::compute_cycle_STS(){
 
 void RKLegendre::compute_cycle_RKL(){
 
-    std::shared_ptr<Fields> fields = supervisor->fields;
-    std::shared_ptr<Parameters> param = supervisor->param;
-    std::shared_ptr<TimeStepping> timestep = supervisor->timestep;
-    std::shared_ptr<Physics> phys = supervisor->phys;
+    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
+    std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<TimeStepping> timestep = supervisor_ptr->timestep;
+    std::shared_ptr<Physics> phys = supervisor_ptr->phys;
 
     double dt_hyp = timestep->current_dt;
     double dt_par = timestep->dt_par;

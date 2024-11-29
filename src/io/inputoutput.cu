@@ -12,7 +12,7 @@
 
 InputOutput::InputOutput(Supervisor &sup_in) {
 
-    supervisor = &sup_in;
+    supervisor_ptr = &sup_in;
 
     // timevar_timer = new Timer();
     // datadump_timer = new Timer();
