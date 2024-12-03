@@ -30,10 +30,10 @@ public:
     data_type *d_all_scrtimestep;
 
 
-    void compute_dt();
-    void compute_dfield();
-    void hydro_mhd_advance();
-    void RungeKutta3();
+    void compute_dt(data_type* complexFields, scalar_type* realBuffer);
+    void compute_dfield(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
+    void hydro_mhd_advance(Fields* fields_ptr);
+    void RungeKutta3(data_type* complex_Fields, scalar_type* real_Buffer);
 
 
 

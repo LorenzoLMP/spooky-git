@@ -5,9 +5,11 @@
 #include <complex>
 
 class Fields;
+class Supervisor;
 
 class SpookyOutput { // The class
     public:
+        Supervisor *supervisor_ptr;
         int length; // Number of spooky variables
         // void* name; // Names of variables (need to be allocated properly)
         std::vector<std::string> name;

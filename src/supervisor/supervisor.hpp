@@ -24,11 +24,11 @@ class Supervisor {
 public:
     Supervisor(std::string input_dir, int stats_frequency);
 
-    std::shared_ptr<Parameters> param;
-    std::shared_ptr<Fields> fields;
-    std::shared_ptr<Physics> phys;
-    std::shared_ptr<TimeStepping> timestep;
-    std::shared_ptr<InputOutput> inout;
+    std::shared_ptr<Parameters> param_ptr;
+    std::shared_ptr<Fields> fields_ptr;
+    std::shared_ptr<Physics> phys_ptr;
+    std::shared_ptr<TimeStepping> timestep_ptr;
+    std::shared_ptr<InputOutput> inout_ptr;
     // Parameters *param;
     // Fields *fields;
     // Physics *phys;
@@ -66,6 +66,8 @@ public:
     void executeMainLoop();
     void initialDataDump();
     void Restart(int restart_num);
+
+    void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);
 
     ~Supervisor();
 };

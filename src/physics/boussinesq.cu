@@ -9,35 +9,35 @@
 #include "parameters.hpp"
 #include "supervisor.hpp"
 
-void Physics::AdvectTemperature(scalar_type *rfields_in, data_type *dfields_out) {
+void Physics::AdvectTemperature(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields) {
 
     int blocksPerGrid;
-    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
-    std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
-    scalar_type* kvec = fields->wavevector.d_all_kvec;
-    scalar_type* mask = fields->wavevector.d_mask;
+    scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
+    scalar_type* mask = fields_ptr->wavevector.d_mask;
 
-    data_type* en_flux = fields->d_all_tmparray +  ntotal_complex * fields->num_fields;
 
 #ifdef BOUSSINESQ
+
+    scalar_type* en_flux = fields_ptr->d_all_tmparray;
+
     // first compute energy flux vector [ u_x theta, u_y theta, u_z theta]
-    // we can re-utilize tmparrays and store result in tmparray_r[num_fields] - tmparray_r[num_fields + 3]
+    // we can re-utilize tmparrays store result in in the temp_arrays from [0, 1, 2]
     blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    EnergyFluxVector<<<blocksPerGrid, threadsPerBlock>>>(rfields_in, (scalar_type *)en_flux,  2 * ntotal_complex);
+    EnergyFluxVector<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, en_flux,  2 * ntotal_complex);
 
 
     // take fourier transforms of the 3 energy flux vector components
-    for (int n = fields->num_fields ; n < fields->num_fields + 3; n++) {
-        r2c_fft((scalar_type*) en_flux + 2*n*ntotal_complex, en_flux + n*ntotal_complex, supervisor);
+    for (int n = 0; n < 3; n++) {
+        r2c_fft(en_flux + 2*n*ntotal_complex, ((double_type*) en_flux) + n*ntotal_complex, supervisor);
     }
 
 
     // compute derivative of energy flux vector and assign u nabla theta to the dfield for theta
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    NonLinBoussinesqAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, en_flux, dfields_out, mask, ntotal_complex);
-
-
+    NonLinBoussinesqAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, (double_type*) en_flux, complex_dFields, mask, ntotal_complex);
 
 #endif // Boussinesq
 

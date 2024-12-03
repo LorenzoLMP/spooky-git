@@ -12,7 +12,7 @@
 #include "common.hpp"
 #include "cublas_routines.hpp"
 #include "cuda_kernels.hpp"
-
+#include "cuda_kernels_generic.hpp"
 
 
 #include <cuda_runtime.h>
@@ -27,11 +27,11 @@ Supervisor::Supervisor(std::string input_dir, int stats_frequency) :
         timevar_timer(),
         datadump_timer() {
 
-    param = std::shared_ptr<Parameters> (new Parameters(*this, input_dir));
-    fields = std::shared_ptr<Fields> (new Fields(*this, *param));
-    phys = std::shared_ptr<Physics> (new Physics(*this));
-    timestep = std::shared_ptr<TimeStepping> (new TimeStepping(*this, *param));
-    inout = std::shared_ptr<InputOutput> (new InputOutput(*this));
+    param_ptr = std::shared_ptr<Parameters> (new Parameters(*this, input_dir));
+    fields_ptr = std::shared_ptr<Fields> (new Fields(*this, *param));
+    phys_ptr = std::shared_ptr<Physics> (new Physics(*this));
+    timestep_ptr = std::shared_ptr<TimeStepping> (new TimeStepping(*this, *param));
+    inout_ptr = std::shared_ptr<InputOutput> (new InputOutput(*this));
 
     // param(this, input_dir),
     // fields(this, param),
@@ -85,7 +85,7 @@ void Supervisor::print_partial_stats(){
 
 void Supervisor::print_final_stats(){
 
-    int tot_steps = timestep->current_step;
+    int tot_steps = timestep_ptr->current_step;
     std::printf("@@@@@ ------------------------------------------------------------------ @@@@@ \n");
     std::printf("@@ ------------------------------------------------------------------------ @@ \n");
     std::printf("@@\t \t \t FINAL STATISTICS REPORT \n");
@@ -108,38 +108,39 @@ void Supervisor::print_final_stats(){
 
 void Supervisor::displayConfiguration(){
 
-    std::printf("lx = %f \t ly = %f \t lz = %f\n",param->lx, param->ly, param->lz);
-    std::printf("kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",fields->wavevector.kxmax,fields->wavevector.kymax, fields->wavevector.kzmax);
-    std::printf("numfields = %d",fields->num_fields);
+    std::printf("lx = %f \t ly = %f \t lz = %f\n",param_ptr->lx, param_ptr->ly, param_ptr->lz);
+    std::printf("kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",fields_ptr->wavevector.kxmax,fields_ptr->wavevector.kymax, fields_ptr->wavevector.kzmax);
+    std::printf("numfields = %d",fields_ptr->num_fields);
 #ifdef BOUSSINESQ
-    std::printf("nu_th = %.2e \n",param->nu_th);
+    std::printf("nu_th = %.2e \n",param_ptr->nu_th);
 #endif
-    std::printf("nu = %.2e \n",param->nu);
+    std::printf("nu = %.2e \n",param_ptr->nu);
 #ifdef STRATIFICATION
-    std::printf("N2 = %.2e \n",param->N2);
+    std::printf("N2 = %.2e \n",param_ptr->N2);
 #endif
-    std::printf("t_final = %.2e \n",param->t_final);
-    std::printf("Enforcing symmetries every %d steps \n",param->symmetries_step);
-    std::printf("Saving snapshot every  dt = %.2e \n",param->toutput_flow);
-    std::printf("Saving timevar every  dt = %.2e \n",param->toutput_time);
+    std::printf("t_final = %.2e \n",param_ptr->t_final);
+    std::printf("Enforcing symmetries every %d steps \n",param_ptr->symmetries_step);
+    std::printf("Saving snapshot every  dt = %.2e \n",param_ptr->toutput_flow);
+    std::printf("Saving timevar every  dt = %.2e \n",param_ptr->toutput_time);
 }
 
 void Supervisor::executeMainLoop(){
 
-    while (timestep->current_time < param->t_final) {
+    while (timestep_ptr->current_time < param_ptr->t_final) {
 
         // advance the equations (field(n+1) = field(n) + dfield*dt)
-        timestep->RungeKutta3();
+        // timestep_ptr->RungeKutta3();
+        timestep_ptr->hydro_mhd_advance();
         // check if we need to output data
-        inout->CheckOutput();
+        inout_ptr->CheckOutput();
         // check if we need to enforce symmetries
-        fields->CheckSymmetries();
+        fields_ptr->CheckSymmetries();
 #ifdef DDEBUG
-        std::printf("step: %d \t dt: %.2e \n", timestep->current_step,timestep->current_dt);
+        std::printf("step: %d \t dt: %.2e \n", timestep_ptr->current_step,timestep_ptr->current_dt);
 #endif
 
         if (stats_frequency > 0){
-            if ( timestep->current_step % stats_frequency == 0)
+            if ( timestep_ptr->current_step % stats_frequency == 0)
             print_partial_stats();
         }
 
@@ -149,11 +150,11 @@ void Supervisor::executeMainLoop(){
 
 void Supervisor::initialDataDump(){
 
-    if (param->restart == 0){
+    if (param_ptr->restart == 0){
 
         std::printf("Initial data dump...\n");
         try {
-        inout->CheckOutput();
+        inout_ptr->CheckOutput();
         }
         catch (const std::exception& err) {
         std::cerr << err.what() << std::endl;
@@ -164,11 +165,24 @@ void Supervisor::initialDataDump(){
 
 
 void Supervisor::Restart(int restart_num){
-    if (param->restart == 1){
-        inout->ReadDataFile(restart_num);
+    if (param_ptr->restart == 1){
+        inout_ptr->ReadDataFile(restart_num);
     }
 }
 
 Supervisor::~Supervisor(){
+
+}
+
+void Supervisor::Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields){
+
+    // assign fields to [num_fields] tmparray (memory block starts at d_all_tmparray)
+    int blocksPerGrid = ( num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(ComplexField_in, (data_type*) RealField_out, num_fields * ntotal_complex);
+
+    // compute FFTs from complex to real fields
+    for (int n = 0; n < num_fields; n++){
+        c2r_fft((data_type*) RealField_out + n * ntotal_complex,  RealField_out + n * 2*ntotal_complex, this);
+    }
 
 }

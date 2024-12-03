@@ -60,6 +60,9 @@ public:
     data_type *d_all_fields, *d_all_dfields, *d_all_tmparray;
     data_type **d_farray, **d_dfarray, **d_tmparray;
     scalar_type **d_farray_r, **d_dfarray_r, **d_tmparray_r;
+
+    scalar_type *d_all_buffer_r;
+    scalar_type **d_farray_buffer_r;
     
     Wavevector wavevector;
     // Parameters *param;
@@ -91,7 +94,7 @@ public:
     void CleanFieldDivergence();
     void CheckSymmetries();
 
-    void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);
+    // void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);
 
     // void Boussinesq();
     // void AnisotropicConduction();

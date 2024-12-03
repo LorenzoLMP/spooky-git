@@ -41,7 +41,7 @@ RKLegendre::RKLegendre(int num_fields, Parameters &param, Supervisor &sup) {
 
     blocksPerGrid = ( num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     // this is the mega array that contains intermediate fields during multi-stage timestepping
-    // std::printf("num fields ts: %d \n", fields->num_fields);
+    // std::printf("num fields ts: %d \n", fields_ptr->num_fields);
     std::printf("num rkl scratch arrays: %d \n",4);
     std::printf("blocksPerGrid: %d \n",blocksPerGrid);
 
@@ -86,15 +86,15 @@ double STS_FindRoot(double dt_exp, double dT, double STS_NU);
 void STS_ComputeSubSteps(double dtex, double* tau, int N, double STS_NU);
 
 
-void RKLegendre::compute_cycle_STS(){
+void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_Buffer){
 
-    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
-    std::shared_ptr<Parameters> param = supervisor_ptr->param;
-    std::shared_ptr<TimeStepping> timestep = supervisor_ptr->timestep;
-    std::shared_ptr<Physics> phys = supervisor_ptr->phys;
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    // std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
+    std::shared_ptr<Physics> phys_ptr = supervisor_ptr->phys_ptr;
 
-    double dt_hyp = timestep->current_dt;
-    double dt_par = timestep->dt_par;
+    double dt_hyp = timestep_ptr->current_dt;
+    double dt_par = timestep_ptr->dt_par;
     double dt_par_corr = dt_par;
 
     // std::printf("now in supertimestepping function");
@@ -103,7 +103,7 @@ void RKLegendre::compute_cycle_STS(){
     double N;
     int nv_indx, nvar_rkl;
     double tau;
-    int num_fields = fields->num_fields;
+    int num_fields = fields_ptr->num_fields;
 
 // #ifdef BOUSSINESQ
 #ifdef SUPERTIMESTEPPING
@@ -136,20 +136,20 @@ void RKLegendre::compute_cycle_STS(){
 #endif
 
         // anisotropic_conduction( rhs, fldi);
-        // phys->AnisotropicConduction(fields, param, (data_type *) fields->d_farray[TH], (data_type *) d_farray_dU[TH]);
+        // phys_ptr->AnisotropicConduction(fields, param, (data_type *) fields_ptr->d_farray[TH], (data_type *) d_farray_dU[TH]);
         // this is for all parabolic terms
-        phys->ParabolicTerms(fields->d_all_fields, d_all_dU);
+        phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, d_all_dU);
 
 
 
         // only for temperature
         // blocksPerGrid = (ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-        // addReset<<<blocksPerGrid, threadsPerBlock>>>( fields->d_farray[TH],  d_farray_dU[TH],  fields->d_farray[TH], 1.0, tau, ntotal_complex);
+        // addReset<<<blocksPerGrid, threadsPerBlock>>>( fields_ptr->d_farray[TH],  d_farray_dU[TH],  fields_ptr->d_farray[TH], 1.0, tau, ntotal_complex);
         // CUDA_RT_CALL( cudaDeviceSynchronize() );
         // this is for all parabolic terms
         blocksPerGrid = (ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
         for (nv = 0; nv < num_fields; nv++){
-          addReset<<<blocksPerGrid, threadsPerBlock>>>( fields->d_farray[nv],  d_farray_dU[nv],  fields->d_farray[nv], 1.0, tau, ntotal_complex);
+          addReset<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields + nv * ntotal_complex,  d_farray_dU[nv],  complex_Fields + nv * ntotal_complex, 1.0, tau, ntotal_complex);
         }
         CUDA_RT_CALL( cudaDeviceSynchronize() );
 
@@ -161,17 +161,17 @@ void RKLegendre::compute_cycle_STS(){
 // #endif // Boussinesq
 }
 
-void RKLegendre::compute_cycle_RKL(){
+void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_Buffer){
 
-    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
-    std::shared_ptr<Parameters> param = supervisor_ptr->param;
-    std::shared_ptr<TimeStepping> timestep = supervisor_ptr->timestep;
-    std::shared_ptr<Physics> phys = supervisor_ptr->phys;
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    // std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
+    std::shared_ptr<Physics> phys_ptr = supervisor_ptr->phys_ptr;
 
-    double dt_hyp = timestep->current_dt;
-    double dt_par = timestep->dt_par;
-    double time = timestep->current_time;
-    int num_fields = fields->num_fields;
+    double dt_hyp = timestep_ptr->current_dt;
+    double dt_par = timestep_ptr->dt_par;
+    double time = timestep_ptr->current_time;
+    int num_fields = fields_ptr->num_fields;
     // std::printf("now in supertimestepping function");
 
 
@@ -218,23 +218,23 @@ void RKLegendre::compute_cycle_RKL(){
     VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>((data_type *)d_all_dU0, data_type(0.0,0.0), num_fields * ntotal_complex);
 
     // this is only for temperature
-    // phys->AnisotropicConduction(fields, param, (data_type *) fields->d_farray[TH], (data_type *) d_farray_dU0[TH]);
+    // phys_ptr->AnisotropicConduction(fields, param, (data_type *) fields_ptr->d_farray[TH], (data_type *) d_farray_dU0[TH]);
 
     // this is for all parabolic terms
-    phys->ParabolicTerms(fields->d_all_fields, d_all_dU0);
+    phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, d_all_dU0);
 
     for (nv = 0; nv < num_fields; nv++){
 
       // Y_jm1 <- d_farray[TH]
       blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
 
-      ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields->d_farray[nv], (data_type *)d_farray_Uc0[nv], ntotal_complex);
+      ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(complex_Fields + nv * ntotal_complex, d_farray_Uc0[nv], ntotal_complex);
 
       // Y_jm2 <- d_farray[TH]
-      ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields->d_farray[nv], (data_type *)d_farray_Uc1[nv], ntotal_complex);
+      ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(complex_Fields + nv * ntotal_complex, d_farray_Uc1[nv], ntotal_complex);
 
       // Y_jm1 (d_farray[TH]) <- Y_jm2 + mu_tilde_j*dt_hyp*MY_0
-      axpyComplex<<<blocksPerGrid, threadsPerBlock>>>((data_type *) d_farray_Uc1[nv], (data_type *) d_farray_dU[nv], (data_type *) fields->d_farray[nv], 1.0, mu_tilde_j*dt_hyp,  ntotal_complex);
+      axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_farray_Uc1[nv],  d_farray_dU[nv],  complex_Fields + nv * ntotal_complex, 1.0, mu_tilde_j*dt_hyp,  ntotal_complex);
     }
 
     /* s loop */
@@ -255,9 +255,9 @@ void RKLegendre::compute_cycle_RKL(){
       blocksPerGrid = ( num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
       VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>((data_type *)d_all_dU, data_type(0.0,0.0), num_fields * ntotal_complex);
 
-      // phys->AnisotropicConduction(fields, param, (data_type *) fields->d_farray[TH], (data_type *) d_farray_dU[TH]);
+      // phys_ptr->AnisotropicConduction(fields, param, (data_type *) fields_ptr->d_farray[TH], (data_type *) d_farray_dU[TH]);
 
-      phys->ParabolicTerms(fields->d_all_fields, d_all_dU);
+      phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, d_all_dU);
 
       for (nv = 0; nv < num_fields; nv++){
         // MY_j-1 <- parabolicRHS(d_farray[TH])
@@ -266,10 +266,10 @@ void RKLegendre::compute_cycle_RKL(){
         // real Y = mu_j*Uc(nv,k,j,i) + nu_j*Uc1(nv,k,j,i);
         // Uc1(nv,k,j,i) = Uc(nv,k,j,i);
         // Uc <- Y + (1.0 - mu_j - nu_j)*Uc0 + dt_hyp*mu_tilde_j*dU +  gamma_j*dt_hyp*dU0;
-        axpy5ComplexAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *) fields->d_farray[nv], (data_type *) d_farray_Uc1[nv], (data_type *) d_farray_Uc0[nv], (data_type *) d_farray_dU[nv], (data_type *) d_farray_dU0[nv], mu_j, nu_j, (1.0 - mu_j - nu_j), dt_hyp*mu_tilde_j,  gamma_j*dt_hyp, ntotal_complex);
+        axpy5ComplexAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *) complex_Fields + nv * ntotal_complex, (data_type *) d_farray_Uc1[nv], (data_type *) d_farray_Uc0[nv], (data_type *) d_farray_dU[nv], (data_type *) d_farray_dU0[nv], mu_j, nu_j, (1.0 - mu_j - nu_j), dt_hyp*mu_tilde_j,  gamma_j*dt_hyp, ntotal_complex);
 
         // increment time
-        time = timestep->current_time + 0.25*dt_hyp*(s*s+s-2)*w1;
+        time = timestep_ptr->current_time + 0.25*dt_hyp*(s*s+s-2)*w1;
       }
     }
 

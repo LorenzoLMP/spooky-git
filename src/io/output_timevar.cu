@@ -19,9 +19,9 @@
 
 void InputOutput::WriteTimevarOutput() {
 
-    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
-    std::shared_ptr<Parameters> param = supervisor_ptr->param;
-    std::shared_ptr<TimeStepping> timestep = supervisor_ptr->timestep;
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+    std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
 
     NVTX3_FUNC_RANGE();
 #ifdef DEBUG
@@ -29,169 +29,164 @@ void InputOutput::WriteTimevarOutput() {
 #endif
 
     int blocksPerGrid;
-    double t0        = param->t_initial;
-    double time_save = timestep->current_time;
-    double tend     = param->t_final;
+    double t0        = param_ptr->t_initial;
+    double time_save = timestep_ptr->current_time;
+    double tend     = param_ptr->t_final;
     double output_var = 0.0;
 
     char data_output_name[16];
     std::sprintf(data_output_name,"timevar.spooky");
-    std::string fname = param->output_dir + std::string("/data/") + std::string(data_output_name);
+    std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
 
     std::ofstream outputfile;
     outputfile.open (fname, std::ios_base::app);
     // outputfile << "Writing this to a file.\n";
 
-    // assign fields to [fields->num_fields] tmparray (memory block starts at d_all_tmparray)
-    blocksPerGrid = ( fields->num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields->d_all_fields, (data_type *)fields->d_all_tmparray, fields->num_fields * ntotal_complex);
+    // // assign fields to [fields_ptr->num_fields] tmparray (memory block starts at d_all_tmparray)
+    // blocksPerGrid = ( fields_ptr->num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    // ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields_ptr->d_all_fields, (data_type *)fields_ptr->d_all_tmparray, fields_ptr->num_fields * ntotal_complex);
+    //
+    // // compute FFTs from complex to real fields
+    // // the first fields_ptr->num_fields arrays in tmparray will
+    // // always contain the real fields for all subsequent operations
+    // for (int n = 0; n < fields_ptr->num_fields; n++){
+    //     c2r_fft(fields_ptr->d_tmparray[n], fields_ptr->d_farray_buffer_r[n]);
+    // }
 
-    // compute FFTs from complex to real fields
-    // the first fields->num_fields arrays in tmparray will
-    // always contain the real fields for all subsequent operations
-    for (int n = 0; n < fields->num_fields; n++){
-        c2r_fft(fields->d_tmparray[n], fields->d_tmparray_r[n]);
-    }
+    supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, fields_ptr->num_fields)
 
-    // std::printf("length timevar array = %d \n",param->spookyOutVar.length);
+    // std::printf("length timevar array = %d \n",param_ptr->spookyOutVar.length);
     // begin loop through the output variables
-    for (int i = 0; i < param->spookyOutVar.length; i++){
-        // std::printf("variable = %s \t",param->spookyOutVar.name[i]);
-        // std::cout << param->spookyOutVar.name[i] << "\t";
-        // if(!strcmp(param->spookyOutVar.name[i],"t")) {
-        if(!param->spookyOutVar.name[i].compare(std::string("t"))) {
+    for (int i = 0; i < param_ptr->spookyOutVar.length; i++){
+        // std::printf("variable = %s \t",param_ptr->spookyOutVar.name[i]);
+        // std::cout << param_ptr->spookyOutVar.name[i] << "\t";
+        // if(!strcmp(param_ptr->spookyOutVar.name[i],"t")) {
+        if(!param_ptr->spookyOutVar.name[i].compare(std::string("t"))) {
             // current time
-            output_var = timestep->current_time;
+            output_var = timestep_ptr->current_time;
         }
 #ifdef INCOMPRESSIBLE
-        else if(!param->spookyOutVar.name[i].compare(std::string("ev"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("ev"))) {
             // kinetic energy
-            output_var = param->spookyOutVar.computeEnergy(fields->d_farray[VX]);
-            output_var += param->spookyOutVar.computeEnergy(fields->d_farray[VY]);
-            output_var += param->spookyOutVar.computeEnergy(fields->d_farray[VZ]);
+            output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VX]);
+            output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VY]);
+            output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VZ]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("Kx"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("Kx"))) {
             // kinetic energy x
-            output_var = param->spookyOutVar.computeEnergy(fields->d_farray[VX]);
+            output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VX]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("Ky"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("Ky"))) {
             // kinetic energy y
-            output_var = param->spookyOutVar.computeEnergy(fields->d_farray[VY]);
+            output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VY]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("Kz"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("Kz"))) {
             // kinetic energy z
-            output_var = param->spookyOutVar.computeEnergy(fields->d_farray[VZ]);
+            output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VZ]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("vxvy"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("vxvy"))) {
             // reynolds stresses
-            output_var = param->spookyOutVar.twoFieldCorrelation(fields->d_tmparray_r[VX], fields->d_tmparray_r[VY]);
+            output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[VX], fields_ptr->d_farray_buffer_r[VY]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("vyvz"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("vyvz"))) {
             // reynolds stresses
-            output_var = param->spookyOutVar.twoFieldCorrelation(fields->d_tmparray_r[VY], fields->d_tmparray_r[VZ]);
+            output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[VY], fields_ptr->d_farray_buffer_r[VZ]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("vyvz"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("vyvz"))) {
             // reynolds stresses
-            output_var = param->spookyOutVar.twoFieldCorrelation(fields->d_tmparray_r[VY], fields->d_tmparray_r[VZ]);
+            output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[VY], fields_ptr->d_farray_buffer_r[VZ]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("w2"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("w2"))) {
             // enstrophy
-            output_var = param->spookyOutVar.computeEnstrophy(fields->d_all_fields + ntotal_complex * VX,
-                                             fields->wavevector.d_all_kvec,
-                                             fields->d_all_tmparray + ntotal_complex * fields->num_fields);
+            output_var = param_ptr->spookyOutVar.computeEnstrophy(fields_ptr->d_farray[VX],
+                                                                  fields_ptr->d_farray[VY],
+                                                                  fields_ptr->d_farray[VZ]);
         }
 #endif
 #ifdef MHD
-        else if(!param->spookyOutVar.name[i].compare(std::string("em"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("em"))) {
             // magnetic energy
-            output_var = param->spookyOutVar.computeEnergy(fields->d_farray[BX]);
-            output_var += param->spookyOutVar.computeEnergy(fields->d_farray[BY]);
-            output_var += param->spookyOutVar.computeEnergy(fields->d_farray[BZ]);
+            output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BX]);
+            output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BY]);
+            output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BZ]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("Mx"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("Mx"))) {
             // magnetic energy x
-            output_var = param->spookyOutVar.computeEnergy(fields->d_farray[BX]);
+            output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BX]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("My"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("My"))) {
             // magnetic energy y
-            output_var = param->spookyOutVar.computeEnergy(fields->d_farray[BY]);
+            output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BY]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("Mz"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("Mz"))) {
             // magnetic energy z
-            output_var = param->spookyOutVar.computeEnergy(fields->d_farray[BZ]);
+            output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BZ]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("bxby"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("bxby"))) {
             // maxwell stresses
-            output_var = param->spookyOutVar.twoFieldCorrelation(fields->d_tmparray_r[BX], fields->d_tmparray_r[BY]);
+            output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[BX], fields_ptr->d_farray_buffer_r[BY]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("bybz"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("bybz"))) {
             // maxwell stresses
-            output_var = param->spookyOutVar.twoFieldCorrelation(fields->d_tmparray_r[BY], fields->d_tmparray_r[BZ]);
+            output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[BY], fields_ptr->d_farray_buffer_r[BZ]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("bybz"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("bybz"))) {
             // maxwell stresses
-            output_var = param->spookyOutVar.twoFieldCorrelation(fields->d_tmparray_r[BY], fields->d_tmparray_r[BZ]);
+            output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[BY], fields_ptr->d_farray_buffer_r[BZ]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("j2"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("j2"))) {
             // compute total current rms
             // we can reuse the computeEnstrophy function
-            output_var = param->spookyOutVar.computeEnstrophy(fields->d_all_fields + ntotal_complex * BX,
-                                             fields->wavevector.d_all_kvec,
-                                             fields->d_all_tmparray + ntotal_complex * fields->num_fields);
+            output_var = param_ptr->spookyOutVar.computeEnstrophy(fields_ptr->d_farray[BX],
+                                                                  fields_ptr->d_farray[BY],
+                                                                  fields_ptr->d_farray[BZ]);
         }
 #endif
 #if defined(BOUSSINESQ) || defined(HEAT_EQ)
-        else if(!param->spookyOutVar.name[i].compare(std::string("et"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("et"))) {
             // thermal/potential energy
-            output_var = param->spookyOutVar.computeEnergy(fields->d_farray[TH]);
+            output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[TH]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("dissgradT"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("dissgradT"))) {
             // thermal dissipation (isotropic or anisotropic)
             #if defined(ANISOTROPIC_DIFFUSION) && defined(MHD)
             // the minus sign is for consistency with snoopy
-            output_var = - param->spookyOutVar.computeAnisoDissipation(fields->wavevector.d_all_kvec,
-                                                fields->d_all_fields,
-                                                fields->d_farray,
-                                                fields->d_farray_r,
-                                                fields->d_all_tmparray,
-                                                fields->d_tmparray,
-                                                fields->d_tmparray_r,
-                                                fields->wavevector.d_mask,
-                                                fields->num_fields);
-            // output_var = param->spookyOutVar.computeAnisoDissipation(d_all_fields,
+            output_var = - param_ptr->spookyOutVar.computeAnisoDissipation(fields_ptr->d_all_fields,
+                                                                           fields_ptr->d_all_buffer_r);
+            // output_var = param_ptr->spookyOutVar.computeAnisoDissipation(d_all_fields,
             //                                     wavevector.d_all_kvec,
             //                                     (scalar_type *)d_all_tmparray,
-            //                                     d_all_tmparray + ntotal_complex * fields->num_fields);
+            //                                     d_all_tmparray + ntotal_complex * fields_ptr->num_fields);
             #else
-            output_var = param->spookyOutVar.computeDissipation(fields->d_farray[TH],
-                                                fields->wavevector.d_all_kvec,
-                                                fields->d_all_tmparray + ntotal_complex * fields->num_fields);
+            output_var = param_ptr->spookyOutVar.computeDissipation(fields_ptr->d_farray[TH],
+                                                fields_ptr->wavevector.d_all_kvec,
+                                                fields_ptr->d_all_tmparray + ntotal_complex * fields_ptr->num_fields);
             #endif
         }
         #if defined(ANISOTROPIC_DIFFUSION) && defined(MHD)
-        else if(!param->spookyOutVar.name[i].compare(std::string("fluxbbgradT"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("fluxbbgradT"))) {
             // thermal dissipation (isotropic or anisotropic)
 
-            output_var = param->spookyOutVar.computeAnisoInjection(fields->wavevector.d_all_kvec,
-                                                fields->d_all_fields,
-                                                fields->d_farray,
-                                                fields->d_farray_r,
-                                                fields->d_all_tmparray,
-                                                fields->d_tmparray,
-                                                fields->d_tmparray_r,
-                                                fields->wavevector.d_mask,
-                                                fields->num_fields);
+            output_var = param_ptr->spookyOutVar.computeAnisoInjection(fields_ptr->wavevector.d_all_kvec,
+                                                fields_ptr->d_all_fields,
+                                                fields_ptr->d_farray,
+                                                fields_ptr->d_farray_r,
+                                                fields_ptr->d_all_tmparray,
+                                                fields_ptr->d_tmparray,
+                                                fields_ptr->d_farray_buffer_r,
+                                                fields_ptr->wavevector.d_mask,
+                                                fields_ptr->num_fields);
         }
         #endif
 #endif
 #if defined(BOUSSINESQ) && defined(INCOMPRESSIBLE)
-        else if(!param->spookyOutVar.name[i].compare(std::string("thvx"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("thvx"))) {
             // convective flux
-            output_var = param->spookyOutVar.twoFieldCorrelation(fields->d_tmparray_r[TH], fields->d_tmparray_r[VX]);
+            output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[TH], fields_ptr->d_farray_buffer_r[VX]);
         }
-        else if(!param->spookyOutVar.name[i].compare(std::string("thvz"))) {
+        else if(!param_ptr->spookyOutVar.name[i].compare(std::string("thvz"))) {
             // convective flux
-            output_var = param->spookyOutVar.twoFieldCorrelation(fields->d_tmparray_r[TH], fields->d_tmparray_r[VZ]);
+            output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[TH], fields_ptr->d_farray_buffer_r[VZ]);
         }
 #endif
         else {
@@ -201,13 +196,13 @@ void InputOutput::WriteTimevarOutput() {
         outputfile << std::scientific << std::setprecision(8) << output_var << "\t";
     }
 
-    // if (param->userOutVar.length > 0){
-    //     for (int i = 0; i < param->userOutVar.length; i++){
+    // if (param_ptr->userOutVar.length > 0){
+    //     for (int i = 0; i < param_ptr->userOutVar.length; i++){
     //
-    //         if(!param->userOutVar.name[i].compare(std::string("uservar1"))) {
-    //             output_var = param->userOutVar.customFunction(fields->d_farray[0]);
+    //         if(!param_ptr->userOutVar.name[i].compare(std::string("uservar1"))) {
+    //             output_var = param_ptr->userOutVar.customFunction(fields_ptr->d_farray[0]);
     //         }
-    //         else if(!param->userOutVar.name[i].compare(std::string("uservar2"))) {
+    //         else if(!param_ptr->userOutVar.name[i].compare(std::string("uservar2"))) {
     //             output_var = 0.0;
     //         }
     //         else {
@@ -232,7 +227,7 @@ void InputOutput::WriteTimevarOutputHeader() {
 
     char data_output_name[16];
     std::sprintf(data_output_name,"timevar.spooky");
-    std::string fname = param->output_dir + std::string("/data/") + std::string(data_output_name);
+    std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
 
     std::ofstream outputfile;
     outputfile.open (fname, std::ios_base::app);
@@ -241,13 +236,13 @@ void InputOutput::WriteTimevarOutputHeader() {
     outputfile << "## This file contains the time evolution of the following quantities: \n";
     outputfile << "## \t";
 
-    for(int i = 0 ; i < param->spookyOutVar.length ; i++) {
-        outputfile << param->spookyOutVar.name[i]  << "\t";
+    for(int i = 0 ; i < param_ptr->spookyOutVar.length ; i++) {
+        outputfile << param_ptr->spookyOutVar.name[i]  << "\t";
     }
 
-    // if (param->userOutVar.length > 0){
-    //     for (int i = 0; i < param->userOutVar.length; i++){
-    //         outputfile << param->userOutVar.name[i]  << "\t";
+    // if (param_ptr->userOutVar.length > 0){
+    //     for (int i = 0; i < param_ptr->userOutVar.length; i++){
+    //         outputfile << param_ptr->userOutVar.name[i]  << "\t";
     //     }
     // }
 

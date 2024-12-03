@@ -15,43 +15,43 @@
 
 void InputOutput::CheckOutput(){
 
-    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
-    std::shared_ptr<Parameters> param = supervisor_ptr->param;
-    std::shared_ptr<TimeStepping> timestep = supervisor_ptr->timestep;
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+    std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
 
-    if( (timestep->current_time-t_lastvar)>=param->toutput_time || timestep->current_time == 0.0) {
+    if( (timestep_ptr->current_time-t_lastvar)>=param_ptr->toutput_time || timestep_ptr->current_time == 0.0) {
 
         supervisor_ptr->timevar_timer.reset();
 
-        fields->CleanFieldDivergence();
-        std::printf("Saving output at t= %.6e \t and step n. %d \n",timestep->current_time, timestep->current_step);
+        fields_ptr->CleanFieldDivergence();
+        std::printf("Saving output at t= %.6e \t and step n. %d \n",timestep_ptr->current_time, timestep_ptr->current_step);
 
-        if (timestep->current_time == 0.0) {
+        if (timestep_ptr->current_time == 0.0) {
             WriteTimevarOutputHeader();
-            if (param->userOutVar.length > 0){
+            if (param_ptr->userOutVar.length > 0){
                 WriteUserTimevarOutputHeader();
             }
         }
-        if (timestep->current_time != 0.0) t_lastvar += param->toutput_time;
+        if (timestep_ptr->current_time != 0.0) t_lastvar += param_ptr->toutput_time;
 
         WriteTimevarOutput();
-        if (param->userOutVar.length > 0){
+        if (param_ptr->userOutVar.length > 0){
             WriteUserTimevarOutput();
         }
 
         supervisor_ptr->TimeIOTimevar += supervisor_ptr->timevar_timer.elapsed();
     }
 
-    if( (timestep->current_time-t_lastsnap)>=param->toutput_flow || timestep->current_time == 0.0 ) {
+    if( (timestep_ptr->current_time-t_lastsnap)>=param_ptr->toutput_flow || timestep_ptr->current_time == 0.0 ) {
 
         supervisor_ptr->datadump_timer.reset();
 
 
-        fields->CleanFieldDivergence();
+        fields_ptr->CleanFieldDivergence();
         std::printf("Starting copy back to host\n");
-        fields->copy_back_to_host();
-        std::printf("Saving data snap at t= %.6e \t and step n. %d \n",timestep->current_time, timestep->current_step);
-        if (timestep->current_time != 0.0) t_lastsnap += param->toutput_flow;
+        fields_ptr->copy_back_to_host();
+        std::printf("Saving data snap at t= %.6e \t and step n. %d \n",timestep_ptr->current_time, timestep_ptr->current_step);
+        if (timestep_ptr->current_time != 0.0) t_lastsnap += param_ptr->toutput_flow;
         WriteDataFile();
         num_save++;
 
