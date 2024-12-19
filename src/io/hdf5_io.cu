@@ -113,8 +113,8 @@ void InputOutput::WriteDataFile() {
 void InputOutput::ReadDataFile(int restart_num) {
 
     std::shared_ptr<Fields> fields = supervisor_ptr->fields;
-    std::shared_ptr<Parameters> param = supervisor_ptr->param;
-    std::shared_ptr<TimeStepping> timestep = supervisor_ptr->timestep;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+    std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
 
     // NVTX3_FUNC_RANGE();
 #ifdef DEBUG
