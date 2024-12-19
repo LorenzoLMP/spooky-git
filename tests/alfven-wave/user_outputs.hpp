@@ -12,8 +12,8 @@ class UserOutput : public SpookyOutput { // The class
     public:
         // int length; // Number of spooky variables
         // std::vector<std::string> name;
-        UserOutput(Supervisor &sup_in);
-        ~UserOutput();
+        // UserOutput(Supervisor &sup_in);
+        // ~UserOutput();
         scalar_type customFunction( data_type *vcomplex );
 };
 

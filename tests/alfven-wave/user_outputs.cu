@@ -18,14 +18,15 @@
 #include "timestepping.hpp"
 #include "supervisor.hpp"
 
-UserOutput::UserOutput(Supervisor &sup_in) {
-    // double lx, ly, lz;
-    // read_Parameters();
-    supervisor_ptr = &sup_in;
-}
-
-UserOutput::~UserOutput() {
-}
+// UserOutput::UserOutput(Supervisor &sup_in)
+//     : SpookyOutput(&sup_in) {
+//     // double lx, ly, lz;
+//     // read_Parameters();
+//     // supervisor_ptr = &sup_in;
+// }
+//
+// UserOutput::~UserOutput() {
+// }
 
 
 
