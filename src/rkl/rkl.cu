@@ -280,7 +280,7 @@ void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_
 }
 
 
-void STS_CompuFields* fields_ptrteSubSteps(double dtex, double* tau, int N, double STS_NU)
+void STS_ComputeSubSteps(double dtex, double* tau, int N, double STS_NU)
 /*!
  * Compute the single sub-step sequence (Eq. [2.9]).
  * N must be an integer by now.
