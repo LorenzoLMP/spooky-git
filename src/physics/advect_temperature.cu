@@ -31,7 +31,7 @@ void Physics::AdvectTemperature(data_type* complex_Fields, scalar_type* real_Buf
 
     // take fourier transforms of the 3 energy flux vector components
     for (int n = 0; n < 3; n++) {
-        r2c_fft(en_flux + 2*n*ntotal_complex,  en_flux + n*ntotal_complex, supervisor);
+        r2c_fft(en_flux + 2*n*ntotal_complex,  en_flux + n*ntotal_complex, supervisor_ptr);
     }
 
 
