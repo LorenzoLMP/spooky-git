@@ -112,7 +112,7 @@ void InputOutput::WriteDataFile() {
 
 void InputOutput::ReadDataFile(int restart_num) {
 
-    std::shared_ptr<Fields> fields = supervisor_ptr->fields;
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
     std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
 

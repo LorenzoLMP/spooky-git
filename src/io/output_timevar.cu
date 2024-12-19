@@ -210,7 +210,7 @@ void InputOutput::WriteTimevarOutput() {
 
 void InputOutput::WriteTimevarOutputHeader() {
 
-    std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
 #ifdef DEBUG
     std::printf("Writing data output... \n");
