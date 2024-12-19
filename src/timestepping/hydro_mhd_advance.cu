@@ -12,13 +12,11 @@
 #include "rkl.hpp"
 #include "physics.hpp"
 
-
-
 cublasStatus_t stat;
 // extern int threadsPerBlock;
 
 
-void TimeStepping::hydro_mhd_advance(Fields* fields_ptr) {
+void TimeStepping::HydroMHDAdvance(Fields* fields_ptr) {
     NVTX3_FUNC_RANGE();
 
     // std::shared_ptr<Fields> fields = supervisor_ptr->fields;

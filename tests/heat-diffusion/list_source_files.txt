@@ -1,5 +1,5 @@
 list(APPEND spooky_src
-${PROJECT_SOURCE_DIR}/src/spooky.cu
+${PROJECT_SOURCE_DIR}/src/main.cu
 ${PROJECT_SOURCE_DIR}/src/tests.cu
 ##### cuda files #####
 ${PROJECT_SOURCE_DIR}/src/cuda/cublas_routines.cu
@@ -25,7 +25,7 @@ ${PROJECT_SOURCE_DIR}/src/timestepping/compute_dfield.cu
 ${PROJECT_SOURCE_DIR}/src/timestepping/compute_dt.cu
 ##### physics files ######
 ${PROJECT_SOURCE_DIR}/src/physics/physics.cu
-${PROJECT_SOURCE_DIR}/src/physics/boussinesq.cu
+${PROJECT_SOURCE_DIR}/src/physics/advect_temperature.cu
 ${PROJECT_SOURCE_DIR}/src/physics/entropy_stratification.cu
 ${PROJECT_SOURCE_DIR}/src/physics/anisotropic_conduction.cu
 ##### supervisor class ######

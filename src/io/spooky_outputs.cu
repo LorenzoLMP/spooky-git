@@ -13,7 +13,7 @@
 #include "user_defined_cuda_kernels.hpp"
 #include "supervisor.hpp"
 
-SpookyOutput::SpookyOutput() {
+SpookyOutput::SpookyOutput(Supervisor &sup_in) {
     // double lx, ly, lz;
     // read_Parameters();
     supervisor_ptr = &sup_in;
@@ -90,9 +90,7 @@ scalar_type SpookyOutput::computeEnstrophy(data_type *vx,
     return enstrophy;
 }
 
-scalar_type SpookyOutput::computeDissipation(data_type *scalar_complex,
-                                             scalar_type *d_all_kvec,
-                                             data_type *tmparray) {
+scalar_type SpookyOutput::computeDissipation(data_type *scalar_complex) {
     /***
      * This function uses complex inputs to compute the "dissipation" of a scalar field (-k^2 th^2)
      * To do so, we first compute the gradient of the field, and then sum the "energies" of the
@@ -102,10 +100,14 @@ scalar_type SpookyOutput::computeDissipation(data_type *scalar_complex,
     // cublasStatus_t stat;
     // scalar_type norm = 0.0;
     scalar_type dissipation = 0.0;
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
 
+    // tmp array
+    data_type* tmparray = fields_ptr->d_tmparray[0];
+    scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
 
     int blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    Gradient<<<blocksPerGrid, threadsPerBlock>>>(d_all_kvec, scalar_complex, tmparray, (size_t) ntotal_complex);
+    Gradient<<<blocksPerGrid, threadsPerBlock>>>(kvec, scalar_complex, tmparray, (size_t) ntotal_complex);
 
 
     dissipation = computeEnergy((data_type *)tmparray) + computeEnergy((data_type *)tmparray + ntotal_complex) + computeEnergy((data_type *)tmparray + 2*ntotal_complex) ;
@@ -260,7 +262,7 @@ scalar_type SpookyOutput::computeAnisoInjection(data_type* complex_Fields, scala
     c2r_fft(divbzb_vec, (scalar_type *) divbzb_vec);
 
     // compute 2 field correlation between div (b_z \vec b) and theta
-    injection= twoFieldCorrelation( divbzb_vec, temperature);
+    injection = twoFieldCorrelation( divbzb_vec, temperature);
 
 
 #endif // ANISOTROPIC_DIFFUSION

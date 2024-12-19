@@ -158,24 +158,15 @@ void InputOutput::WriteTimevarOutput() {
             //                                     (scalar_type *)d_all_tmparray,
             //                                     d_all_tmparray + ntotal_complex * fields_ptr->num_fields);
             #else
-            output_var = param_ptr->spookyOutVar.computeDissipation(fields_ptr->d_farray[TH],
-                                                fields_ptr->wavevector.d_all_kvec,
-                                                fields_ptr->d_all_tmparray + ntotal_complex * fields_ptr->num_fields);
+            output_var = param_ptr->spookyOutVar.computeDissipation(fields_ptr->d_farray[TH]);
             #endif
         }
         #if defined(ANISOTROPIC_DIFFUSION) && defined(MHD)
         else if(!param_ptr->spookyOutVar.name[i].compare(std::string("fluxbbgradT"))) {
             // thermal dissipation (isotropic or anisotropic)
-
-            output_var = param_ptr->spookyOutVar.computeAnisoInjection(fields_ptr->wavevector.d_all_kvec,
-                                                fields_ptr->d_all_fields,
-                                                fields_ptr->d_farray,
-                                                fields_ptr->d_farray_r,
-                                                fields_ptr->d_all_tmparray,
-                                                fields_ptr->d_tmparray,
-                                                fields_ptr->d_farray_buffer_r,
-                                                fields_ptr->wavevector.d_mask,
-                                                fields_ptr->num_fields);
+            // for now it's only anisotropic
+            output_var = param_ptr->spookyOutVar.computeAnisoInjection(fields_ptr->d_all_fields,
+                                                                        fields_ptr->d_all_buffer_r);
         }
         #endif
 #endif

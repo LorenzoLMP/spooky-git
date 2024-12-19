@@ -36,7 +36,7 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
     *
     */
 #ifdef DDEBUG
-    std::printf("Now entering compute_parabolic_terms function \n");
+    std::printf("Now entering HyperbolicTerms function \n");
 #endif
 
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
@@ -114,7 +114,7 @@ void Physics::ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer
     *
     */
 #ifdef DDEBUG
-    std::printf("Now entering compute_parabolic_terms function \n");
+    std::printf("Now entering ParabolicTerms function \n");
 #endif
 
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;

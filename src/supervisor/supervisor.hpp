@@ -22,7 +22,7 @@ class InputOutput;
 
 class Supervisor {
 public:
-    Supervisor(std::string input_dir, int stats_frequency);
+    Supervisor(std::string input_dir);
 
     std::shared_ptr<Parameters> param_ptr;
     std::shared_ptr<Fields> fields_ptr;
@@ -37,7 +37,7 @@ public:
 
     Timer total_timer, timevar_timer, datadump_timer;
 
-    int stats_frequency; // how often to print stats
+    int stats_frequency; // how often to print stats (in steps)
 
     float time_delta, time_delta_2, time_delta3;
     unsigned int NumFFTs;

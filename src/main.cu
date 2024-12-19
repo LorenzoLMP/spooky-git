@@ -25,7 +25,7 @@ void startup();
 int main(int argc, char *argv[]) {
 
     int restart_num = -1;
-    int stats_frequency = -1;
+    // int stats_frequency = -1;
 
     argparse::ArgumentParser program("spooky");
 
@@ -59,10 +59,7 @@ int main(int argc, char *argv[]) {
     std::string input_dir = program.get<std::string>("--input-dir");
     std::cout << "Input directory: " << input_dir << std::endl;
 
-    if (program.is_used("--stats")){
-        stats_frequency = program.get<int>("--stats");
-        std::cout << "printing stats every " << stats_frequency << " steps " << std::endl;
-    }
+
 
     startup();
     
@@ -76,7 +73,7 @@ int main(int argc, char *argv[]) {
 
     std::printf("-----------Initializing objects...\n");
 
-    Supervisor spooky(input_dir, stats_frequency);
+    Supervisor spooky(input_dir);
     // Supervisor spooky(stats_frequency);
     //
     // Parameters param(input_dir);
@@ -102,6 +99,11 @@ int main(int argc, char *argv[]) {
         restart_num = program.get<int>("--restart");
         std::cout << "restarting from file: " << restart_num << std::endl;
         spooky.param->restart = 1;
+    }
+
+    if (program.is_used("--stats")){
+        spooky.stats_frequency = program.get<int>("--stats");
+        std::cout << "printing stats every " << spooky.stats_frequency << " steps " << std::endl;
     }
 
     spooky.displayConfiguration();

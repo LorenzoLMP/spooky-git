@@ -12,7 +12,7 @@ class RKLegendre;
 
 class TimeStepping {
 public:
-    TimeStepping(Supervisor &sup_in, Parameters &param);
+    TimeStepping(Supervisor &sup_in, Parameters &p_in);
 
     // Fields *fields;
     // Parameters *param;
@@ -32,7 +32,7 @@ public:
 
     void compute_dt(data_type* complexFields, scalar_type* realBuffer);
     void compute_dfield(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
-    void hydro_mhd_advance(Fields* fields_ptr);
+    void HydroMHDAdvance(Fields* fields_ptr);
     void RungeKutta3(data_type* complex_Fields, scalar_type* real_Buffer);
 
 

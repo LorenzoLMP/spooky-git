@@ -15,34 +15,18 @@ class SpookyOutput { // The class
         std::vector<std::string> name;
         Fields *field;
         // SpookyOutput(Fields *field_in);
-        SpookyOutput();
+        SpookyOutput(Supervisor &sup_in);
         ~SpookyOutput();
         scalar_type computeEnergy(data_type *vcomplex);
         scalar_type twoFieldCorrelation( scalar_type *v1, scalar_type *v2);
-        scalar_type computeEnstrophy(data_type *v_all_complex,
-                                        scalar_type *d_all_kvec,
-                                        data_type *tmparray);
-        scalar_type computeDissipation(data_type *scalar_complex,
-                                             scalar_type *d_all_kvec,
-                                             data_type *tmparray);
-        scalar_type computeAnisoInjection(scalar_type *d_all_kvec,
-                                            data_type *d_all_fields,
-                                            data_type **d_farray,
-                                            scalar_type **d_farray_r,
-                                            data_type *d_all_tmparray,
-                                            data_type **d_tmparray,
-                                            scalar_type **d_tmparray_r,
-                                            scalar_type *d_mask,
-                                                  int num_fields);
-        scalar_type computeAnisoDissipation(scalar_type *d_all_kvec,
-                                                  data_type *d_all_fields,
-                                                  data_type **d_farray,
-                                                  scalar_type **d_farray_r,
-                                                  data_type *d_all_tmparray,
-                                                  data_type **d_tmparray,
-                                                  scalar_type **d_tmparray_r,
-                                                  scalar_type *d_mask,
-                                                  int num_fields);
+        scalar_type computeEnstrophy(data_type *vx,
+                                    data_type *vy,
+                                    data_type *vz);
+        scalar_type computeDissipation(data_type *scalar_complex);
+        scalar_type computeAnisoInjection(data_type* complex_Fields,
+                                          scalar_type* real_Buffer);
+        scalar_type computeAnisoDissipation(data_type* complex_Fields,
+                                            scalar_type* real_Buffer);
 
 };
 

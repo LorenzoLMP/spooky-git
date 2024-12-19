@@ -21,8 +21,7 @@
 #include "cufft_utils.h"
 // #include "define_types.hpp"
 
-Supervisor::Supervisor(std::string input_dir, int stats_frequency) :
-        stats_frequency(stats_frequency) ,
+Supervisor::Supervisor(std::string input_dir) :
         total_timer() ,
         timevar_timer(),
         datadump_timer() {
@@ -39,6 +38,7 @@ Supervisor::Supervisor(std::string input_dir, int stats_frequency) :
     // timestep(this, param),
     // inout(this),
 
+    stats_frequency = -1;
     time_delta = 0.0;
     NumFFTs = 0; // in mainloop
     // NumFFTs[1] = 0; // in IO
@@ -122,6 +122,7 @@ void Supervisor::displayConfiguration(){
     std::printf("Enforcing symmetries every %d steps \n",param_ptr->symmetries_step);
     std::printf("Saving snapshot every  dt = %.2e \n",param_ptr->toutput_flow);
     std::printf("Saving timevar every  dt = %.2e \n",param_ptr->toutput_time);
+    std::printf("Displaying stats every num steps = %d \n",stats_frequency);
 }
 
 void Supervisor::executeMainLoop(){
@@ -130,7 +131,7 @@ void Supervisor::executeMainLoop(){
 
         // advance the equations (field(n+1) = field(n) + dfield*dt)
         // timestep_ptr->RungeKutta3();
-        timestep_ptr->hydro_mhd_advance();
+        timestep_ptr->HydroMHDAdvance(fields_ptr);
         // check if we need to output data
         inout_ptr->CheckOutput();
         // check if we need to enforce symmetries

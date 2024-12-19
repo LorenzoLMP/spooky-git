@@ -162,10 +162,6 @@ void Wavevector::sync_with_host() {
 
 void Wavevector::clean_gpu(){
     CUDA_RT_CALL(cudaFree(d_all_kvec));
-    // CUDA_RT_CALL(cudaFree(d_kvec));
-    // CUDA_RT_CALL(cudaFree(d_kxt));
-    // CUDA_RT_CALL(cudaFree(d_ky));
-    // CUDA_RT_CALL(cudaFree(d_kz));
     CUDA_RT_CALL(cudaFree(d_mask));
 }
 

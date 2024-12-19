@@ -21,11 +21,11 @@
 #include <math.h>
 
 
-RKLegendre::RKLegendre(int num_fields, Parameters &param, Supervisor &sup) {
+RKLegendre::RKLegendre(int num_fields, Parameters &p_in, Supervisor &sup_in) {
     // param = &p_in;
     // fields = &f_in;
 
-    supervisor_ptr = &sup;
+    supervisor_ptr = &sup_in;
     // ts = (double*)malloc(sizeof(double)*STS_MAX_STEPS);
     ts = new double[STS_MAX_STEPS];
     for (int i = 0; i < STS_MAX_STEPS; i++){
@@ -35,8 +35,8 @@ RKLegendre::RKLegendre(int num_fields, Parameters &param, Supervisor &sup) {
     // std::printf("The TimeSpentInFFTs is: %.4e",supervisor_ptr->TimeSpentInFFTs);
     dt = 0.0;
     stage = 0;
-    cfl_rkl = param.cfl_par;
-    rmax_par = param.safety_sts;
+    cfl_rkl = p_in.cfl_par;
+    rmax_par = p_in.safety_sts;
     // std::vector<double> ts(STS_MAX_STEPS, 0.0);
 
     blocksPerGrid = ( num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
@@ -280,7 +280,7 @@ void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_
 }
 
 
-void STS_ComputeSubSteps(double dtex, double* tau, int N, double STS_NU)
+void STS_CompuFields* fields_ptrteSubSteps(double dtex, double* tau, int N, double STS_NU)
 /*!
  * Compute the single sub-step sequence (Eq. [2.9]).
  * N must be an integer by now.

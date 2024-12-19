@@ -90,8 +90,8 @@ public:
 
     void clean_gpu();
     // void RungeKutta3();
-    void ComputeDivergence();
-    void CleanFieldDivergence();
+    double ComputeDivergence(data_type* complex_Fields);
+    void CleanFieldDivergence(data_type* complex_Fields);
     void CheckSymmetries();
 
     // void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);
