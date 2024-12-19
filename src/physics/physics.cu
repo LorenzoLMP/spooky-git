@@ -55,7 +55,7 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
     // It has only 5 independent components B_xx, B_xy, B_xz, Byy, B_yz.
     // (B_zz = - B_xx - B_yy)
     // The results are saved in the temp_arrays from [0, 1, ..., 4]
-    shear_matrix = fields_ptr->d_all_tmparray;
+    data_type* shear_matrix = fields_ptr->d_all_tmparray;
 
     blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
 #ifndef MHD
@@ -82,7 +82,7 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
     // the results are saved in the first 3 temp_arrays as [emf_x, emf_y, emf_z] (they are the x,y,z components of the emf)
     // We can re-utilize tmparrays and store result in in the temp_arrays from [0, 1, 2]
 
-    emf = fields_ptr->d_all_tmparray;
+    data_type* emf = fields_ptr->d_all_tmparray;
 
     blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     MagneticEmf<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type*) emf,  2 * ntotal_complex);
