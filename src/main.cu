@@ -92,13 +92,13 @@ int main(int argc, char *argv[]) {
     if (program.is_used("--output-dir")){
         std::string output_dir = program.get<std::string>("--output-dir");
         std::cout << "output directory will be overriden: " << output_dir << std::endl;
-        spooky.param->output_dir = output_dir;
+        spooky.param_ptr->output_dir = output_dir;
     }
     if (program.is_used("--restart")){
         // std::cout << "restarting from file: "  << std::endl;
         restart_num = program.get<int>("--restart");
         std::cout << "restarting from file: " << restart_num << std::endl;
-        spooky.param->restart = 1;
+        spooky.param_ptr->restart = 1;
     }
 
     if (program.is_used("--stats")){
@@ -111,19 +111,19 @@ int main(int argc, char *argv[]) {
     spooky.Restart(restart_num);
 
 #ifdef DDEBUG
-    spooky.fields->wavevector.print_values();
-    spooky.fields->print_host_values();
+    spooky.fields_ptr->wavevector.print_values();
+    spooky.fields_ptr->print_host_values();
 #endif
 
     std::printf("Allocating to gpu...\n");
-    spooky.fields->allocate_and_move_to_gpu();
+    spooky.fields_ptr->allocate_and_move_to_gpu();
 
-    spooky.fields->CheckSymmetries();
+    spooky.fields_ptr->CheckSymmetries();
 
     spooky.initialDataDump();
 
     // wavevector is a member of Fields
-    // spooky.fields->wavevector.print_values();
+    // spooky.fields_ptr->wavevector.print_values();
 
     spooky.executeMainLoop();
 
@@ -131,15 +131,15 @@ int main(int argc, char *argv[]) {
     spooky.print_final_stats();
 
     // std::printf("Starting copy back to host\n");
-    spooky.fields->copy_back_to_host();
+    spooky.fields_ptr->copy_back_to_host();
     
 
-    spooky.fields->clean_gpu();
+    spooky.fields_ptr->clean_gpu();
     std::printf("Finished fields gpu cleanup\n");
 
 #ifdef DDEBUG
-    // fields->wavevector.print_values();
-    spooky.fields->print_host_values();
+    // fields_ptr->wavevector.print_values();
+    spooky.fields_ptr->print_host_values();
 #endif
 
     std::printf("Finishing cufft\n");
