@@ -13,7 +13,7 @@
 #include "cublas_routines.hpp"
 #include "cuda_kernels.hpp"
 #include "cuda_kernels_generic.hpp"
-
+#include "cufft_routines.hpp"
 
 #include <cuda_runtime.h>
 // #include <cufftXt.h>
@@ -27,9 +27,9 @@ Supervisor::Supervisor(std::string input_dir) :
         datadump_timer() {
 
     param_ptr = std::shared_ptr<Parameters> (new Parameters(*this, input_dir));
-    fields_ptr = std::shared_ptr<Fields> (new Fields(*this, *param));
+    fields_ptr = std::shared_ptr<Fields> (new Fields(*this, *param_ptr));
     phys_ptr = std::shared_ptr<Physics> (new Physics(*this));
-    timestep_ptr = std::shared_ptr<TimeStepping> (new TimeStepping(*this, *param));
+    timestep_ptr = std::shared_ptr<TimeStepping> (new TimeStepping(*this, *param_ptr));
     inout_ptr = std::shared_ptr<InputOutput> (new InputOutput(*this));
 
     // param(this, input_dir),
@@ -126,6 +126,7 @@ void Supervisor::displayConfiguration(){
 }
 
 void Supervisor::executeMainLoop(){
+
 
     while (timestep_ptr->current_time < param_ptr->t_final) {
 

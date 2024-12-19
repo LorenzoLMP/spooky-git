@@ -55,25 +55,25 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
     // It has only 5 independent components B_xx, B_xy, B_xz, Byy, B_yz.
     // (B_zz = - B_xx - B_yy)
     // The results are saved in the temp_arrays from [0, 1, ..., 4]
-    scalar_type* shear_matrix = fields_ptr->d_all_tmparray;
+    shear_matrix = fields_ptr->d_all_tmparray;
 
     blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
 #ifndef MHD
-    TracelessShearMatrix<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, shear_matrix,  2 * ntotal_complex);
+    TracelessShearMatrix<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type*) shear_matrix,  2 * ntotal_complex);
 #else
-    TracelessShearMatrixMHD<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, shear_matrix,  2 * ntotal_complex);
+    TracelessShearMatrixMHD<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type*) shear_matrix,  2 * ntotal_complex);
 #endif
 
 
     // take fft of 5 independent components of B_ij
     for (int n = 0; n < 5; n++) {
-        r2c_fft(shear_matrix + 2*n*ntotal_complex, ((data_type*) shear_matrix) + n*ntotal_complex, supervisor);
+        r2c_fft(shear_matrix + 2*n*ntotal_complex, shear_matrix + n*ntotal_complex, supervisor_ptr);
     }
 
     // compute derivative of traceless shear matrix and assign to dfields
     // this kernel works also if MHD
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    NonLinHydroAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type*) shear_matrix, complex_dFields, mask, ntotal_complex);
+    NonLinHydroAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, shear_matrix, complex_dFields, mask, ntotal_complex);
 
 
 #ifdef MHD
@@ -82,19 +82,19 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
     // the results are saved in the first 3 temp_arrays as [emf_x, emf_y, emf_z] (they are the x,y,z components of the emf)
     // We can re-utilize tmparrays and store result in in the temp_arrays from [0, 1, 2]
 
-    scalar_type* emf = fields_ptr->d_all_tmparray;
+    emf = fields_ptr->d_all_tmparray;
 
     blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    MagneticEmf<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, emf,  2 * ntotal_complex);
+    MagneticEmf<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type*) emf,  2 * ntotal_complex);
 
     // take fourier transforms of the 3 independent components of the antisymmetric shear matrix
     for (int n = 0; n < 3; n++) {
-        r2c_fft(emf + 2*n*ntotal_complex, ((data_type*) emf) + n*ntotal_complex, supervisor);
+        r2c_fft(emf + 2*n*ntotal_complex, emf + n*ntotal_complex, supervisor_ptr);
     }
 
     // compute derivative of antisymmetric magnetic shear matrix and assign to dfields
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    MagneticShear<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type *)emf, complex_dFields, mask, ntotal_complex);
+    MagneticShear<<<blocksPerGrid, threadsPerBlock>>>(kvec, emf, complex_dFields, mask, ntotal_complex);
 
 #endif
 

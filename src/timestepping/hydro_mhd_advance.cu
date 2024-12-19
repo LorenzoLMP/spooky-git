@@ -16,7 +16,7 @@ cublasStatus_t stat;
 // extern int threadsPerBlock;
 
 
-void TimeStepping::HydroMHDAdvance(Fields* fields_ptr) {
+void TimeStepping::HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr) {
     NVTX3_FUNC_RANGE();
 
     // std::shared_ptr<Fields> fields = supervisor_ptr->fields;
