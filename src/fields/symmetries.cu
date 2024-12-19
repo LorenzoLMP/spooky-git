@@ -20,10 +20,10 @@ void Fields::CheckSymmetries(){
 #ifdef INCOMPRESSIBLE
         // compute mean divergence for velocity field
         meanFieldDiv = ComputeDivergence(d_all_fields + ntotal_complex * VX);
-        std::printf("---- Mean-divergence of v-field is %.2e [< div Field> * Delta x]\n", meanFielDiv*deltax);
+        std::printf("---- Mean-divergence of v-field is %.2e [< div Field> * Delta x]\n", meanFieldDiv*deltax);
 #ifdef MHD
         meanFieldDiv = ComputeDivergence(d_all_fields + ntotal_complex * BX);
-        std::printf("---- Mean-divergence of B-field is %.2e [< div Field> * Delta x]\n", meanFielDiv*deltax);
+        std::printf("---- Mean-divergence of B-field is %.2e [< div Field> * Delta x]\n", meanFieldDiv*deltax);
 #endif
 #endif
     }

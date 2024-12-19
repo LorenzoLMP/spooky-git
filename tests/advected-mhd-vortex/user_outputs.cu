@@ -18,14 +18,15 @@
 #include "timestepping.hpp"
 #include "supervisor.hpp"
 
-UserOutput::UserOutput(Supervisor &sup_in) {
+UserOutput::UserOutput(Supervisor &sup_in)
+    : SpookyOutput(sup_in) {
     // double lx, ly, lz;
     // read_Parameters();
-    supervisor_ptr = &sup_in;
+    // supervisor_ptr = &sup_in;
 }
 
-UserOutput::~UserOutput() {
-}
+// UserOutput::~UserOutput() {
+// }
 
 
 
@@ -55,14 +56,14 @@ void InputOutput::WriteUserTimevarOutput() {
     outputfile.open (fname, std::ios_base::app);
     // outputfile << "Writing this to a file.\n";
 
-    // the first fields->num_fields arrays in tmparray will
+    // the first fields_ptr->num_fields arrays in tmparray will
     // always contain the real fields for all subsequent operations
 
     if (param_ptr->userOutVar.length > 0){
         for (int i = 0; i < param_ptr->userOutVar.length; i++){
 
             if(!param_ptr->userOutVar.name[i].compare(std::string("uservar1"))) {
-                output_var = param_ptr->userOutVar.customFunction(fields->d_farray[0]);
+                output_var = param_ptr->userOutVar.customFunction(fields_ptr->d_farray[0]);
             }
             else if(!param_ptr->userOutVar.name[i].compare(std::string("uservar2"))) {
                 output_var = 0.0;

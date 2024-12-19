@@ -13,7 +13,7 @@ class UserOutput : public SpookyOutput { // The class
         // int length; // Number of spooky variables
         // std::vector<std::string> name;
         UserOutput(Supervisor &sup_in);
-        ~UserOutput();
+        // ~UserOutput();
         scalar_type customFunction( data_type *vcomplex );
 };
 

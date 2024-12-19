@@ -6,7 +6,7 @@
 #define DEALIASING
 #define MHD
 
-// #define DEBUG
+#define DEBUG
 
 // #define HEAT_EQ
 
