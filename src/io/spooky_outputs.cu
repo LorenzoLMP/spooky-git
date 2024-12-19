@@ -12,6 +12,7 @@
 #include "cufft_routines.hpp"
 #include "user_defined_cuda_kernels.hpp"
 #include "supervisor.hpp"
+#include "physics.hpp"
 
 SpookyOutput::SpookyOutput(Supervisor &sup_in) {
     // double lx, ly, lz;
