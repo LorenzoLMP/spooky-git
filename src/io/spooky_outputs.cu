@@ -196,10 +196,10 @@ scalar_type SpookyOutput::computeAnisoDissipation(data_type* complex_Fields, sca
     // this is the destination temp array for the divergence of the heat flux
     data_type* div_heat_flux = fields_ptr->d_tmparray[4];
     // set its elements to zero
-    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock
+    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
     VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(div_heat_flux, data_type(0.0,0.0), ntotal_complex);
 
-    AnisotropicConduction(complex_Fields, real_Buffer, div_heat_flux);
+    supervisor_ptr->phys_ptr->AnisotropicConduction(complex_Fields, real_Buffer, div_heat_flux);
 
     // transform back to real
     c2r_fft(div_heat_flux, (scalar_type *) div_heat_flux);
@@ -262,7 +262,7 @@ scalar_type SpookyOutput::computeAnisoInjection(data_type* complex_Fields, scala
     c2r_fft(divbzb_vec, (scalar_type *) divbzb_vec);
 
     // compute 2 field correlation between div (b_z \vec b) and theta
-    injection = twoFieldCorrelation( divbzb_vec, temperature);
+    injection = twoFieldCorrelation( (scalar_type *) divbzb_vec, temperature);
 
 
 #endif // ANISOTROPIC_DIFFUSION
