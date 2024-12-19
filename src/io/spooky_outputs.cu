@@ -3,7 +3,7 @@
 // #include "cufft_routines.hpp"
 #include "spooky.hpp"
 #include "common.hpp"
-// #include "fields.hpp"
+#include "fields.hpp"
 // #include "parameters.hpp"
 #include "spooky_outputs.hpp"
 #include "cublas_routines.hpp"
@@ -76,7 +76,7 @@ scalar_type SpookyOutput::computeEnstrophy(data_type *vx,
     scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
     // scalar_type* mask = fields_ptr->wavevector.d_mask;
 
-    double_type* curl = fields_ptr->d_all_tmparray;
+    data_type* curl = fields_ptr->d_all_tmparray;
 
 
     int blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;

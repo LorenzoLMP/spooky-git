@@ -53,7 +53,7 @@ void InputOutput::WriteTimevarOutput() {
     //     c2r_fft(fields_ptr->d_tmparray[n], fields_ptr->d_farray_buffer_r[n]);
     // }
 
-    supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, fields_ptr->num_fields)
+    supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, fields_ptr->num_fields);
 
     // std::printf("length timevar array = %d \n",param_ptr->spookyOutVar.length);
     // begin loop through the output variables
