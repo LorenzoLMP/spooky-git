@@ -67,7 +67,7 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
 
     // take fft of 5 independent components of B_ij
     for (int n = 0; n < 5; n++) {
-        r2c_fft(shear_matrix + 2*n*ntotal_complex, shear_matrix + n*ntotal_complex, supervisor_ptr);
+        r2c_fft((scalar_type*) shear_matrix + 2*n*ntotal_complex, shear_matrix + n*ntotal_complex, supervisor_ptr);
     }
 
     // compute derivative of traceless shear matrix and assign to dfields
@@ -89,7 +89,7 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
 
     // take fourier transforms of the 3 independent components of the antisymmetric shear matrix
     for (int n = 0; n < 3; n++) {
-        r2c_fft(emf + 2*n*ntotal_complex, emf + n*ntotal_complex, supervisor_ptr);
+        r2c_fft((scalar_type*) emf + 2*n*ntotal_complex, emf + n*ntotal_complex, supervisor_ptr);
     }
 
     // compute derivative of antisymmetric magnetic shear matrix and assign to dfields
