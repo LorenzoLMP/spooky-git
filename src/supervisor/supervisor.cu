@@ -27,6 +27,12 @@ Supervisor::Supervisor(std::string input_dir) :
         datadump_timer() {
 
     param_ptr = std::shared_ptr<Parameters> (new Parameters(*this, input_dir));
+
+    if (not param_ptr->checkParameters()){
+        std::cout << "Error: your choice of physics modules is not consistent. Aborting now." << std::endl;
+        exit(0);
+    }
+
     fields_ptr = std::shared_ptr<Fields> (new Fields(*this, *param_ptr));
     phys_ptr = std::shared_ptr<Physics> (new Physics(*this));
     timestep_ptr = std::shared_ptr<TimeStepping> (new TimeStepping(*this, *param_ptr));
