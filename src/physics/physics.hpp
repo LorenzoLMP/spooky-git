@@ -8,20 +8,20 @@ class Supervisor;
 
 class Physics {
 public:
-    Physics(Supervisor &sup);
+    Physics(Supervisor &sup_in);
 
-    Supervisor *supervisor;
+    Supervisor *supervisor_ptr;
 
     // Fields *fields;
     // Parameters *param;
 
-    void Boussinesq(Fields &fields, Parameters &param);
+    void AdvectTemperature(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
     // void AnisotropicConduction(Fields &fields, Parameters &param);
-    void AnisotropicConduction(Fields &fields, Parameters &param, data_type *temp_in, data_type *dtemp);
-    void EntropyStratification(Fields &fields, Parameters &param);
+    void AnisotropicConduction(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
+    void EntropyStratification(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
 
-    void ParabolicTerms(Fields &fields, Parameters &param, data_type *fields_in, data_type *dfields_out);
-    void HyperbolicTerms(Fields &fields, Parameters &param);
+    void ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
+    void HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
 
     // int stage_step;
     // unsigned int current_step;

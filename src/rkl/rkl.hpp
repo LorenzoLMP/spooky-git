@@ -11,11 +11,11 @@ class TimeStepping;
 
 class RKLegendre {
 public:
-    RKLegendre(int num_fields, Parameters &param, Supervisor &sup);
+    RKLegendre(int num_fields, Parameters &p_in, Supervisor &sup_in);
 
     // Fields *fields;
     // Parameters *param;
-    Supervisor *supervisor;
+    Supervisor *supervisor_ptr;
 
     // int stage_step;
     // unsigned int current_step;
@@ -35,8 +35,8 @@ public:
 
     // void compute_dt();
     // void compute_dfield();
-    void compute_cycle_STS(Fields &fields, Parameters &param, TimeStepping &timestep, Physics &phys);
-    void compute_cycle_RKL(Fields &fields, Parameters &param, TimeStepping &timestep, Physics &phys);
+    void compute_cycle_STS(data_type* complex_Fields, scalar_type* real_Buffer);
+    void compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_Buffer);
     // void compute_dt(Fields &fields, Parameters &param, Physics &phys);
     // void RungeKutta3(Fields &fields, Parameters &param, Physics &phys);
 

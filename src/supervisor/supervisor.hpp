@@ -1,23 +1,43 @@
 #include "define_types.hpp"
-
+// #include <stdlib>
+#include <iostream>
+#include <memory>
 #include "timer.hpp"
 // use forward declarations in the header files to get around the circular dependencies
 // https://stackoverflow.com/questions/994253/two-classes-that-refer-to-each-other
 class Fields;
 class Parameters;
 class Physics;
-class Timestepping;
+class TimeStepping;
+class InputOutput;
 
+// #include "fields.hpp"
+// #include "parameters.hpp"
+// #include "physics.hpp"
+// #include "timestepping.hpp"
+// #include "inputoutput.hpp"
 
 #define LOOP 0
 #define IO   1
+
 class Supervisor {
 public:
-    Supervisor(int stats_frequency);
+    Supervisor(std::string input_dir);
+
+    std::shared_ptr<Parameters> param_ptr;
+    std::shared_ptr<Fields> fields_ptr;
+    std::shared_ptr<Physics> phys_ptr;
+    std::shared_ptr<TimeStepping> timestep_ptr;
+    std::shared_ptr<InputOutput> inout_ptr;
+    // Parameters *param;
+    // Fields *fields;
+    // Physics *phys;
+    // TimeStepping *timestep;
+    // InputOutput *inout;
 
     Timer total_timer, timevar_timer, datadump_timer;
 
-    int stats_frequency; // how often to print stats
+    int stats_frequency; // how often to print stats (in steps)
 
     float time_delta, time_delta_2, time_delta3;
     unsigned int NumFFTs;
@@ -41,7 +61,13 @@ public:
     void updateFFTtime();
     void updateMainLooptime();
     void print_partial_stats();
-    void print_final_stats(int tot_steps);
+    void print_final_stats();
+    void displayConfiguration();
+    void executeMainLoop();
+    void initialDataDump();
+    void Restart(int restart_num);
+
+    void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);
 
     ~Supervisor();
 };

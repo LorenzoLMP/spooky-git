@@ -1,9 +1,6 @@
-// #include "define_types.hpp"
-// // #include "fields.hpp"
-// #include "cufft_routines.hpp"
 #include "spooky.hpp"
 #include "common.hpp"
-// #include "fields.hpp"
+
 // #include "parameters.hpp"
 // #include "user_outputs.hpp"
 #include "cublas_routines.hpp"
@@ -19,48 +16,56 @@
 #include "parameters.hpp" //includes user_outputs
 #include "inputoutput.hpp"
 #include "timestepping.hpp"
+#include "supervisor.hpp"
 
-UserOutput::UserOutput() {
+UserOutput::UserOutput(Supervisor &sup_in)
+    : SpookyOutput(sup_in) {
     // double lx, ly, lz;
     // read_Parameters();
+    // supervisor_ptr = &sup_in;
 }
 
-UserOutput::~UserOutput() {
-}
+// UserOutput::~UserOutput() {
+// }
 
 
 
-void InputOutput::WriteUserTimevarOutput(Fields &fields, Parameters &param, TimeStepping &timestep) {
+void InputOutput::WriteUserTimevarOutput() {
 
     NVTX3_FUNC_RANGE();
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+    std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
+
 #ifdef DEBUG
     std::printf("Writing user data output... \n");
 #endif
 
     int blocksPerGrid;
-    double t0        = param.t_initial;
-    double time_save = timestep.current_time;
-    double tend     = param.t_final;
+    double t0        = param_ptr->t_initial;
+    double time_save = timestep_ptr->current_time;
+    double tend     = param_ptr->t_final;
     double output_var = 0.0;
 
-    char data_output_name[64];
+    char data_output_name[16];
     std::sprintf(data_output_name,"timevar-user.spooky");
-    std::string fname = param.output_dir + std::string("/data/") + std::string(data_output_name);
+    std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
 
     std::ofstream outputfile;
     outputfile.open (fname, std::ios_base::app);
     // outputfile << "Writing this to a file.\n";
 
-    // the first fields.num_fields arrays in tmparray will
+    // the first fields_ptr->num_fields arrays in tmparray will
     // always contain the real fields for all subsequent operations
 
-    if (param.userOutVar.length > 0){
-        for (int i = 0; i < param.userOutVar.length; i++){
+    if (param_ptr->userOutVar.length > 0){
+        for (int i = 0; i < param_ptr->userOutVar.length; i++){
 
-            if(!param.userOutVar.name[i].compare(std::string("uservar1"))) {
-                output_var = param.userOutVar.customFunction(fields.d_farray[0]);
+            if(!param_ptr->userOutVar.name[i].compare(std::string("uservar1"))) {
+                output_var = param_ptr->userOutVar.customFunction(fields_ptr->d_farray[0]);
             }
-            else if(!param.userOutVar.name[i].compare(std::string("uservar2"))) {
+            else if(!param_ptr->userOutVar.name[i].compare(std::string("uservar2"))) {
                 output_var = 0.0;
             }
             else {
@@ -75,15 +80,17 @@ void InputOutput::WriteUserTimevarOutput(Fields &fields, Parameters &param, Time
 }
 
 
-void InputOutput::WriteUserTimevarOutputHeader(Parameters &param) {
+void InputOutput::WriteUserTimevarOutputHeader() {
 
 #ifdef DEBUG
     std::printf("Writing data output... \n");
 #endif
 
-    char data_output_name[64];
+     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
+    char data_output_name[16];
     std::sprintf(data_output_name,"timevar-user.spooky");
-    std::string fname = param.output_dir + std::string("/data/") + std::string(data_output_name);
+    std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
 
     std::ofstream outputfile;
     outputfile.open (fname, std::ios_base::app);
@@ -92,20 +99,19 @@ void InputOutput::WriteUserTimevarOutputHeader(Parameters &param) {
     outputfile << "## This file contains the time evolution of the following quantities: \n";
     outputfile << "## \t";
 
-    // for(int i = 0 ; i < param.spookyOutVar.length ; i++) {
-    //     outputfile << param.spookyOutVar.name[i]  << "\t";
+    // for(int i = 0 ; i < param_ptr->spookyOutVar.length ; i++) {
+    //     outputfile << param_ptr->spookyOutVar.name[i]  << "\t";
     // }
 
-    if (param.userOutVar.length > 0){
-        for (int i = 0; i < param.userOutVar.length; i++){
-            outputfile << param.userOutVar.name[i]  << "\t";
+    if (param_ptr->userOutVar.length > 0){
+        for (int i = 0; i < param_ptr->userOutVar.length; i++){
+            outputfile << param_ptr->userOutVar.name[i]  << "\t";
         }
     }
 
     outputfile << "\n";
     outputfile.close();
 }
-
 
 scalar_type UserOutput::customFunction( data_type *vcomplex ) {
     /***

@@ -7,78 +7,87 @@
 #include "cuda_kernels.hpp"
 #include "parameters.hpp"
 #include "timestepping.hpp"
+#include "supervisor.hpp"
 
-void Fields::CheckSymmetries(int current_step, int symmetries_step){
+void Fields::CheckSymmetries(){
+    int current_step = supervisor_ptr->timestep_ptr->current_step;
+    int symmetries_step = supervisor_ptr->param_ptr->symmetries_step;
+    double deltax = supervisor_ptr->param_ptr->lx / nx;
+    double meanFieldDiv = 0.0;
 #ifdef DEBUG
     if( current_step % 100 == 0) {
         std::printf("Computing divergence of v/B fields \n");
-        ComputeDivergence();
+#ifdef INCOMPRESSIBLE
+        // compute mean divergence for velocity field
+        meanFieldDiv = ComputeDivergence(d_all_fields + ntotal_complex * VX);
+        std::printf("---- Mean-divergence of v-field is %.2e [< div Field> * Delta x]\n", meanFieldDiv*deltax);
+#ifdef MHD
+        meanFieldDiv = ComputeDivergence(d_all_fields + ntotal_complex * BX);
+        std::printf("---- Mean-divergence of B-field is %.2e [< div Field> * Delta x]\n", meanFieldDiv*deltax);
+#endif
+#endif
     }
 #endif
     if( current_step % symmetries_step) {
-
         CleanFieldDivergence();
-        // if( current_step % 500*param->symmetries_step == 0) ComputeDivergence();
+
+// #ifdef INCOMPRESSIBLE
+//         // clean divergence for velocity field
+//         CleanFieldDivergence(d_all_fields + ntotal_complex * VX);
+// #ifdef MHD
+//         // clean divergence for magnetic field
+//         CleanFieldDivergence(d_all_fields + ntotal_complex * BX);
+// #endif
+// #endif
     }
     
 }
 
-void Fields::ComputeDivergence( ){
+double Fields::ComputeDivergence( data_type* complex_Fields ){
 
-    double divvfield = 0.0;
-    double divBfield = 0.0;
+    double FieldDiv = 0.0;
+    // double divBfield = 0.0;
     int blocksPerGrid;
     cublasStatus_t stat;
 
-    #ifdef INCOMPRESSIBLE
-        // compute mean divergence for velocity field    
-        blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-        Divergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields + ntotal_complex * VX, (data_type *)  d_tmparray[0], (size_t) ntotal_complex);
-        // transform back to real space
-        c2r_fft(d_tmparray[0], d_tmparray_r[0]);
-        // compute absolute value of real vector (actually Dasum already does it...)
-        // blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-        // DoubleAbsolute<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) d_tmparray_r[0], (scalar_type *) d_tmparray_r[0], (size_t) ntotal_complex);
-        // reduce sum
-        stat = cublasDasum(handle0, 2 * ntotal_complex, d_tmparray_r[0], 1, &divvfield);
-        if (stat != CUBLAS_STATUS_SUCCESS) std::printf("-Reduce-sum of div v failed\n");
-        std::printf("----Mean-divergence of v-field is %.2e / L\n",divvfield/(2 * ntotal_complex));
 
-         #ifdef MHD
-            // compute mean divergence for magnetic field    
-            blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-            Divergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields + ntotal_complex * BX, (data_type *)  d_tmparray[0], (size_t) ntotal_complex);
-            // transform back to real space 
-            c2r_fft(d_tmparray[0], d_tmparray_r[0]);
-            // compute absolute value of real vector (actually Dasum already does it...)
-            // blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-            // DoubleAbsolute<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) d_tmparray_r[0], (scalar_type *) d_tmparray_r[0], (size_t) ntotal_complex);
-            // reduce sum
-            stat = cublasDasum(handle0, 2 * ntotal_complex, d_tmparray_r[0], 1, &divBfield);
-            if (stat != CUBLAS_STATUS_SUCCESS) std::printf("-Reduce-sum of div B failed\n");
-            std::printf("----Mean-divergence of B-field is %.2e / L\n",divBfield/(2 * ntotal_complex));
-         #endif
-    #endif
+    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    Divergence<<<blocksPerGrid, threadsPerBlock>>>(wavevector.d_all_kvec, complex_Fields, (data_type *)  d_tmparray[0], (size_t) ntotal_complex);
+    // transform back to real space
+    c2r_fft(d_tmparray[0], d_tmparray_r[0]);
+    // compute absolute value of real vector (actually Dasum already does it...)
+    // reduce sum
+    stat = cublasDasum(handle0, 2 * ntotal_complex, d_tmparray_r[0], 1, &FieldDiv);
+    if (stat != CUBLAS_STATUS_SUCCESS) std::printf("- Reduce-sum of ComputeDivergence failed\n");
+    // std::printf("----Mean-divergence of v-field is %.2e / L\n",divvfield/(2 * ntotal_complex));
+
+    return FieldDiv/(2 * ntotal_complex);
 
 }
+
+// void Fields::CleanDivergence(){
+//
+// #ifdef INCOMPRESSIBLE
+//         // clean divergence for velocity field
+//         CleanFieldDivergence(d_all_fields + ntotal_complex * VX);
+// #ifdef MHD
+//         // clean divergence for magnetic field
+//         CleanFieldDivergence(d_all_fields + ntotal_complex * BX);
+// #endif
+// #endif
+//
+// }
 
 void Fields::CleanFieldDivergence( ){
 
     int blocksPerGrid;
 
-    #ifdef INCOMPRESSIBLE
-        // compute mean divergence for velocity field    
-        blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-        // CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_all_fields + ntotal_complex * VX, (cufftDoubleComplex *) d_all_fields + ntotal_complex * VX, (size_t) ntotal_complex);
-        CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields + ntotal_complex * VX, (data_type *) d_all_fields + ntotal_complex * VX, (size_t) ntotal_complex);
+    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
 
-         #ifdef MHD
-            // compute mean divergence for magnetic field    
-            blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-            // CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (cufftDoubleComplex *) d_all_fields + ntotal_complex * BX, (cufftDoubleComplex *) d_all_fields + ntotal_complex * BX, (size_t) ntotal_complex);
-            CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *) wavevector.d_all_kvec, (data_type *) d_all_fields + ntotal_complex * BX, (data_type *) d_all_fields + ntotal_complex * BX, (size_t) ntotal_complex);
-            
-         #endif
-    #endif
-
+#ifdef INCOMPRESSIBLE
+    CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>(wavevector.d_all_kvec, d_all_fields + ntotal_complex * VX, d_all_fields + ntotal_complex * VX, (size_t) ntotal_complex);
+#ifdef MHD
+    CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>(wavevector.d_all_kvec, d_all_fields + ntotal_complex * BX, d_all_fields + ntotal_complex * BX, (size_t) ntotal_complex);
+#endif
+#endif
 }

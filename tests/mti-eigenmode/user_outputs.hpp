@@ -5,12 +5,15 @@
 #include <complex>
 #include "spooky_outputs.hpp"
 
+// class SpookyOutput;
+class Supervisor;
+
 class UserOutput : public SpookyOutput { // The class
     public:
         // int length; // Number of spooky variables
         // std::vector<std::string> name;
-        UserOutput();
-        ~UserOutput();
+        UserOutput(Supervisor &sup_in);
+        // ~UserOutput();
         scalar_type customFunction( data_type *vcomplex );
 };
 

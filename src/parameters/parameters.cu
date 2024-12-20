@@ -34,9 +34,10 @@ Parameters::~Parameters() {
 // void Parameters::add
 
 // void Parameters::read_Parameters(std::string input_dir) {
-Parameters::Parameters(std::string input_dir) : spookyOutVar(), userOutVar() {
+Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar(sup_in), userOutVar(sup_in) {
 // void Parameters::read_Parameters() {
 	// field = fields_in;
+	supervisor_ptr = &sup_in;
 	// Read the config file and initialize everyting
 	config_t	config;		// Initialize the structure
 	config_setting_t * setting;	// a setting structure

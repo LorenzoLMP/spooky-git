@@ -8,6 +8,7 @@
 #include "parameters.hpp"
 #include "timestepping.hpp"
 // #include "wavevector.hpp"
+#include "supervisor.hpp"
 
 
 Fields::~Fields() {
@@ -26,16 +27,20 @@ Fields::~Fields() {
     free(d_dfarray);
     free(d_dfarray_r);
 
+    free(d_farray_buffer_r);
+
     free(d_tmparray);
 
 }
 
 // void Fields::init_Fields( int num, Parameters *p_in )  {
-Fields::Fields(Parameters &p_in, int num ) : wavevector(p_in.lx, p_in.ly, p_in.lz) {
-    num_fields = num;
+Fields::Fields(Supervisor &sup_in, Parameters &p_in) : wavevector(p_in.lx, p_in.ly, p_in.lz) {
+
+    supervisor_ptr = &sup_in;
+    num_fields = NUM_FIELDS;
     std::printf("num_fields: %d \n",num_fields);
 
-    num_tmp_array = num_fields + 6; // need to check again why we need all these tmp arrays
+    num_tmp_array = 6; // need to check again why we need all these tmp arrays
     std::printf("num_tmp_array: %d \n",num_tmp_array);
 
     // current_dt = 0.0;
@@ -75,14 +80,18 @@ Fields::Fields(Parameters &p_in, int num ) : wavevector(p_in.lx, p_in.ly, p_in.l
     // this is the mega array that contains temporary scratch arrays
     // d_tmparray = (data_type **) malloc( (size_t) sizeof(data_type *) * num_tmp_array);
 
+    // this is a buffer array that is reserved for the real fields
+    d_farray_buffer_r = (scalar_type **) malloc( (size_t) sizeof(data_type *) * num_fields);
+
 
     // initialize field arrays and dfield arrays (which are arrays of arrays), farray[0] = vx, farray[1] = vy, etc...
+    // this is only for cpu arrays
     for (int i = 0 ; i < num_fields ; i++) {
         farray[i]   = all_fields + i*ntotal_complex;
         farray_r[i] = (scalar_type *) farray[i];
         // the following 2 can be commented out for production
-        dfarray[i]  = all_dfields + i*ntotal_complex;
-        dfarray_r[i] = (scalar_type *) dfarray[i];
+        // dfarray[i]  = all_dfields + i*ntotal_complex;
+        // dfarray_r[i] = (scalar_type *) dfarray[i];
     }
     // std::printf("before init wavevec lx = %f \t ly = %f \t lz = %f\n",param->lx, param->ly, param->lz);
     // Wavevector wavevector(param->lx, param->ly, param->lz);
@@ -293,10 +302,10 @@ void Fields::allocate_and_move_to_gpu() {
     CUDA_RT_CALL(cudaMalloc(&d_all_fields, (size_t) sizeof(data_type) * ntotal_complex * num_fields));
     // this is the mega array that contains dfields
     CUDA_RT_CALL(cudaMalloc(&d_all_dfields, (size_t) sizeof(data_type) * ntotal_complex * num_fields));
-    // // this is the mega array that contains intermediate fields during multi-stage timestepping
-    // CUDA_RT_CALL(cudaMalloc(&d_all_scrtimestep, (size_t) sizeof(data_type) * ntotal_complex * num_fields));
     // this is the mega array that contains temporary scratch arrays
     CUDA_RT_CALL(cudaMalloc(&d_all_tmparray, (size_t) sizeof(data_type) * ntotal_complex * num_tmp_array));
+    // this is the buffer array for real fields
+    CUDA_RT_CALL(cudaMalloc(&d_all_buffer_r, (size_t) sizeof(data_type) * ntotal_complex * num_fields));
 
     // copy to gpu
 
@@ -306,19 +315,6 @@ void Fields::allocate_and_move_to_gpu() {
 
     CUDA_RT_CALL(cudaMemcpy(d_all_tmparray, all_dfields, (size_t) sizeof(data_type) * ntotal_complex * num_fields, cudaMemcpyHostToDevice));
 
-    // CUDA_RT_CALL(cudaMalloc(&d_farray, (size_t) sizeof(data_type *) * num_fields) );
-    // CUDA_RT_CALL(cudaMalloc(&d_dfarray, (size_t) sizeof(data_type *) * num_fields) );
-    //
-    // CUDA_RT_CALL(cudaMalloc(&d_farray_r, (size_t) sizeof(data_type *) * num_fields) );
-    // CUDA_RT_CALL(cudaMalloc(&d_dfarray_r, (size_t) sizeof(data_type *) * num_fields) );
-
-
-
-    // cufftDoubleReal **d_farray_r  = (scalar_type **) d_farray;
-    // cufftDoubleReal **d_dfarray_r = (scalar_type **) d_dfarray;
-
-    // farray_r = (scalar_type **) malloc( (size_t) sizeof(data_type) * num_fields);
-    // dfarray_r = (scalar_type **) malloc( (size_t) sizeof(data_type) * num_fields);
 
     std::printf("num_fields: %d \n",num_fields);
 
@@ -328,6 +324,9 @@ void Fields::allocate_and_move_to_gpu() {
         // d_dfarraytmp[i] = d_all_dfieldstmp + i*ntotal_complex;
         d_farray_r[i] = (scalar_type *) d_farray[i];
         d_dfarray_r[i] = (scalar_type *) d_dfarray[i];
+
+        // this is the farray buffer array for real fields
+        d_farray_buffer_r[i] = (scalar_type *) ( d_all_buffer_r + i*ntotal_complex );
     }
 
     for (int i = 0 ; i < num_tmp_array ; i++) {
@@ -477,9 +476,25 @@ void Fields::clean_gpu(){
     CUDA_RT_CALL(cudaFree(d_all_dfields));
     CUDA_RT_CALL(cudaFree(d_all_tmparray));
 
+    CUDA_RT_CALL(cudaFree(d_all_buffer_r));
+
     // CUDA_RT_CALL(cudaFree(d_farray));
     // CUDA_RT_CALL(cudaFree(d_dfarray));
     // CUDA_RT_CALL(cudaFree(d_vy));
 
     wavevector.clean_gpu();
 }
+
+// void Fields::Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields){
+//
+//
+//     // assign fields to [num_fields] tmparray (memory block starts at d_all_tmparray)
+//     int blocksPerGrid = ( num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+//     ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(ComplexField_in, (data_type*) RealField_out, num_fields * ntotal_complex);
+//
+//     // compute FFTs from complex to real fields
+//     for (int n = 0; n < num_fields; n++){
+//         c2r_fft((data_type*) RealField_out + n * ntotal_complex,  RealField_out + n * 2*ntotal_complex, supervisor_ptr);
+//     }
+//
+// }

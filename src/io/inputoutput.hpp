@@ -10,24 +10,25 @@ class Supervisor;
 
 class InputOutput {
 public:
-    InputOutput(Supervisor &sup);
+    InputOutput(Supervisor &sup_in);
 
     // Timer *timevar_timer, *datadump_timer;
 
-    Supervisor *supervisor;
+    Supervisor *supervisor_ptr;
 
     double t_lastsnap; // for snapshot
     double t_lastvar;  // for volume avg/ spectral qts.
     int num_save;
 
-    void CheckOutput(Fields &fields, Parameters &param, TimeStepping &timestep);
-    void WriteDataFile(Fields &fields, Parameters &param, TimeStepping &timestep);
-    void ReadDataFile(Fields &fields, Parameters &param, TimeStepping &timestep, int restart_num);
-    void WriteTimevarOutput(Fields &fields, Parameters &param, TimeStepping &timestep);
-    void WriteTimevarOutputHeader(Parameters &param);
+    void CheckOutput();
+    void WriteDataFile();
+    void ReadDataFile(int restart_num);
 
-    void WriteUserTimevarOutput(Fields &fields, Parameters &param, TimeStepping &timestep);
-    void WriteUserTimevarOutputHeader(Parameters &param);
+    void WriteTimevarOutput();
+    void WriteTimevarOutputHeader();
+
+    void WriteUserTimevarOutput();
+    void WriteUserTimevarOutputHeader();
 
     ~InputOutput();
 };

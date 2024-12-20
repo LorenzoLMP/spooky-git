@@ -17,27 +17,28 @@
 #include "supervisor.hpp"
 #include "rkl.hpp"
 
-TimeStepping::TimeStepping(int num, Parameters &param, Supervisor &sup) {
+TimeStepping::TimeStepping(Supervisor &sup_in, Parameters &p_in) {
     // param = &p_in;
     // fields = &f_in;
 
-    supervisor = &sup;
-    rkl = new RKLegendre(num, param, sup);
-    // std::printf("The TimeSpentInFFTs is: %.4e",supervisor->TimeSpentInFFTs);
+    supervisor_ptr = &sup_in;
+    // rkl = new RKLegendre(NUM_FIELDS, param, supervisor);
+    rkl = std::unique_ptr<RKLegendre> (new RKLegendre(NUM_FIELDS, p_in, sup_in));
+    // std::printf("The TimeSpentInFFTs is: %.4e",supervisor_ptr->TimeSpentInFFTs);
     current_dt = 0.0;
     current_time = 0.0;
     current_step = 0;
     // stage_step = 0;
 
     // this is the mega array that contains intermediate fields during multi-stage timestepping
-    // std::printf("num fields ts: %d \n", fields->num_fields);
-    std::printf("num timestepping scratch arrays: %d \n",num);
-    CUDA_RT_CALL(cudaMalloc(&d_all_scrtimestep, (size_t) sizeof(data_type) * ntotal_complex * num));
-    int blocksPerGrid = ( 2 * num * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    VecInit<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)d_all_scrtimestep, 0.0, 2 * ntotal_complex * num);
+    // std::printf("NUM_FIELDS fields ts: %d \n", fields->NUM_FIELDS_fields);
+    std::printf("num timestepping scratch arrays: %d \n",NUM_FIELDS);
+    CUDA_RT_CALL(cudaMalloc(&d_all_scrtimestep, (size_t) sizeof(data_type) * ntotal_complex * NUM_FIELDS));
+    int blocksPerGrid = ( 2 * NUM_FIELDS * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    VecInit<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)d_all_scrtimestep, 0.0, 2 * ntotal_complex * NUM_FIELDS);
 }
 
 TimeStepping::~TimeStepping(){
     CUDA_RT_CALL(cudaFree(d_all_scrtimestep));
-    delete rkl;
+    // delete rkl;
 }

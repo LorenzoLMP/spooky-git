@@ -8,6 +8,7 @@
 
 class Parameters;
 class TimeStepping;
+class Supervisor;
 
 class Wavevector {
 // private:
@@ -44,6 +45,7 @@ class Fields {
 public:
     int num_fields;
     int num_tmp_array;
+    Supervisor *supervisor_ptr;
     // double current_dt;
     // double current_time;
     // int stage_step;
@@ -58,12 +60,15 @@ public:
     data_type *d_all_fields, *d_all_dfields, *d_all_tmparray;
     data_type **d_farray, **d_dfarray, **d_tmparray;
     scalar_type **d_farray_r, **d_dfarray_r, **d_tmparray_r;
+
+    scalar_type *d_all_buffer_r;
+    scalar_type **d_farray_buffer_r;
     
     Wavevector wavevector;
     // Parameters *param;
     // TimeStepping *timestep;
     // Fields(Parameters *p_in, TimeStepping *timestep_in, int num);
-    Fields(Parameters &p_in, int num);
+    Fields(Supervisor &sup_in, Parameters &p_in);
     // void init_Fields( int num, Parameters *p_in);
     void init_SpatialStructure(Parameters &param);
     void print_host_values();
@@ -85,9 +90,12 @@ public:
 
     void clean_gpu();
     // void RungeKutta3();
-    void ComputeDivergence();
-    void CleanFieldDivergence( );
-    void CheckSymmetries(int current_step, int symmetries_step);
+    double ComputeDivergence(data_type* complex_Fields);
+    void CleanFieldDivergence();
+    void CheckSymmetries();
+    // void CleanDivergence();
+
+    // void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);
 
     // void Boussinesq();
     // void AnisotropicConduction();

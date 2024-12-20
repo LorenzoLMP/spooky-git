@@ -3,7 +3,7 @@
 
 // #define INCOMPRESSIBLE
 // #define DEALIASING
-
+#define DEBUG 
 #define HEAT_EQ
 #define WITH_EXPLICIT_DISSIPATION
 // #define BOUSSINESQ

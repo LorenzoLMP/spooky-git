@@ -11,7 +11,8 @@
 
 // use forward declarations in the header files to get around the circular dependencies
 // https://stackoverflow.com/questions/994253/two-classes-that-refer-to-each-other
-class Fields;
+// class Fields;
+class Supervisor;
 
 // class SpookyOutput;
 
@@ -20,6 +21,7 @@ class Fields;
 class Parameters {       // The class
   public:             // Access specifier
 
+	Supervisor *supervisor_ptr;
 	// Fields *field;
     double lx;				/**< Box length in X*/
 	double ly;				/**< Box length in Y*/
@@ -123,7 +125,7 @@ class Parameters {       // The class
 	int	   init_bench;				/**< Init the Benchmark initial conditions */
 
 	// Parameters(Fields *fields_in, std::string input_dir);
-	Parameters(std::string input_dir);
+	Parameters(Supervisor& sup_in, std::string input_dir);
     ~Parameters();
     // void read_Parameters(std::string input_dir);
 	// void read_Parameters();

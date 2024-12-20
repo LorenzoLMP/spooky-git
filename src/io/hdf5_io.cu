@@ -12,12 +12,17 @@
 #include "parameters.hpp"
 #include "inputoutput.hpp"
 #include "timestepping.hpp"
+#include "supervisor.hpp"
 
 using namespace HighFive;
 
 int fileCounter(std::string dir);
 
-void InputOutput::WriteDataFile(Fields &fields, Parameters &param, TimeStepping &timestep) {
+void InputOutput::WriteDataFile() {
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+    std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
 
     // NVTX3_FUNC_RANGE();
 #ifdef DEBUG
@@ -27,17 +32,17 @@ void InputOutput::WriteDataFile(Fields &fields, Parameters &param, TimeStepping 
 #endif
 
 
-    // double t0        = param.t_initial;
-    // double time_save = timestep.current_time;
-    // double tend     = param.t_final;
-    std::printf("t0: %.2e \t time_save: %.2e \t tend: %.2e \n",param.t_initial,timestep.current_time,param.t_final);
+    // double t0        = param_ptr->t_initial;
+    // double time_save = timestep_ptr->current_time;
+    // double tend     = param_ptr->t_final;
+    std::printf("t0: %.2e \t time_save: %.2e \t tend: %.2e \n",param_ptr->t_initial,timestep_ptr->current_time,param_ptr->t_final);
 
     char data_snap_name[16];
     std::sprintf(data_snap_name,"snap%04i.h5",num_save);
-    std::string fname = param.output_dir + std::string("/data/") + std::string(data_snap_name);
+    std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_snap_name);
 
     std::cout << fname << std::endl;
-    std::printf("-----------------Writing snap %04i at time_save: %.2e \n",num_save,timestep.current_time);
+    std::printf("-----------------Writing snap %04i at time_save: %.2e \n",num_save,timestep_ptr->current_time);
     // we are assuming that the fields have been copied back to cpu and are real
     // we create a new hdf5 file
     File file(fname, File::ReadWrite | File::Create | File::Truncate);
@@ -54,13 +59,13 @@ void InputOutput::WriteDataFile(Fields &fields, Parameters &param, TimeStepping 
     // DataSet dataset;
     DataSpace data_scalar(1);
     DataSet dataset = file.createDataSet<scalar_type>("t_start", data_scalar);
-    dataset.write(param.t_initial);
+    dataset.write(param_ptr->t_initial);
 
     dataset = file.createDataSet<scalar_type>("t_save", data_scalar);
-    dataset.write(timestep.current_time);
+    dataset.write(timestep_ptr->current_time);
 
     dataset = file.createDataSet<scalar_type>("t_end", data_scalar);
-    dataset.write(param.t_final);
+    dataset.write(param_ptr->t_final);
 
     dataset = file.createDataSet<scalar_type>("t_lastsnap", data_scalar);
     dataset.write(t_lastsnap);
@@ -69,7 +74,7 @@ void InputOutput::WriteDataFile(Fields &fields, Parameters &param, TimeStepping 
     dataset.write(t_lastvar);
 
     dataset = file.createDataSet<int>("step", data_scalar);
-    dataset.write(timestep.current_step);
+    dataset.write(timestep_ptr->current_step);
 
     std::printf("t_lastsnap: %.2e \t t_lastvar: %.2e \n",t_lastsnap,t_lastvar);
 
@@ -80,7 +85,7 @@ void InputOutput::WriteDataFile(Fields &fields, Parameters &param, TimeStepping 
     scratch = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal);
     DataSpace data_field(ntotal);
 
-    for (int n = 0; n < fields.num_fields; n++){
+    for (int n = 0; n < fields_ptr->num_fields; n++){
 
         for (int i = 0; i < nx; i++){
             for (int j = 0; j < ny; j++){
@@ -90,7 +95,7 @@ void InputOutput::WriteDataFile(Fields &fields, Parameters &param, TimeStepping 
                     idx_complex = k + (nz/2+1)*2 * ( j + i * ny);
                     // idx_complex = k + (nz + 2) * j + (nz + 2) * ny * i;
                     // scratch[idx] = 1.0;
-                    scratch[idx] = fields.farray_r[n][idx_complex];
+                    scratch[idx] = fields_ptr->farray_r[n][idx_complex];
                 }
             }
         }
@@ -105,7 +110,11 @@ void InputOutput::WriteDataFile(Fields &fields, Parameters &param, TimeStepping 
 }
 
 
-void InputOutput::ReadDataFile(Fields &fields, Parameters &param, TimeStepping &timestep, int restart_num) {
+void InputOutput::ReadDataFile(int restart_num) {
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+    std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
 
     // NVTX3_FUNC_RANGE();
 #ifdef DEBUG
@@ -130,7 +139,7 @@ void InputOutput::ReadDataFile(Fields &fields, Parameters &param, TimeStepping &
      * **************************/
 
     // find the most recent data file
-    int most_recent_snap = fileCounter(param.output_dir + std::string("/data/"));
+    int most_recent_snap = fileCounter(param_ptr->output_dir + std::string("/data/"));
 
     if (most_recent_snap > 0) { // some data files exist!
         if (restart_num > most_recent_snap){
@@ -149,7 +158,7 @@ void InputOutput::ReadDataFile(Fields &fields, Parameters &param, TimeStepping &
         }
         std::sprintf(data_snap_name,"snap%04i.h5",restart_tmp);
 
-        std::string fname = param.output_dir + std::string("/data/") + std::string(data_snap_name);
+        std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_snap_name);
 
         // std::printf("Reading from data file %s \n",fname);
         std::cout << "Data file selected for restarting: \t" << fname << std::endl;
@@ -181,19 +190,19 @@ void InputOutput::ReadDataFile(Fields &fields, Parameters &param, TimeStepping &
             dataset = file.getDataSet("step");
             dataset.read(save_step);
 
-            // std::printf("time_save: %.2f \t tend: %.2f \n",param.t_initial,timestep.current_time,param.t_final);
+            // std::printf("time_save: %.2f \t tend: %.2f \n",param_ptr->t_initial,timestep_ptr->current_time,param_ptr->t_final);
             std::printf("t_lastsnap: %.2e \t t_lastvar: %.2e \n",t_lastsnap,t_lastvar);
 
             num_save = restart_tmp+1;
-            timestep.current_time = time_save;
-            timestep.current_step = save_step;
+            timestep_ptr->current_time = time_save;
+            timestep_ptr->current_step = save_step;
 
 
             std::printf("-----------------Reading from snap %04i at time_save: %.2e \n",restart_tmp,time_save);
 
 
             // Now read data_fields
-            for (int n = 0; n < fields.num_fields; n++){
+            for (int n = 0; n < fields_ptr->num_fields; n++){
 
                 std::string var_name(list_of_variables[n]);
                 dataset = file.getDataSet(var_name);
@@ -209,7 +218,7 @@ void InputOutput::ReadDataFile(Fields &fields, Parameters &param, TimeStepping &
                             idx = k + nz * ( j + i * ny);
                             idx_complex = k + (nz/2+1)*2 * ( j + i * ny);
 
-                            fields.farray_r[n][idx_complex] = scratch[idx];
+                            fields_ptr->farray_r[n][idx_complex] = scratch[idx];
                             // if (i < 10 && k == 0) std::printf("farray_r %.2e \n",scratch[idx]);
                         }
                     }
@@ -223,7 +232,7 @@ void InputOutput::ReadDataFile(Fields &fields, Parameters &param, TimeStepping &
             std::printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
             std::printf("!!!! Error: could not read from data file. \n");
             std::printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-            // param.restart = 0;
+            // param_ptr->restart = 0;
             exit(0);
 
         }
@@ -233,7 +242,7 @@ void InputOutput::ReadDataFile(Fields &fields, Parameters &param, TimeStepping &
         std::printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
         std::printf("!!!! Error: no restart files found, starting a new run...\n");
         std::printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-        param.restart = 0;
+        param_ptr->restart = 0;
     }
 
     free(scratch);
