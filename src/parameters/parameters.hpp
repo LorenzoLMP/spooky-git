@@ -50,6 +50,11 @@ class Parameters {
     double lx;				/**< Box length in X*/
 	double ly;				/**< Box length in Y*/
 	double lz;				/**< Box length in Z*/
+
+	int nx;			// real grid size in x-direction
+	int ny;			// real grid size in y-direction
+	int nz;			// real grid size in z-direction
+
 	double reynolds;		/**< Reynolds number (actully the inverse of the viscosity) */
 	double nu;
 	double reynolds_m;		/**< Magnetic Reynolds number (actully the inverse of the resistivity)  Used only when MHD is on*/
@@ -148,6 +153,7 @@ class Parameters {
     ~Parameters();
 
 	int checkParameters();
+	void popVariablesGrid();
     // void read_Parameters(std::string input_dir);
 	// void read_Parameters();
 };

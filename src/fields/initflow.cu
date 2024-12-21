@@ -5,12 +5,12 @@
 #include "spooky.hpp"
 #include "common.hpp"
 #include "parameters.hpp"
-// #include "supervisor.hpp"
+#include "supervisor.hpp"
 
-void Fields::init_SpatialStructure(Parameters &param){
+void Fields::initSpatialStructure(){
 
 	int i,j,k;
-	// std::shared_ptr<Parameters> param = supervisor->param;
+	std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
 	/*******************************************************************
 	** This part does not need to be modified **************************
@@ -31,9 +31,9 @@ void Fields::init_SpatialStructure(Parameters &param){
 	for(i = 0 ; i < nx ; i++) {
 		for(j = 0 ; j < ny ; j++) {
 			for(k = 0 ; k < nz ; k++) {
-				x[k + (nz + 2) * j + (nz + 2) * ny * i] = - param.lx / 2 + (param.lx * i) / nx;
-				y[k + (nz + 2) * j + (nz + 2) * ny * i] = - param.ly / 2 + (param.ly * j ) / ny;
-				z[k + (nz + 2) * j + (nz + 2) * ny * i] = - param.lz / 2 + (param.lz * k ) / nz;
+				x[k + (nz + 2) * j + (nz + 2) * ny * i] = - param_ptr->lx / 2 + (param_ptr->lx * i) / nx;
+				y[k + (nz + 2) * j + (nz + 2) * ny * i] = - param_ptr->ly / 2 + (param_ptr->ly * j ) / ny;
+				z[k + (nz + 2) * j + (nz + 2) * ny * i] = - param_ptr->lz / 2 + (param_ptr->lz * k ) / nz;
 			}
 		}
 		// std::printf("x[%d] = %.2e \t",i,x[(nz + 2) * ny * i]);
@@ -44,9 +44,9 @@ void Fields::init_SpatialStructure(Parameters &param){
 	for(i = 0 ; i < nx ; i++) {
 		for(j = 0 ; j < ny ; j++) {
 			for(k = 0 ; k < nz ; k++) {
-				x[k + (nz) * j + (nz) * (ny + 2) * i] = - param.lx / 2 + (param.lx * i) / nx;
-				y[k + (nz) * j + (nz) * (ny + 2) * i] = - param.ly / 2 + (param.ly * j ) / ny;
-				z[k + (nz) * j + (nz) * (ny + 2) * i] = - param.lz / 2 + (param.lz * k ) / nz;
+				x[k + (nz) * j + (nz) * (ny + 2) * i] = - param_ptr->lx / 2 + (param_ptr->lx * i) / nx;
+				y[k + (nz) * j + (nz) * (ny + 2) * i] = - param_ptr->ly / 2 + (param_ptr->ly * j ) / ny;
+				z[k + (nz) * j + (nz) * (ny + 2) * i] = - param_ptr->lz / 2 + (param_ptr->lz * k ) / nz;
 			}
 		}
 	}
@@ -80,41 +80,25 @@ void Fields::init_SpatialStructure(Parameters &param){
 	///////////////////////////////////////
 	double a = 0.01;
 	for (int i = 0; i < 2*ntotal_complex; i++){
-	#ifdef HEAT_EQ
-		farray_r[TH][i] = 1.0 +  0.5 * (tanh((x[i] + 0.375) / a) - tanh((x[i] + 0.125) / a)) + 0.5 * (tanh((x[i] - 0.125) / a) - tanh((x[i] - 0.375) / a));
-	#endif
-	#ifdef INCOMPRESSIBLE
-		// farray_r[VX][i] = 1.0 ;
-		// // // farray_r[VY][i] = 1.0 * sin(2.0*M_PI*x[i]);
-		// farray_r[VY][i] = 2.0;
-		// farray_r[VZ][i] = 0.0;
-		// Taylor - Green vortex
-		farray_r[VX][i] =   sin(2.0*M_PI*x[i]/param.lx) * cos(2.0*M_PI*y[i]/param.ly);
-		// farray_r[VY][i] = 1.0 * sin(2.0*M_PI*x[i]);
-		farray_r[VY][i] = - cos(2.0*M_PI*x[i]/param.lx) * sin(2.0*M_PI*y[i]/param.ly);
-		farray_r[VZ][i] = 0.0;
-	#endif
-	#ifdef BOUSSINESQ
-		farray_r[TH][i] = 0.0;
-	#endif
+		if (param_ptr->heat_equation){
+			farray_r[TH][i] = 1.0 +  0.5 * (tanh((x[i] + 0.375) / a) - tanh((x[i] + 0.125) / a)) + 0.5 * (tanh((x[i] - 0.125) / a) - tanh((x[i] - 0.375) / a));
+		}
+		if (param_ptr->incompressible){
+			farray_r[VX][i] =   sin(2.0*M_PI*x[i]/param_ptr->lx) * cos(2.0*M_PI*y[i]/param_ptr->ly);
+			farray_r[VY][i] = - cos(2.0*M_PI*x[i]/param_ptr->lx) * sin(2.0*M_PI*y[i]/param_ptr->ly);
+			farray_r[VZ][i] = 0.0;
+		}
+		if (param_ptr->mhd){
+			farray_r[BX][i] =   sin(2.0*M_PI*x[i]/param_ptr->lx) * cos(2.0*M_PI*y[i]/param_ptr->ly);
+			farray_r[BY][i] = - cos(2.0*M_PI*x[i]/param_ptr->lx) * sin(2.0*M_PI*y[i]/param_ptr->ly);
+			farray_r[BZ][i] = 0.0;
+		}
+		if (param_ptr->boussinesq) {
+			farray_r[TH][i] = 0.0;
+		}
+
 	}
 
-// 	for (int i = 0; i < 10; i++){
-//
-// 		std::printf("x[%d] = %.2e \t y[%d] = %.2e \t z[%d] = %.2e \t th[%d] = %.2e \t",i,x[i],i,y[i],i,z[i],i,farray_r[TH][i]);
-//
-// 	}
-
-	// int idx;
-	// #ifdef HEAT_EQ
-	// for(i = 0 ; i < nx ; i++) {
-	// 	idx = (nz + 2) * ny * i;
-	// 	std::printf("x[%d] = %.2e \t  th[%d] = %.2e \n",idx,x[idx],idx,farray_r[TH][idx]);
-	// }
-	// #endif
- //
- //
- //
 
 	free(x);
 	free(y);

@@ -25,11 +25,12 @@ void InputOutput::WriteDataFile() {
     std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
 
     // NVTX3_FUNC_RANGE();
-#ifdef DEBUG
-    std::printf("////////////////////////// \n");
-    std::printf("Writing data file... \n");
-    std::printf("////////////////////////// \n");
-#endif
+
+    if (param_ptr->debug > 0){
+        std::printf("////////////////////////// \n");
+        std::printf("Writing data file... \n");
+        std::printf("////////////////////////// \n");
+    }
 
 
     // double t0        = param_ptr->t_initial;
@@ -117,9 +118,9 @@ void InputOutput::ReadDataFile(int restart_num) {
     std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
 
     // NVTX3_FUNC_RANGE();
-#ifdef DEBUG
-    std::printf("Reading data file... \n");
-#endif
+    if (param_ptr->debug > 0){
+        std::printf("Reading data file... \n");
+    }
 
     char data_snap_name[16];
     double time_save;

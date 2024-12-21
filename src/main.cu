@@ -21,6 +21,8 @@
 
 void startup();
 
+Variables vars;
+Grid grid;
 
 int main(int argc, char *argv[]) {
 
@@ -110,10 +112,10 @@ int main(int argc, char *argv[]) {
 
     spooky.Restart(restart_num);
 
-#ifdef DDEBUG
-    spooky.fields_ptr->wavevector.print_values();
-    spooky.fields_ptr->print_host_values();
-#endif
+    if (spooky.param_ptr->debug > 1) {
+        spooky.fields_ptr->wavevector.print_values();
+        spooky.fields_ptr->print_host_values();
+    }
 
     std::printf("Allocating to gpu...\n");
     spooky.fields_ptr->allocate_and_move_to_gpu();
@@ -133,10 +135,9 @@ int main(int argc, char *argv[]) {
     spooky.fields_ptr->clean_gpu();
     std::printf("Finished fields gpu cleanup\n");
 
-#ifdef DDEBUG
-    // fields_ptr->wavevector.print_values();
-    spooky.fields_ptr->print_host_values();
-#endif
+    if (spooky.param_ptr->debug > 1) {
+        spooky.fields_ptr->print_host_values();
+    }
 
     std::printf("Finishing cufft\n");
     finish_cufft();

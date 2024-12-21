@@ -20,12 +20,13 @@ Wavevector::~Wavevector() {
 
 
 // void Wavevector::init_Wavevector(Parameters *p_in) {
-Wavevector::Wavevector(double Lx, double Ly, double Lz) {
+Wavevector::Wavevector(Parameters &p_in) {
+
     unsigned int idx;
 
     // scalar_type Lx, scalar_type Ly, scalar_type Lz
-    // lx = p_in->lx; ly = p_in->ly; lz = p_in->lz;
-    lx = Lx; ly = Ly; lz = Lz;
+    lx = p_in.lx; ly = p_in.ly; lz = p_in.lz;
+    // lx = Lx; ly = Ly; lz = Lz;
     // std::printf("baginning of wave\n");
     // all_kvec contains kx ky kz sequentially
     all_kvec = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex * 3);
@@ -39,7 +40,7 @@ Wavevector::Wavevector(double Lx, double Ly, double Lz) {
 
     d_kvec = (scalar_type **) malloc( (size_t) sizeof(scalar_type *) * 3);
     // kxt = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
-    // ky = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
+    // ky = (scalar_type *) madouble Lx, double Ly, double Lzlloc( (size_t) sizeof(scalar_type) * ntotal_complex);
     // kz = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
     // kz = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal_complex);
 
@@ -66,26 +67,25 @@ Wavevector::Wavevector(double Lx, double Ly, double Lz) {
 
     std::printf("Maximum wavenumbers (without dealiasing): kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",kxmax,kymax, kzmax);
 
-#ifdef DEALIASING
-    for (int i = 0; i < nx; i++){
-        for (int j = 0; j < ny; j++){
-            for (int k = 0; k < nz/2 + 1; k++){
-                idx = k + (nz/2+1) * ( j + i * ny);
-                mask[idx] = 1.0;
-                if( fabs( kvec[KX][ idx] ) > 2.0/3.0 * kxmax)
-                    mask[idx] = 0.0;
-                if( fabs( kvec[KY][ idx ] ) > 2.0/3.0 * kymax)
-                    mask[idx] = 0.0;
-                if( fabs( kvec[KZ][ idx ] ) > 2.0/3.0 * kzmax)
-                    mask[idx] = 0.0;
+    if (p_in.antialiasing){
+        for (int i = 0; i < nx; i++){
+            for (int j = 0; j < ny; j++){
+                for (int k = 0; k < nz/2 + 1; k++){
+                    idx = k + (nz/2+1) * ( j + i * ny);
+                    mask[idx] = 1.0;
+                    if( fabs( kvec[KX][ idx] ) > 2.0/3.0 * kxmax)
+                        mask[idx] = 0.0;
+                    if( fabs( kvec[KY][ idx ] ) > 2.0/3.0 * kymax)
+                        mask[idx] = 0.0;
+                    if( fabs( kvec[KZ][ idx ] ) > 2.0/3.0 * kzmax)
+                        mask[idx] = 0.0;
+                }
             }
         }
+        kxmax = (2.0 / 3.0 ) * kxmax;
+        kymax = (2.0 / 3.0 ) * kymax;
+        kzmax = (2.0 / 3.0 ) * kzmax;
     }
-    kxmax = (2.0 / 3.0 ) * kxmax;
-    kymax = (2.0 / 3.0 ) * kymax;
-    kzmax = (2.0 / 3.0 ) * kzmax;
-
-#endif
 
     kmax  = pow(kxmax*kxmax+kymax*kymax+kzmax*kzmax,0.5);
 }

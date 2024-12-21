@@ -10,35 +10,40 @@
 #include "supervisor.hpp"
 
 void Fields::CheckSymmetries(){
+
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
     int current_step = supervisor_ptr->timestep_ptr->current_step;
-    int symmetries_step = supervisor_ptr->param_ptr->symmetries_step;
-    double deltax = supervisor_ptr->param_ptr->lx / nx;
+    int symmetries_step = param_ptr->symmetries_step;
+    double deltax = param_ptr->lx / nx;
     double meanFieldDiv = 0.0;
-#ifdef DEBUG
-    if( current_step % 100 == 0) {
+
+
+    if (param_ptr->debug > 0 and current_step % 100 == 0) {
         std::printf("Computing divergence of v/B fields \n");
-#ifdef INCOMPRESSIBLE
-        // compute mean divergence for velocity field
-        meanFieldDiv = ComputeDivergence(d_all_fields + ntotal_complex * VX);
-        std::printf("---- Mean-divergence of v-field is %.2e [< div Field> * Delta x]\n", meanFieldDiv*deltax);
-#ifdef MHD
-        meanFieldDiv = ComputeDivergence(d_all_fields + ntotal_complex * BX);
-        std::printf("---- Mean-divergence of B-field is %.2e [< div Field> * Delta x]\n", meanFieldDiv*deltax);
-#endif
-#endif
+        if (param_ptr->incompressible) {
+            // compute mean divergence for velocity field
+            meanFieldDiv = ComputeDivergence(d_all_fields + ntotal_complex * VX);
+            std::printf("---- Mean-divergence of v-field is %.2e [< div Field> * Delta x]\n", meanFieldDiv*deltax);
+        }
+        if (param_ptr->mhd) {
+            meanFieldDiv = ComputeDivergence(d_all_fields + ntotal_complex * BX);
+            std::printf("---- Mean-divergence of B-field is %.2e [< div Field> * Delta x]\n", meanFieldDiv*deltax);
+        }
     }
-#endif
+
+
+
     if( current_step % symmetries_step) {
         CleanFieldDivergence();
 
-// #ifdef INCOMPRESSIBLE
+
 //         // clean divergence for velocity field
 //         CleanFieldDivergence(d_all_fields + ntotal_complex * VX);
-// #ifdef MHD
+
 //         // clean divergence for magnetic field
 //         CleanFieldDivergence(d_all_fields + ntotal_complex * BX);
-// #endif
-// #endif
+
     }
     
 }
@@ -67,14 +72,13 @@ double Fields::ComputeDivergence( data_type* complex_Fields ){
 
 // void Fields::CleanDivergence(){
 //
-// #ifdef INCOMPRESSIBLE
+
 //         // clean divergence for velocity field
 //         CleanFieldDivergence(d_all_fields + ntotal_complex * VX);
-// #ifdef MHD
+
 //         // clean divergence for magnetic field
 //         CleanFieldDivergence(d_all_fields + ntotal_complex * BX);
-// #endif
-// #endif
+
 //
 // }
 
@@ -84,10 +88,12 @@ void Fields::CleanFieldDivergence( ){
 
     blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
 
-#ifdef INCOMPRESSIBLE
-    CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>(wavevector.d_all_kvec, d_all_fields + ntotal_complex * VX, d_all_fields + ntotal_complex * VX, (size_t) ntotal_complex);
-#ifdef MHD
-    CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>(wavevector.d_all_kvec, d_all_fields + ntotal_complex * BX, d_all_fields + ntotal_complex * BX, (size_t) ntotal_complex);
-#endif
-#endif
+
+    if (param_ptr->incompressible) {
+        CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>(wavevector.d_all_kvec, d_all_fields + ntotal_complex * VX, d_all_fields + ntotal_complex * VX, (size_t) ntotal_complex);
+    }
+    if (param_ptr->mhd) {
+        CleanDivergence<<<blocksPerGrid, threadsPerBlock>>>(wavevector.d_all_kvec, d_all_fields + ntotal_complex * BX, d_all_fields + ntotal_complex * BX, (size_t) ntotal_complex);
+    }
+
 }

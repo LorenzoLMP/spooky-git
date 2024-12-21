@@ -34,7 +34,7 @@ Fields::~Fields() {
 }
 
 // void Fields::init_Fields( int num, Parameters *p_in )  {
-Fields::Fields(Supervisor &sup_in, Parameters &p_in) : wavevector(p_in.lx, p_in.ly, p_in.lz) {
+Fields::Fields(Supervisor &sup_in, Parameters &p_in) : wavevector(p_in) {
 
     supervisor_ptr = &sup_in;
     num_fields = NUM_FIELDS;

@@ -25,187 +25,170 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
     // double dt_tot = 0.0;
     double gamma_v = 0.0, gamma_th = 0.0, gamma_par = 0.0, gamma_b = 0.0;
 
-#ifdef DDEBUG
-    std::printf("Now entering compute_dt function \n");
-#endif
-
-
-#ifdef HEAT_EQ
-
-    // for heat eq we do not need to transform from complex
-    // to real, because we can just use complex variables
-    // and the dt is fixed (given by nu_th)
-
-    gamma_par = ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu_th;
-    dt_par = param_ptr->cfl_par / gamma_par;
-    current_dt = dt_par;
-#if defined(SUPERTIMESTEPPING) && defined(TEST)
-    // replicate Vaidya 2017
-    dt_hyp = 0.00703125 * (param_ptr->lx/nx);
-    current_dt = dt_hyp;
-#endif
-
-#endif // HEAT_EQ
-
-
-#ifdef INCOMPRESSIBLE
-
-    // for incompressible we need to first transform from
-    // complex to real in order to compute dt
-
-    // this functions copies the complex fields from d_all_fields into d_all_buffer_r and performs
-    // an in-place r2c FFT to give the real fields. This buffer is reserved for the real fields!
-    supervisor_ptr->Complex2RealFields(complex_Fields, real_Buffer, fields_ptr->num_fields);
-
-    // now we have all the real fields
-    scalar_type* vx = real_Buffer + 2 * ntotal_complex * VX;
-    scalar_type* vy = real_Buffer + 2 * ntotal_complex * VY;
-    scalar_type* vz = real_Buffer + 2 * ntotal_complex * VZ;
-
-
-    double maxfx, maxfy, maxfz;
-
-    maxfx=0.0;
-    maxfy=0.0;
-    maxfz=0.0;
-
-    int idx_max_vx, idx_max_vy, idx_max_vz;
-    cublasStatus_t stat;
-
-
-    stat = cublasIdamax(handle0, 2 * ntotal_complex, vx, 1, &idx_max_vx);
-    if (stat != CUBLAS_STATUS_SUCCESS) std::printf("vx max failed\n");
-    stat = cublasIdamax(handle0, 2 * ntotal_complex, vy, 1, &idx_max_vy);
-    if (stat != CUBLAS_STATUS_SUCCESS) std::printf("vy max failed\n");
-    stat = cublasIdamax(handle0, 2 * ntotal_complex, vz, 1, &idx_max_vz);
-    if (stat != CUBLAS_STATUS_SUCCESS) std::printf("vz max failed\n");
-
-
-    // index is in fortran convention
-    CUDA_RT_CALL(cudaMemcpy(&maxfx, &vx[idx_max_vx-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
-    CUDA_RT_CALL(cudaMemcpy(&maxfy, &vy[idx_max_vy-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
-    CUDA_RT_CALL(cudaMemcpy(&maxfz, &vz[idx_max_vz-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
-
-
-    maxfx=fabs(maxfx);
-    maxfy=fabs(maxfy);
-    maxfz=fabs(maxfz);
-
-
-
-    gamma_v = ( fields_ptr->wavevector.kxmax ) * maxfx + fields_ptr->wavevector.kymax * maxfy + fields_ptr->wavevector.kzmax * maxfz;
-
-
-#ifdef WITH_ROTATION
-    gamma_v += fabs(param_ptr->omega) / param_ptr->safety_source;
-#endif
-
-#ifdef WITH_SHEAR
-    gamma_v += fabs(param_ptr->shear) / param_ptr->safety_source;
-#endif
-
-// #ifdef INCOMPRESSIBLE
-// #ifdef WITH_EXPLICIT_DISSIPATION
-	gamma_v += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu;	// CFL condition on viscosity in incompressible regime
-// #endif
-// #endif
-
-#ifdef BOUSSINESQ
-    gamma_th += pow(fabs(param_ptr->N2), 0.5) / param_ptr->safety_source;
-#ifdef ANISOTROPIC_DIFFUSION
-    gamma_th += pow(fabs(param_ptr->OmegaT2), 0.5) / param_ptr->safety_source;
-
-    gamma_par += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * (1./param_ptr->reynolds_ani);
-#else
-    gamma_par += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu_th; // NB: this is very conservative. It should be combined with the condition on nu
-#endif // ANISOTROPIC_DIFFUSION
-#endif // BOUSSINESQ
-
-#ifdef DDEBUG
-    // if (current_step == 1 || current_step % 10 == 0 ) std::printf("maxfx: %.4e \t maxfy: %.4e \t maxfz: %.4e \t gamma_v: %.4e \n",maxfx,maxfy,maxfz,gamma_v);
-    std::printf("maxfx: %.6e \t maxfy: %.6e \t maxfz: %.6e \t gamma_v: %.6e \n",maxfx,maxfy,maxfz,gamma_v);
-#endif
-
-#ifdef MHD
-
-    double maxbx, maxby, maxbz;
-
-
-    maxbx=0.0;
-    maxby=0.0;
-    maxbz=0.0;
-
-    int idx_max_bx, idx_max_by, idx_max_bz;
-    // cublasStatus_t stat;
-
-    scalar_type* Bx = real_Buffer + 2 * ntotal_complex * BX;
-    scalar_type* By = real_Buffer + 2 * ntotal_complex * BY;
-    scalar_type* Bz = real_Buffer + 2 * ntotal_complex * BZ;
-
-    stat = cublasIdamax(handle0, 2 * ntotal_complex, Bx, 1, &idx_max_bx);
-    stat = cublasIdamax(handle0, 2 * ntotal_complex, By, 1, &idx_max_by);
-    stat = cublasIdamax(handle0, 2 * ntotal_complex, Bz, 1, &idx_max_bz);
-
-    CUDA_RT_CALL(cudaMemcpy(&maxbx, &Bx[idx_max_bx-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
-    CUDA_RT_CALL(cudaMemcpy(&maxby, &By[idx_max_by-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
-    CUDA_RT_CALL(cudaMemcpy(&maxbz, &Bz[idx_max_bz-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
-    // maxfx=d_farray_r[0][idx_max_vx-1];
-    // maxfy=d_farray_r[1][idx_max_vy-1];
-    // maxfz=d_farray_r[2][idx_max_vz-1];
-
-    maxbx=fabs(maxbx);
-    maxby=fabs(maxby);
-    maxbz=fabs(maxbz);
-
-    // std::printf("maxbx: %.5f \n",maxfx);
-    // std::printf("maxby: %.5f \n",maxfy);
-    // std::printf("maxbz: %.5f \n",maxfz);
-
-
-    gamma_b = ( fields_ptr->wavevector.kxmax ) * maxbx + fields_ptr->wavevector.kymax * maxby + fields_ptr->wavevector.kzmax * maxbz;
-
-    gamma_b += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu_m;	// CFL condition on resistivity
-
-#ifdef DDEBUG
-    // if (current_step == 1 || current_step % 10 == 0 ) std::printf("maxbx: %.4e \t maxby: %.4e \t maxbz: %.4e \t gamma_b: %.4e \n",maxbx,maxby,maxbz,gamma_b);
-    std::printf("maxbx: %.6e \t maxby: %.6e \t maxbz: %.6e \t gamma_b: %.6e \n",maxbx,maxby,maxbz,gamma_b);
-#endif
-
-
-#endif //end MHD
-
-    dt_hyp = param_ptr->cfl / (gamma_v + gamma_th + gamma_b);
-    dt_par = param_ptr->cfl_par / gamma_par;
-    // dt_tot = param_ptr->cfl / (gamma_v + gamma_th + gamma_b + gamma_par);
-    // dt_tot = 1.0 / (1.0/dt_hyp + 1.0/dt_par);
-
-#ifndef SUPERTIMESTEPPING
-    current_dt = param_ptr->cfl / (gamma_v + gamma_th + gamma_b + gamma_par);
-
-#else
-    if ( dt_hyp > dt_par * param_ptr->safety_sts) {
-        dt_hyp =  dt_par * param_ptr->safety_sts;
+    if (param_ptr->debug > 0) {
+        std::printf("Now entering compute_dt function \n");
     }
-    if ( dt_hyp < dt_par ) {
-        dt_par = dt_hyp;
+
+    if (param_ptr->heat_equation) {
+        // for heat eq we do not need to transform from complex
+        // to real, because we can just use complex variables
+        // and the dt is fixed (given by nu_th)
+
+        gamma_par = ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu_th;
+        dt_par = param_ptr->cfl_par / gamma_par;
+        current_dt = dt_par;
+
+        // #if defined(SUPERTIMESTEPPING) && defined(TEST)
+        //     // replicate Vaidya 2017
+        //     dt_hyp = 0.00703125 * (param_ptr->lx/nx);
+        //     current_dt = dt_hyp;
+        // #endif
     }
-    current_dt = dt_hyp;
-#endif
+
+    if (param_ptr->incompressible) {
+
+        // for incompressible we need to first transform from
+        // complex to real in order to compute dt
+
+        // this functions copies the complex fields from d_all_fields into d_all_buffer_r and performs
+        // an in-place r2c FFT to give the real fields. This buffer is reserved for the real fields!
+        supervisor_ptr->Complex2RealFields(complex_Fields, real_Buffer, fields_ptr->num_fields);
+
+        // now we have all the real fields
+        scalar_type* vx = real_Buffer + 2 * ntotal_complex * VX;
+        scalar_type* vy = real_Buffer + 2 * ntotal_complex * VY;
+        scalar_type* vz = real_Buffer + 2 * ntotal_complex * VZ;
 
 
-#endif //end INCOMPRESSIBLE
+        double maxfx, maxfy, maxfz;
+
+        maxfx=0.0;
+        maxfy=0.0;
+        maxfz=0.0;
+
+        int idx_max_vx, idx_max_vy, idx_max_vz;
+        cublasStatus_t stat;
+
+
+        stat = cublasIdamax(handle0, 2 * ntotal_complex, vx, 1, &idx_max_vx);
+        if (stat != CUBLAS_STATUS_SUCCESS) std::printf("vx max failed\n");
+        stat = cublasIdamax(handle0, 2 * ntotal_complex, vy, 1, &idx_max_vy);
+        if (stat != CUBLAS_STATUS_SUCCESS) std::printf("vy max failed\n");
+        stat = cublasIdamax(handle0, 2 * ntotal_complex, vz, 1, &idx_max_vz);
+        if (stat != CUBLAS_STATUS_SUCCESS) std::printf("vz max failed\n");
+
+
+        // index is in fortran convention
+        CUDA_RT_CALL(cudaMemcpy(&maxfx, &vx[idx_max_vx-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
+        CUDA_RT_CALL(cudaMemcpy(&maxfy, &vy[idx_max_vy-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
+        CUDA_RT_CALL(cudaMemcpy(&maxfz, &vz[idx_max_vz-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
+
+
+        maxfx=fabs(maxfx);
+        maxfy=fabs(maxfy);
+        maxfz=fabs(maxfz);
+
+
+
+        gamma_v = ( fields_ptr->wavevector.kxmax ) * maxfx + fields_ptr->wavevector.kymax * maxfy + fields_ptr->wavevector.kzmax * maxfz;
+
+        // if (param_ptr->rotation) {
+        //     gamma_v += fabs(param_ptr->omega) / param_ptr->safety_source;
+        // }
+        //
+        // if (param_ptr->shear) {
+        //     gamma_v += fabs(param_ptr->shear) / param_ptr->safety_source;
+        // }
+
+        gamma_par += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu;	// CFL condition on viscosity in incompressible regime
+
+
+        if (param_ptr->boussinesq) {
+            gamma_th += pow(fabs(param_ptr->N2), 0.5) / param_ptr->safety_source;
+
+            if (param_ptr->anisotropic_diffusion) {
+
+                gamma_th += pow(fabs(param_ptr->OmegaT2), 0.5) / param_ptr->safety_source;
+
+                gamma_par += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * (1./param_ptr->reynolds_ani);
+            }
+            else {
+                gamma_par += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu_th; // NB: this is very conservative. It should be combined with the condition on nu
+            }
+        }
+
+        if (param_ptr->debug > 1) {
+            std::printf("maxfx: %.6e \t maxfy: %.6e \t maxfz: %.6e \t gamma_v: %.6e \n",maxfx,maxfy,maxfz,gamma_v);
+        }
+
+        if (param_ptr->mhd) {
+
+            double maxbx, maxby, maxbz;
+
+            maxbx=0.0;
+            maxby=0.0;
+            maxbz=0.0;
+
+            int idx_max_bx, idx_max_by, idx_max_bz;
+            // cublasStatus_t stat;
+
+            scalar_type* Bx = real_Buffer + 2 * ntotal_complex * BX;
+            scalar_type* By = real_Buffer + 2 * ntotal_complex * BY;
+            scalar_type* Bz = real_Buffer + 2 * ntotal_complex * BZ;
+
+            stat = cublasIdamax(handle0, 2 * ntotal_complex, Bx, 1, &idx_max_bx);
+            stat = cublasIdamax(handle0, 2 * ntotal_complex, By, 1, &idx_max_by);
+            stat = cublasIdamax(handle0, 2 * ntotal_complex, Bz, 1, &idx_max_bz);
+
+            CUDA_RT_CALL(cudaMemcpy(&maxbx, &Bx[idx_max_bx-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
+            CUDA_RT_CALL(cudaMemcpy(&maxby, &By[idx_max_by-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
+            CUDA_RT_CALL(cudaMemcpy(&maxbz, &Bz[idx_max_bz-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
+
+            maxbx=fabs(maxbx);
+            maxby=fabs(maxby);
+            maxbz=fabs(maxbz);
+
+            gamma_b = ( fields_ptr->wavevector.kxmax ) * maxbx + fields_ptr->wavevector.kymax * maxby + fields_ptr->wavevector.kzmax * maxbz;
+
+            gamma_par += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu_m;	// CFL condition on resistivity
+
+            if (param_ptr->debug > 1) {
+                std::printf("maxbx: %.6e \t maxby: %.6e \t maxbz: %.6e \t gamma_b: %.6e \n",maxbx,maxby,maxbz,gamma_b);
+            }
+
+        } //end MHD
+
+        dt_hyp = param_ptr->cfl / (gamma_v + gamma_th + gamma_b);
+        dt_par = param_ptr->cfl_par / gamma_par;
+        // dt_tot = param_ptr->cfl / (gamma_v + gamma_th + gamma_b + gamma_par);
+        // dt_tot = 1.0 / (1.0/dt_hyp + 1.0/dt_par);
+
+        if (not param_ptr->supertimestepping) {
+
+            current_dt = param_ptr->cfl / (gamma_v + gamma_th + gamma_b + gamma_par);
+        }
+        else {
+
+            if ( dt_hyp > dt_par * param_ptr->safety_sts) {
+                dt_hyp =  dt_par * param_ptr->safety_sts;
+            }
+            if ( dt_hyp < dt_par ) {
+                dt_par = dt_hyp;
+            }
+            current_dt = dt_hyp;
+        }
+
+    } //end INCOMPRESSIBLE
 
 
 
     if ( current_time + current_dt > param_ptr->t_final) current_dt = param_ptr->t_final - current_time;
 
-// #ifdef DDEBUG
-//     if (current_step == 1 || current_step % 100 == 0 ) std::printf("t: %.4e \t dt: %.4e \n", current_time, current_dt);
-// #endif
-#ifdef DEBUG
-    // if (current_step == 1 || current_step % 10 == 0 ) std::printf("t: %.4e \t gamma_par = %.4e \t gamma_v = %.4e \t gamma_b = %.4e \t dt_hyp: %.4e \t dt_par: %.4e \t dt_current: %.4e \n", current_time, gamma_par, gamma_v + gamma_th, gamma_b, dt_hyp, dt_par, current_dt);
-    std::printf("t: %.4e \t gamma_par = %.4e \t gamma_v = %.4e \t gamma_b = %.4e \t dt_hyp: %.4e \t dt_par: %.4e \t dt_current: %.4e \n", current_time, gamma_par, gamma_v + gamma_th, gamma_b, dt_hyp, dt_par, current_dt);
-#endif
+
+    if (param_ptr->debug > 0) {
+
+        std::printf("t: %.4e \t gamma_par = %.4e \t gamma_v = %.4e \t gamma_b = %.4e \t dt_hyp: %.4e \t dt_par: %.4e \t dt_current: %.4e \n", current_time, gamma_par, gamma_v + gamma_th, gamma_b, dt_hyp, dt_par, current_dt);
+    }
 
 }
 

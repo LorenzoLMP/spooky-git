@@ -4,7 +4,8 @@
 #include <cstring>
 // #include "libconfig/libconfig.h++"
 #include <libconfig.h>
-// #include "common.hpp"
+#include <math.h>
+#include "common.hpp"
 #include "parameters.hpp"
 // #include "spooky_outputs.hpp"
 
@@ -42,7 +43,7 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	config_t	config;		// Initialize the structure
 	config_setting_t * setting;	// a setting structure
 	int tmp_v;
-	int i,n;
+	int i, n;
 	std::string config_fullpath(input_dir);
 	config_fullpath.append("/");
 	config_fullpath.append(std::string(SPOOKY_CONFIG_FILENAME));
@@ -128,6 +129,17 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	if(!config_lookup_float(&config, "physics.boxsize.[2]",&lz)) {
 		lz = 1.0;
 	}
+
+	if(config_lookup_int(&config, "physics.nx",&nx)) {
+		nx = 32;
+	}
+	if(config_lookup_int(&config, "physics.ny",&ny)) {
+		ny = 32;
+	}
+	if(config_lookup_int(&config, "physics.nz",&nz)) {
+		nz = 32;
+	}
+
 	if(!config_lookup_float(&config, "physics.reynolds",&reynolds)) {
 		reynolds = 1.0;
 	}
@@ -438,11 +450,64 @@ int Parameters::checkParameters(){
 		paramsConsistent = 0;
 		std::cout << "Error: mhd requires incompressible module" << std::endl;
 	}
-	if (anisotropic_diffusion and not mhd){
+	if (anisotropic_diffusion and not (mhd and boussinesq) ) {
 		paramsConsistent = 0;
-		std::cout << "Error: anisotropic_diffusion requires mhd module" << std::endl;
+		std::cout << "Error: anisotropic_diffusion requires mhd and boussinesq module" << std::endl;
 	}
 
-
 	return paramsConsistent;
+}
+
+void Parameters::popVariablesGrid() {
+
+	vars.NUM_FIELDS = 0;
+
+	vars.KX = 0;
+	vars.KY = 1;
+	vars.KZ = 2;
+
+	if (incompressible) {
+		vars.VX = 0;
+		vars.VY = 1;
+		vars.VZ = 2;
+		vars.NUM_FIELDS += 3;
+
+		if (mhd) {
+			vars.BX = 3;
+			vars.BY = 4;
+			vars.BZ = 5;
+			vars.NUM_FIELDS += 3;
+
+			if (boussinesq) {
+				vars.TH = 6;
+				vars.NUM_FIELDS += 1;
+			}
+		}
+		else { // not mhd
+			if (boussinesq) {
+				vars.TH = 3;
+				vars.NUM_FIELDS += 1;
+			}
+		}
+	}
+
+	if (heat_equation) {
+		vars.TH = 0;
+		vars.NUM_FIELDS += 1;
+	}
+
+	grid.nx = (size_t) nx;
+	grid.ny = (size_t) ny;
+	grid.nz = (size_t) nz;
+
+	grid.fft_size[0] = grid.nx;
+	grid.fft_size[1] = grid.ny;
+	grid.fft_size[2] = grid.nz;
+
+	grid.ntotal = grid.nx * grid.ny * grid.nz;
+
+	grid.ntotal_complex = grid.nx * grid.ny * (( grid.nz / 2) + 1);
+
+
+
 }

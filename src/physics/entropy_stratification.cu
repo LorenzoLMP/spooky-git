@@ -15,15 +15,12 @@ void Physics::EntropyStratification(data_type* complex_Fields, scalar_type* real
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
-#ifdef BOUSSINESQ
-#ifdef STRATIFICATION
-    // add - th e_strat to velocity component in the strat direction
-    // add N2 u_strat to temperature equation
-    // this is for normalization where theta is in units of g [L/T^2]
-    // other normalizations possible
-    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields, complex_dFields, param_ptr->N2, ntotal_complex, STRAT_DIR);
-#endif // STRATIFICATION
-#endif // BOUSSINESQ
-
+    if (param_ptr->stratification) {
+        // add - th e_strat to velocity component in the strat direction
+        // add N2 u_strat to temperature equation
+        // this is for normalization where theta is in units of g [L/T^2]
+        // other normalizations possible
+        blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+        BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields, complex_dFields, param_ptr->N2, ntotal_complex, STRAT_DIR);
+    }
 }

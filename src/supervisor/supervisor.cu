@@ -32,17 +32,21 @@ Supervisor::Supervisor(std::string input_dir) :
         std::cout << "Error: your choice of physics modules is not consistent. Aborting now." << std::endl;
         exit(0);
     }
+    else {
+    /*****
+     *
+     * Populate Variables/Grid struct
+     *
+     * ****/
+        param_ptr->popVariablesGrid();
+
+    }
 
     fields_ptr = std::shared_ptr<Fields> (new Fields(*this, *param_ptr));
     phys_ptr = std::shared_ptr<Physics> (new Physics(*this));
     timestep_ptr = std::shared_ptr<TimeStepping> (new TimeStepping(*this, *param_ptr));
     inout_ptr = std::shared_ptr<InputOutput> (new InputOutput(*this));
 
-    // param(this, input_dir),
-    // fields(this, param),
-    // phys(this),
-    // timestep(this, param),
-    // inout(this),
 
     stats_frequency = -1;
     time_delta = 0.0;
@@ -117,13 +121,15 @@ void Supervisor::displayConfiguration(){
     std::printf("lx = %f \t ly = %f \t lz = %f\n",param_ptr->lx, param_ptr->ly, param_ptr->lz);
     std::printf("kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",fields_ptr->wavevector.kxmax,fields_ptr->wavevector.kymax, fields_ptr->wavevector.kzmax);
     std::printf("numfields = %d",fields_ptr->num_fields);
-#ifdef BOUSSINESQ
-    std::printf("nu_th = %.2e \n",param_ptr->nu_th);
-#endif
+
+    if (param_ptr->boussinesq) {
+        std::printf("nu_th = %.2e \n",param_ptr->nu_th);
+    }
+
     std::printf("nu = %.2e \n",param_ptr->nu);
-#ifdef STRATIFICATION
-    std::printf("N2 = %.2e \n",param_ptr->N2);
-#endif
+    if (param_ptr->stratification) {
+        std::printf("N2 = %.2e \n",param_ptr->N2);
+    }
     std::printf("t_final = %.2e \n",param_ptr->t_final);
     std::printf("Enforcing symmetries every %d steps \n",param_ptr->symmetries_step);
     std::printf("Saving snapshot every  dt = %.2e \n",param_ptr->toutput_flow);
@@ -143,9 +149,10 @@ void Supervisor::executeMainLoop(){
         inout_ptr->CheckOutput();
         // check if we need to enforce symmetries
         fields_ptr->CheckSymmetries();
-#ifdef DDEBUG
-        std::printf("step: %d \t dt: %.2e \n", timestep_ptr->current_step,timestep_ptr->current_dt);
-#endif
+
+        if (param_ptr->debug == 2){
+            std::printf("step: %d \t dt: %.2e \n", timestep_ptr->current_step,timestep_ptr->current_dt);
+        }
 
         if (stats_frequency > 0){
             if ( timestep_ptr->current_step % stats_frequency == 0)

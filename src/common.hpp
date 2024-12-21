@@ -6,47 +6,31 @@
 #include "define_types.hpp"
 // #include "parameters.hpp"
 // extern Parameters param;
-#include "physics_modules.hpp"
+// #include "physics_modules.hpp"
 
-#define KX 0
-#define KY 1
-#define KZ 2
-
-#define ASS 0
+#define SET 0
 #define ADD 1
 
-#ifdef INCOMPRESSIBLE
-    #define VX 0
-    #define VY 1
-    #define VZ 2
+struct Variables {
+    int KX, KY, KZ;
+    int VX, VY, VZ;
+    int BX, BY, BZ;
+    int TH;
+    int VEL;
+    int MAG;
 
-    #ifdef MHD
-        #define BX 3
-        #define BY 4
-        #define BZ 5
-        #ifdef BOUSSINESQ
-            #define TH 6
-            #define NUM_FIELDS 7 // velocity plus mag plus temp
-        #else
-            #define NUM_FIELDS 6 // velocity plus mag field
-        #endif
-    #else //not MHD
-        #ifdef BOUSSINESQ
-            #define TH 3
-            #define NUM_FIELDS 4 // velocity plus temp
-        #else
-            #define NUM_FIELDS 3 // only velocity
-        #endif
-    #endif
-#endif
+    int NUM_FIELDS;
+};
 
-#ifdef HEAT_EQ
-    #define TH 0
-    #define NUM_FIELDS 1
-#endif
+extern Variables vars;
 
+struct Grid {
+    size_t nx, ny, nz;
+    size_t fft_size[3];
+    size_t ntotal, ntotal_complex;
+};
 
-
+extern Grid grid;
 
 // extern Parameters param;
 

@@ -89,7 +89,7 @@ void STS_ComputeSubSteps(double dtex, double* tau, int N, double STS_NU);
 void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_Buffer){
 
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
-    // std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
     std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
     std::shared_ptr<Physics> phys_ptr = supervisor_ptr->phys_ptr;
 
@@ -105,9 +105,7 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
     double tau;
     int num_fields = fields_ptr->num_fields;
 
-// #ifdef BOUSSINESQ
-#ifdef SUPERTIMESTEPPING
-// #ifdef ANISOTROPIC_DIFFUSION
+
     tau = dt_par;
 
     m = 0;
@@ -117,23 +115,24 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
         N = STS_FindRoot(dt_par, dt_hyp, STS_NU);
         N = floor(N+1.0);
         n = (int)N;
-#ifdef DEBUG
-        std::printf("STS::::: number of STS subcycles: %d \n",n);
-#endif
 
+        if (param_ptr->debug > 0) {
+            std::printf("STS::::: number of STS subcycles: %d \n",n);
+        }
 
         if (n > 1){
             dt_par_corr = STS_CorrectTimeStep(n, dt_hyp, STS_NU);
-#ifdef DEBUG
-        std::printf("STS::::: dt_par_corr: %4.e \n",dt_par_corr);
-#endif
+            if (param_ptr->debug > 0) {
+                std::printf("STS::::: dt_par_corr: %4.e \n",dt_par_corr);
+            }
             STS_ComputeSubSteps(dt_par_corr, ts, n, STS_NU);
         }
         if (n == 1) ts[0] = dt_hyp;
         tau = ts[n-m-1];
-#ifdef DEBUG
-        std::printf("STS::::: tau: %4.e \n",tau);
-#endif
+        if (param_ptr->debug > 0) {
+            std::printf("STS::::: tau: %4.e \n",tau);
+        }
+
 
         // anisotropic_conduction( rhs, fldi);
         // phys_ptr->AnisotropicConduction(fields, param, (data_type *) fields_ptr->d_farray[TH], (data_type *) d_farray_dU[TH]);
@@ -149,22 +148,19 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
         // this is for all parabolic terms
         blocksPerGrid = (ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
         for (nv = 0; nv < num_fields; nv++){
-          addReset<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields + nv * ntotal_complex,  d_farray_dU[nv],  complex_Fields + nv * ntotal_complex, 1.0, tau, ntotal_complex);
+            addReset<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields + nv * ntotal_complex,  d_farray_dU[nv],  complex_Fields + nv * ntotal_complex, 1.0, tau, ntotal_complex);
         }
         CUDA_RT_CALL( cudaDeviceSynchronize() );
 
         m++;
     }
 
-// #endif // ANISOTROPIC_DIFFUSION
-#endif //supertimestepping
-// #endif // Boussinesq
 }
 
 void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_Buffer){
 
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
-    // std::shared_ptr<Parameters> param = supervisor_ptr->param;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
     std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
     std::shared_ptr<Physics> phys_ptr = supervisor_ptr->phys_ptr;
 
@@ -193,18 +189,15 @@ void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_
     data_type Y;
     double a_jm1, b_j, b_jm1, b_jm2, w1;
 
-// #ifdef BOUSSINESQ
-#ifdef SUPERTIMESTEPPING
-// #ifdef ANISOTROPIC_DIFFUSION
 
     scrh  = dt_hyp/dt_par;                      /*  Solution of quadratic Eq.   */
     s_str =   4.0*(1.0 + 2.0*scrh)           /*  4*tau/dt_exp = s^2 + s - 2  */
             /(1.0 + sqrt(9.0 + 16.0*scrh));
 
     s_RKL = 1 + int(s_str);
-#ifdef DEBUG
-    std::printf("RKL::::: number of RKL subcycles: %d \n",s_RKL);
-#endif
+    if (param_ptr->debug > 0) {
+        std::printf("RKL::::: number of RKL subcycles: %d \n",s_RKL);
+    }
     w1 = 4.0/(s_RKL*s_RKL + s_RKL - 2.0);
     mu_tilde_j = w1/3.0;
 
@@ -274,9 +267,6 @@ void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_
     }
 
 
-// #endif // ANISOTROPIC_DIFFUSION
-#endif //supertimestepping
-// #endif // Boussinesq
 }
 
 

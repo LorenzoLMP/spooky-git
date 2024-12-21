@@ -25,7 +25,7 @@ public:
     scalar_type *d_mask;
     scalar_type lx, ly, lz;
 
-    Wavevector(double Lx, double Ly, double Lz);
+    Wavevector(Parameters &p_in);
     // Wavevector();
 
     // void init_Wavevector(Parameters *p_in);
@@ -70,7 +70,7 @@ public:
     // Fields(Parameters *p_in, TimeStepping *timestep_in, int num);
     Fields(Supervisor &sup_in, Parameters &p_in);
     // void init_Fields( int num, Parameters *p_in);
-    void init_SpatialStructure(Parameters &param);
+    void initSpatialStructure();
     void print_host_values();
     void print_device_values();
     void allocate_and_move_to_gpu();
