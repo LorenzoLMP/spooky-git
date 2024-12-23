@@ -27,7 +27,7 @@ void TimeStepping::HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr) {
     cudaEventRecord(supervisor_ptr->start_2);
 
 
-    // int blocksPerGrid = (2 * ntotal_complex * fields_ptr->num_fields + threadsPerBlock - 1) / threadsPerBlock;
+    // int blocksPerGrid = (2 * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS + threadsPerBlock - 1) / threadsPerBlock;
     stage_step = 0;
     current_step += 1;
 
@@ -53,7 +53,7 @@ void TimeStepping::HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr) {
     if (param_ptr->supertimestepping) {
         // this functions copies the complex fields from d_all_fields into d_all_buffer_r and performs
         // an in-place r2c FFT to give the real fields. This buffer is reserved for the real fields!
-        supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, fields_ptr->num_fields);
+        supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
 
         if (param_ptr->sts_algorithm.compare(std::string("sts"))) {
             rkl->compute_cycle_STS(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
@@ -91,7 +91,7 @@ void TimeStepping::RungeKutta3(data_type* complex_Fields, scalar_type* real_Buff
     data_type* complex_dFields = fields_ptr->d_all_dfields;
 
     double dt_RK = 0.0;
-    int blocksPerGrid = (2 * ntotal_complex * fields_ptr->num_fields + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid = (2 * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS + threadsPerBlock - 1) / threadsPerBlock;
 
 
 
@@ -113,9 +113,9 @@ void TimeStepping::RungeKutta3(data_type* complex_Fields, scalar_type* real_Buff
 
 
     // d_all_fields = d_all_fields + gammaRK[0] * dt * d_all_dfields;
-    axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields, complex_dFields, complex_Fields, (scalar_type) 1.0, gammaRK[0]*dt_RK,  ntotal_complex * fields_ptr->num_fields);
+    axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields, complex_dFields, complex_Fields, (scalar_type) 1.0, gammaRK[0]*dt_RK,  grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
     // // d_all_scrtimestep = d_all_fields + xiRK[0] * dt * d_all_dfields;
-    axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields, complex_dFields, d_all_scrtimestep, (scalar_type) 1.0, xiRK[0]*dt_RK,  ntotal_complex * fields_ptr->num_fields);
+    axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields, complex_dFields, d_all_scrtimestep, (scalar_type) 1.0, xiRK[0]*dt_RK,  grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
 
     // end of stage 1
     stage_step++;
@@ -132,9 +132,9 @@ void TimeStepping::RungeKutta3(data_type* complex_Fields, scalar_type* real_Buff
     //     }
 
     // d_all_fields = d_all_scrtimestep + gammaRK[1] * dt * d_all_dfields;
-    axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_all_scrtimestep, complex_dFields, complex_Fields, (scalar_type) 1.0, gammaRK[1]*dt_RK,  ntotal_complex * fields_ptr->num_fields);
+    axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_all_scrtimestep, complex_dFields, complex_Fields, (scalar_type) 1.0, gammaRK[1]*dt_RK,  grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
     // d_all_scrtimestep = d_all_fields + xiRK[1] * dt * d_all_dfields;
-    axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields, complex_dFields, d_all_scrtimestep, (scalar_type) 1.0, xiRK[1]*dt_RK,  ntotal_complex * fields_ptr->num_fields);
+    axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields, complex_dFields, d_all_scrtimestep, (scalar_type) 1.0, xiRK[1]*dt_RK,  grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
 
     // end of stage 2
     stage_step++;
@@ -150,7 +150,7 @@ void TimeStepping::RungeKutta3(data_type* complex_Fields, scalar_type* real_Buff
     //     fld.farray[n][i] = fld1.farray[n][i] + gammaRK[2] * dfld.farray[n][i] * dt;
     // }
     // d_all_fields = d_all_scrtimestep + gammaRK[2] * dt * d_all_dfields;
-    axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_all_scrtimestep, complex_dFields, complex_Fields, (scalar_type) 1.0, gammaRK[2]*dt_RK,  ntotal_complex * fields_ptr->num_fields);
+    axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_all_scrtimestep, complex_dFields, complex_Fields, (scalar_type) 1.0, gammaRK[2]*dt_RK,  grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
 
     current_time += current_dt;
 

@@ -12,16 +12,17 @@
 // #include "cuda_kernels.hpp"
 #include "cuda_kernels_generic.hpp"
 // #include <cuda.h>
+#include "common.hpp"
 
 
 
 int test_forward_inverse_transform(){
-    // size_t nx = 256;
-    // size_t ny = 128;
-    // size_t nz = 64;
-    // dim_t  fft_size = {nx, ny, nz};
-    // size_t ntotal = fft_size[0] * fft_size[1] * fft_size[2];
-    // size_t ntotal_complex = fft_size[0] * fft_size[1] * ((fft_size[2] / 2) + 1);
+    // size_t grid.NX = 256;
+    // size_t grid.NY = 128;
+    // size_t grid.NZ = 64;
+    // dim_t  grid.FFT_SIZE = {grid.NX, grid.NY, grid.NZ};
+    // size_t ntotal = grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * grid.FFT_SIZE[2];
+    // size_t grid.NTOTAL_COMPLEX = grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * ((grid.FFT_SIZE[2] / 2) + 1);
     int Niter = 100;
     // extern int dimGrid, dimBlock;
     cudaEvent_t start, stop;
@@ -31,22 +32,22 @@ int test_forward_inverse_transform(){
 
 
 
-    cpudata_t cpu_r_data((size_t) 2*ntotal_complex);
-    cpudata_t cpu_r_data_out((size_t) 2*ntotal_complex);
+    cpudata_t cpu_r_data((size_t) 2*grid.NTOTAL_COMPLEX);
+    cpudata_t cpu_r_data_out((size_t) 2*grid.NTOTAL_COMPLEX);
 
     unsigned int idx;
-    for (int i = 0; i < nx; i++){
-        for (int j = 0; j < ny; j++){
-            for (int k = 0; k < nz; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+    for (int i = 0; i < grid.NX; i++){
+        for (int j = 0; j < grid.NY; j++){
+            for (int k = 0; k < grid.NZ; k++){
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 cpu_r_data[idx] = idx;
             }
         }
     }
-    for (int i = 0; i < nx; i++){
-        for (int j = 0; j < ny; j++){
-            for (int k = nz; k < nz+2; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+    for (int i = 0; i < grid.NX; i++){
+        for (int j = 0; j < grid.NY; j++){
+            for (int k = grid.NZ; k < grid.NZ+2; k++){
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 cpu_r_data[idx] = 0.0;
             }
         }
@@ -56,7 +57,7 @@ int test_forward_inverse_transform(){
     for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
             for (int k = 0; k < 2; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 std::printf("v[%d] %f \n", idx, cpu_r_data[idx]);
             }
         }
@@ -66,15 +67,15 @@ int test_forward_inverse_transform(){
 
     // Create device data arrays
     void *c_data;
-    CUDA_RT_CALL(cudaMalloc(&c_data, (size_t) sizeof(data_type) * ntotal_complex));
-    std::printf("array size (in MiB): %f \n",(float) (sizeof(data_type) * ntotal_complex/1e6));
+    CUDA_RT_CALL(cudaMalloc(&c_data, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX));
+    std::printf("array size (in MiB): %f \n",(float) (sizeof(data_type) * grid.NTOTAL_COMPLEX/1e6));
     // Create pointer to complex array to store real data
     cufftDoubleReal *r_data = (scalar_type *) c_data;
     // Copy input data to GPUs
-    CUDA_RT_CALL(cudaMemcpy(r_data, cpu_r_data.data(), (size_t) sizeof(scalar_type) * 2 * ntotal_complex, cudaMemcpyHostToDevice));
+    CUDA_RT_CALL(cudaMemcpy(r_data, cpu_r_data.data(), (size_t) sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX, cudaMemcpyHostToDevice));
 
     // init plans
-    init_plan(fft_size);
+    init_plan(grid.FFT_SIZE);
 
     cudaEventRecord(start);
     // Do forward and inverse transform
@@ -85,14 +86,14 @@ int test_forward_inverse_transform(){
     cudaEventRecord(stop);
 
     // Copy output data to CPU
-    CUDA_RT_CALL(cudaMemcpy(cpu_r_data_out.data(), r_data, sizeof(scalar_type) * 2 * ntotal_complex, cudaMemcpyDeviceToHost));
+    CUDA_RT_CALL(cudaMemcpy(cpu_r_data_out.data(), r_data, sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX, cudaMemcpyDeviceToHost));
 
 
     std::printf("Output array:\n");
     for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
             for (int k = 0; k < 2; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 std::printf("v[%d] %f \n", idx, cpu_r_data_out[idx]);
             }
         }
@@ -107,10 +108,10 @@ int test_forward_inverse_transform(){
     // verify results
     double error{};
     double ref{};
-    for (int i = 0; i < nx; i++){
-        for (int j = 0; j < ny; j++){
-            for (int k = 0; k < nz; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+    for (int i = 0; i < grid.NX; i++){
+        for (int j = 0; j < grid.NY; j++){
+            for (int k = 0; k < grid.NZ; k++){
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 error += std::norm(cpu_r_data[idx] - cpu_r_data_out[idx]);
                 ref += std::norm(cpu_r_data_out[idx]);
             }
@@ -128,7 +129,7 @@ int test_forward_inverse_transform(){
     float milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
     std::printf("Elapsed time (in s): %.5f \t Approx time per FFT (in ms): %.5f \n",milliseconds/1000, 0.5*milliseconds/Niter);
-    float gflops = 1e-9*5*(ntotal_complex)*log2(ntotal_complex)/(0.5*1e-3*milliseconds/Niter);
+    float gflops = 1e-9*5*(grid.NTOTAL_COMPLEX)*log2(grid.NTOTAL_COMPLEX)/(0.5*1e-3*milliseconds/Niter);
     std::printf("Average GFlop/s (per Fourier transform) %.2f\n",gflops);
     
 
@@ -137,7 +138,7 @@ int test_forward_inverse_transform(){
 
 
 void test_do_multiplications() {
-    // init_plan(fft_size);
+    // init_plan(grid.FFT_SIZE);
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
@@ -146,23 +147,23 @@ void test_do_multiplications() {
     // Do forward and inverse transform
     int Niter=100;
 
-    cpudata_t cpu_r_data1((size_t) 2*ntotal_complex);
-    cpudata_t cpu_r_data2((size_t) 2*ntotal_complex);
+    cpudata_t cpu_r_data1((size_t) 2*grid.NTOTAL_COMPLEX);
+    cpudata_t cpu_r_data2((size_t) 2*grid.NTOTAL_COMPLEX);
 
     unsigned int idx;
-    for (int i = 0; i < nx; i++){
-        for (int j = 0; j < ny; j++){
-            for (int k = 0; k < nz; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+    for (int i = 0; i < grid.NX; i++){
+        for (int j = 0; j < grid.NY; j++){
+            for (int k = 0; k < grid.NZ; k++){
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 cpu_r_data1[idx] = idx;
                 cpu_r_data2[idx] = 2.0*idx;
             }
         }
     }
-    for (int i = 0; i < nx; i++){
-        for (int j = 0; j < ny; j++){
-            for (int k = nz; k < nz+2; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+    for (int i = 0; i < grid.NX; i++){
+        for (int j = 0; j < grid.NY; j++){
+            for (int k = grid.NZ; k < grid.NZ+2; k++){
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 cpu_r_data1[idx] = 0.0;
                 cpu_r_data2[idx] = 0.0;
             }
@@ -175,7 +176,7 @@ void test_do_multiplications() {
     for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
             for (int k = 0; k < 2; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, cpu_r_data1[idx], idx, cpu_r_data2[idx]);
                 // std::printf("v2[%d] %f \n", idx, cpu_r_data2[idx]);
             }
@@ -186,16 +187,16 @@ void test_do_multiplications() {
     // Create device data arrays
     scalar_type *dev_data1;
     scalar_type *dev_data2;
-    CUDA_RT_CALL(cudaMalloc(&dev_data1, (size_t) sizeof(scalar_type) * 2 * ntotal_complex));
-    CUDA_RT_CALL(cudaMalloc(&dev_data2, (size_t) sizeof(scalar_type) * 2 * ntotal_complex));
-    std::printf("array size (in MiB): %f \n",(float) (sizeof(scalar_type) * 2 * ntotal_complex/1e6));
+    CUDA_RT_CALL(cudaMalloc(&dev_data1, (size_t) sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX));
+    CUDA_RT_CALL(cudaMalloc(&dev_data2, (size_t) sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX));
+    std::printf("array size (in MiB): %f \n",(float) (sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX/1e6));
 
     // Copy input data to GPUs
-    CUDA_RT_CALL(cudaMemcpy(dev_data1, cpu_r_data1.data(), (size_t) sizeof(scalar_type) * 2 * ntotal_complex, cudaMemcpyHostToDevice));
-    CUDA_RT_CALL(cudaMemcpy(dev_data2, cpu_r_data2.data(), (size_t) sizeof(scalar_type) * 2 * ntotal_complex, cudaMemcpyHostToDevice));
+    CUDA_RT_CALL(cudaMemcpy(dev_data1, cpu_r_data1.data(), (size_t) sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX, cudaMemcpyHostToDevice));
+    CUDA_RT_CALL(cudaMemcpy(dev_data2, cpu_r_data2.data(), (size_t) sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX, cudaMemcpyHostToDevice));
 
     float milliseconds = 0;
-    int numElements = 2*ntotal_complex;
+    int numElements = 2*grid.NTOTAL_COMPLEX;
     int threadsPerBlock = 256;
     int blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
 
@@ -206,16 +207,16 @@ void test_do_multiplications() {
     cudaEventRecord(start);
     for (int ii = 0; ii < Niter; ii++) {
         // std::printf("iter %d \n", ii);
-        // thrust::transform(thrust::device_pointer_cast(d_farray_r[0]), thrust::device_pointer_cast(d_farray_r[0])+2*ntotal_complex, thrust::device_pointer_cast(d_farray_r[1]), thrust::device_pointer_cast(d_farray_r[0]), thrust::multiplies<scalar_type>());
+        // thrust::transform(thrust::device_pointer_cast(d_farray_r[0]), thrust::device_pointer_cast(d_farray_r[0])+2*grid.NTOTAL_COMPLEX, thrust::device_pointer_cast(d_farray_r[1]), thrust::device_pointer_cast(d_farray_r[0]), thrust::multiplies<scalar_type>());
         // for (int n = 0 ; n < num_fields ; n++) {
         //     r2c_fft(d_farray_r[n], d_farray[n]);
         //     // c2r_fft(d_farray[n], d_farray_r[n]);
         // }
 
         // this operation does pointwise v1*v2 operation and stores the result in v1
-        thrust::transform(thrust::device_pointer_cast(dev_data1), thrust::device_pointer_cast(dev_data1)+2*ntotal_complex, thrust::device_pointer_cast(dev_data2), thrust::device_pointer_cast(dev_data1), thrust::multiplies<scalar_type>());
+        thrust::transform(thrust::device_pointer_cast(dev_data1), thrust::device_pointer_cast(dev_data1)+2*grid.NTOTAL_COMPLEX, thrust::device_pointer_cast(dev_data2), thrust::device_pointer_cast(dev_data1), thrust::multiplies<scalar_type>());
         // divide back
-        thrust::transform(thrust::device_pointer_cast(dev_data1), thrust::device_pointer_cast(dev_data1)+2*ntotal_complex, thrust::device_pointer_cast(dev_data2), thrust::device_pointer_cast(dev_data1), thrust::divides<scalar_type>());
+        thrust::transform(thrust::device_pointer_cast(dev_data1), thrust::device_pointer_cast(dev_data1)+2*grid.NTOTAL_COMPLEX, thrust::device_pointer_cast(dev_data2), thrust::device_pointer_cast(dev_data1), thrust::divides<scalar_type>());
 
 
     }
@@ -233,13 +234,13 @@ void test_do_multiplications() {
     init_cublas();
     cublasStatus_t stat;
     scalar_type *scratch;
-    CUDA_RT_CALL(cudaMalloc(&scratch, (size_t) sizeof(scalar_type) * 2 * ntotal_complex));
+    CUDA_RT_CALL(cudaMalloc(&scratch, (size_t) sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX));
     // cublasSideMode_t mode = CUBLAS_SIDE_RIGHT;
-    // int n = 2*ntotal_complex;
+    // int n = 2*grid.NTOTAL_COMPLEX;
     // int m = 1;
-    // int lda = 2*ntotal_complex;
+    // int lda = 2*grid.NTOTAL_COMPLEX;
     // int incx = 1;
-    // int ldc = 2*ntotal_complex;
+    // int ldc = 2*grid.NTOTAL_COMPLEX;
 
     cublasSideMode_t mode = CUBLAS_SIDE_LEFT;
     int m = numElements;
@@ -288,15 +289,15 @@ void test_do_multiplications() {
 
 
     // Copy output data to CPU
-    CUDA_RT_CALL(cudaMemcpy(cpu_r_data1.data(), dev_data1, sizeof(scalar_type) * 2 * ntotal_complex, cudaMemcpyDeviceToHost));
-    CUDA_RT_CALL(cudaMemcpy(cpu_r_data2.data(), dev_data2, sizeof(scalar_type) * 2 * ntotal_complex, cudaMemcpyDeviceToHost));
+    CUDA_RT_CALL(cudaMemcpy(cpu_r_data1.data(), dev_data1, sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX, cudaMemcpyDeviceToHost));
+    CUDA_RT_CALL(cudaMemcpy(cpu_r_data2.data(), dev_data2, sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX, cudaMemcpyDeviceToHost));
 
 
     std::printf("Output array:\n");
     for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
             for (int k = 0; k < 2; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, cpu_r_data1[idx], idx, cpu_r_data2[idx]);
             }
         }
@@ -317,7 +318,7 @@ void test_do_multiplications() {
 
 
 void test_axpy() {
-    // init_plan(fft_size);
+    // init_plan(grid.FFT_SIZE);
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
@@ -326,24 +327,24 @@ void test_axpy() {
     // Do forward and inverse transform
     int Niter=1;
 
-    cpudata_t cpu_r_data1((size_t) 2*ntotal_complex);
-    cpudata_t cpu_r_data2((size_t) 2*ntotal_complex);
+    cpudata_t cpu_r_data1((size_t) 2*grid.NTOTAL_COMPLEX);
+    cpudata_t cpu_r_data2((size_t) 2*grid.NTOTAL_COMPLEX);
 
 
     unsigned int idx;
-    for (int i = 0; i < nx; i++){
-        for (int j = 0; j < ny; j++){
-            for (int k = 0; k < nz; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+    for (int i = 0; i < grid.NX; i++){
+        for (int j = 0; j < grid.NY; j++){
+            for (int k = 0; k < grid.NZ; k++){
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 cpu_r_data1[idx] = idx;
                 cpu_r_data2[idx] = 2.0*idx;
             }
         }
     }
-    for (int i = 0; i < nx; i++){
-        for (int j = 0; j < ny; j++){
-            for (int k = nz; k < nz+2; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+    for (int i = 0; i < grid.NX; i++){
+        for (int j = 0; j < grid.NY; j++){
+            for (int k = grid.NZ; k < grid.NZ+2; k++){
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 cpu_r_data1[idx] = 0.0;
                 cpu_r_data2[idx] = 0.0;
             }
@@ -356,7 +357,7 @@ void test_axpy() {
     for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
             for (int k = 0; k < 2; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, cpu_r_data1[idx], idx, cpu_r_data2[idx]);
                 // std::printf("v2[%d] %f \n", idx, cpu_r_data2[idx]);
             }
@@ -367,18 +368,18 @@ void test_axpy() {
     // Create device data arrays
     scalar_type *dev_data1;
     scalar_type *dev_data2;
-    CUDA_RT_CALL(cudaMalloc(&dev_data1, (size_t) sizeof(scalar_type) * 2 * ntotal_complex));
-    CUDA_RT_CALL(cudaMalloc(&dev_data2, (size_t) sizeof(scalar_type) * 2 * ntotal_complex));
-    std::printf("array size (in MiB): %f \n",(float) (sizeof(scalar_type) * 2 * ntotal_complex/1e6));
+    CUDA_RT_CALL(cudaMalloc(&dev_data1, (size_t) sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX));
+    CUDA_RT_CALL(cudaMalloc(&dev_data2, (size_t) sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX));
+    std::printf("array size (in MiB): %f \n",(float) (sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX/1e6));
     scalar_type *scratch;
-    CUDA_RT_CALL(cudaMalloc(&scratch, (size_t) sizeof(scalar_type) * 2 * ntotal_complex));
+    CUDA_RT_CALL(cudaMalloc(&scratch, (size_t) sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX));
 
     // Copy input data to GPUs
-    CUDA_RT_CALL(cudaMemcpy(dev_data1, cpu_r_data1.data(), (size_t) sizeof(scalar_type) * 2 * ntotal_complex, cudaMemcpyHostToDevice));
-    CUDA_RT_CALL(cudaMemcpy(dev_data2, cpu_r_data2.data(), (size_t) sizeof(scalar_type) * 2 * ntotal_complex, cudaMemcpyHostToDevice));
+    CUDA_RT_CALL(cudaMemcpy(dev_data1, cpu_r_data1.data(), (size_t) sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX, cudaMemcpyHostToDevice));
+    CUDA_RT_CALL(cudaMemcpy(dev_data2, cpu_r_data2.data(), (size_t) sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX, cudaMemcpyHostToDevice));
 
     float milliseconds = 0;
-    int numElements = 2*ntotal_complex;
+    int numElements = 2*grid.NTOTAL_COMPLEX;
     int threadsPerBlock = 256;
     int blocksPerGrid = (numElements + threadsPerBlock - 1) / threadsPerBlock;
     scalar_type scale = 1.0;
@@ -404,7 +405,7 @@ void test_axpy() {
     cudaEventRecord(start);
     for (int ii = 0; ii < Niter; ii++) {
         // using complex
-        axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)dev_data1, (data_type *)dev_data2, (data_type *)scratch, scale, (scalar_type) 1.0, ntotal_complex);
+        axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( (data_type *)dev_data1, (data_type *)dev_data2, (data_type *)scratch, scale, (scalar_type) 1.0, grid.NTOTAL_COMPLEX);
     }
     cudaEventRecord(stop);
     cudaDeviceSynchronize();
@@ -412,15 +413,15 @@ void test_axpy() {
     std::printf("complex vectors elapsed time (in s): %.5f \t Approx time per multiply (in ms): %.5f \n",milliseconds/1000, milliseconds/Niter);
 
     // Copy output data to CPU
-    CUDA_RT_CALL(cudaMemcpy(cpu_r_data1.data(), dev_data1, sizeof(scalar_type) * 2 * ntotal_complex, cudaMemcpyDeviceToHost));
-    CUDA_RT_CALL(cudaMemcpy(cpu_r_data2.data(), dev_data2, sizeof(scalar_type) * 2 * ntotal_complex, cudaMemcpyDeviceToHost));
+    CUDA_RT_CALL(cudaMemcpy(cpu_r_data1.data(), dev_data1, sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX, cudaMemcpyDeviceToHost));
+    CUDA_RT_CALL(cudaMemcpy(cpu_r_data2.data(), dev_data2, sizeof(scalar_type) * 2 * grid.NTOTAL_COMPLEX, cudaMemcpyDeviceToHost));
 
 
     std::printf("Output array:\n");
     for (int i = 0; i < 2; i++){
         for (int j = 0; j < 2; j++){
             for (int k = 0; k < 2; k++){
-                idx = k + (nz/2+1)*2 * ( j + i * ny);
+                idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
                 std::printf("v1[%d]= %f \t v2[%d]= %f \n", idx, cpu_r_data1[idx], idx, cpu_r_data2[idx]);
             }
         }

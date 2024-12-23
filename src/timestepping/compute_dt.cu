@@ -40,7 +40,7 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
 
         // #if defined(SUPERTIMESTEPPING) && defined(TEST)
         //     // replicate Vaidya 2017
-        //     dt_hyp = 0.00703125 * (param_ptr->lx/nx);
+        //     dt_hyp = 0.00703125 * (param_ptr->lx/grid.NX);
         //     current_dt = dt_hyp;
         // #endif
     }
@@ -52,12 +52,12 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
 
         // this functions copies the complex fields from d_all_fields into d_all_buffer_r and performs
         // an in-place r2c FFT to give the real fields. This buffer is reserved for the real fields!
-        supervisor_ptr->Complex2RealFields(complex_Fields, real_Buffer, fields_ptr->num_fields);
+        supervisor_ptr->Complex2RealFields(complex_Fields, real_Buffer, vars.NUM_FIELDS);
 
         // now we have all the real fields
-        scalar_type* vx = real_Buffer + 2 * ntotal_complex * VX;
-        scalar_type* vy = real_Buffer + 2 * ntotal_complex * VY;
-        scalar_type* vz = real_Buffer + 2 * ntotal_complex * VZ;
+        scalar_type* vx = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.VX;
+        scalar_type* vy = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.VY;
+        scalar_type* vz = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.VZ;
 
 
         double maxfx, maxfy, maxfz;
@@ -70,11 +70,11 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
         cublasStatus_t stat;
 
 
-        stat = cublasIdamax(handle0, 2 * ntotal_complex, vx, 1, &idx_max_vx);
+        stat = cublasIdamax(handle0, 2 * grid.NTOTAL_COMPLEX, vx, 1, &idx_max_vx);
         if (stat != CUBLAS_STATUS_SUCCESS) std::printf("vx max failed\n");
-        stat = cublasIdamax(handle0, 2 * ntotal_complex, vy, 1, &idx_max_vy);
+        stat = cublasIdamax(handle0, 2 * grid.NTOTAL_COMPLEX, vy, 1, &idx_max_vy);
         if (stat != CUBLAS_STATUS_SUCCESS) std::printf("vy max failed\n");
-        stat = cublasIdamax(handle0, 2 * ntotal_complex, vz, 1, &idx_max_vz);
+        stat = cublasIdamax(handle0, 2 * grid.NTOTAL_COMPLEX, vz, 1, &idx_max_vz);
         if (stat != CUBLAS_STATUS_SUCCESS) std::printf("vz max failed\n");
 
 
@@ -132,13 +132,13 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
             int idx_max_bx, idx_max_by, idx_max_bz;
             // cublasStatus_t stat;
 
-            scalar_type* Bx = real_Buffer + 2 * ntotal_complex * BX;
-            scalar_type* By = real_Buffer + 2 * ntotal_complex * BY;
-            scalar_type* Bz = real_Buffer + 2 * ntotal_complex * BZ;
+            scalar_type* Bx = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.BX;
+            scalar_type* By = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.BY;
+            scalar_type* Bz = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.BZ;
 
-            stat = cublasIdamax(handle0, 2 * ntotal_complex, Bx, 1, &idx_max_bx);
-            stat = cublasIdamax(handle0, 2 * ntotal_complex, By, 1, &idx_max_by);
-            stat = cublasIdamax(handle0, 2 * ntotal_complex, Bz, 1, &idx_max_bz);
+            stat = cublasIdamax(handle0, 2 * grid.NTOTAL_COMPLEX, Bx, 1, &idx_max_bx);
+            stat = cublasIdamax(handle0, 2 * grid.NTOTAL_COMPLEX, By, 1, &idx_max_by);
+            stat = cublasIdamax(handle0, 2 * grid.NTOTAL_COMPLEX, Bz, 1, &idx_max_bz);
 
             CUDA_RT_CALL(cudaMemcpy(&maxbx, &Bx[idx_max_bx-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));
             CUDA_RT_CALL(cudaMemcpy(&maxby, &By[idx_max_by-1], sizeof(scalar_type), cudaMemcpyDeviceToHost));

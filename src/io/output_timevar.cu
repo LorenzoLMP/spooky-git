@@ -43,18 +43,18 @@ void InputOutput::WriteTimevarOutput() {
     outputfile.open (fname, std::ios_base::app);
     // outputfile << "Writing this to a file.\n";
 
-    // // assign fields to [fields_ptr->num_fields] tmparray (memory block starts at d_all_tmparray)
-    // blocksPerGrid = ( fields_ptr->num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    // ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields_ptr->d_all_fields, (data_type *)fields_ptr->d_all_tmparray, fields_ptr->num_fields * ntotal_complex);
+    // // assign fields to [vars.NUM_FIELDS] tmparray (memory block starts at d_all_tmparray)
+    // blocksPerGrid = ( vars.NUM_FIELDS * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    // ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields_ptr->d_all_fields, (data_type *)fields_ptr->d_all_tmparray, vars.NUM_FIELDS * grid.NTOTAL_COMPLEX);
     //
     // // compute FFTs from complex to real fields
-    // // the first fields_ptr->num_fields arrays in tmparray will
+    // // the first vars.NUM_FIELDS arrays in tmparray will
     // // always contain the real fields for all subsequent operations
-    // for (int n = 0; n < fields_ptr->num_fields; n++){
+    // for (int n = 0; n < vars.NUM_FIELDS; n++){
     //     c2r_fft(fields_ptr->d_tmparray[n], fields_ptr->d_farray_buffer_r[n]);
     // }
 
-    supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, fields_ptr->num_fields);
+    supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
 
     // std::printf("length timevar array = %d \n",param_ptr->spookyOutVar.length);
     // begin loop through the output variables
@@ -71,79 +71,79 @@ void InputOutput::WriteTimevarOutput() {
 
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("ev"))) {
                 // kinetic energy
-                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VX]);
-                output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VY]);
-                output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VZ]);
+                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.VX]);
+                output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.VY]);
+                output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.VZ]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("Kx"))) {
                 // kinetic energy x
-                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VX]);
+                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.VX]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("Ky"))) {
                 // kinetic energy y
-                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VY]);
+                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.VY]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("Kz"))) {
                 // kinetic energy z
-                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[VZ]);
+                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.VZ]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("vxvy"))) {
                 // reynolds stresses
-                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[VX], fields_ptr->d_farray_buffer_r[VY]);
+                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.VX], fields_ptr->d_farray_buffer_r[vars.VY]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("vyvz"))) {
                 // reynolds stresses
-                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[VY], fields_ptr->d_farray_buffer_r[VZ]);
+                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.VY], fields_ptr->d_farray_buffer_r[vars.VZ]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("vyvz"))) {
                 // reynolds stresses
-                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[VY], fields_ptr->d_farray_buffer_r[VZ]);
+                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.VY], fields_ptr->d_farray_buffer_r[vars.VZ]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("w2"))) {
                 // enstrophy
-                output_var = param_ptr->spookyOutVar.computeEnstrophy(fields_ptr->d_farray[VX],
-                                                                    fields_ptr->d_farray[VY],
-                                                                    fields_ptr->d_farray[VZ]);
+                output_var = param_ptr->spookyOutVar.computeEnstrophy(fields_ptr->d_farray[vars.VX],
+                                                                    fields_ptr->d_farray[vars.VY],
+                                                                    fields_ptr->d_farray[vars.VZ]);
             }
         }
         if (param_ptr->mhd) {
 
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("em"))) {
                 // magnetic energy
-                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BX]);
-                output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BY]);
-                output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BZ]);
+                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.BX]);
+                output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.BY]);
+                output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.BZ]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("Mx"))) {
                 // magnetic energy x
-                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BX]);
+                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.BX]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("My"))) {
                 // magnetic energy y
-                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BY]);
+                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.BY]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("Mz"))) {
                 // magnetic energy z
-                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[BZ]);
+                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.BZ]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("bxby"))) {
                 // maxwell stresses
-                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[BX], fields_ptr->d_farray_buffer_r[BY]);
+                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.BX], fields_ptr->d_farray_buffer_r[vars.BY]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("bybz"))) {
                 // maxwell stresses
-                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[BY], fields_ptr->d_farray_buffer_r[BZ]);
+                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.BY], fields_ptr->d_farray_buffer_r[vars.BZ]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("bybz"))) {
                 // maxwell stresses
-                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[BY], fields_ptr->d_farray_buffer_r[BZ]);
+                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.BY], fields_ptr->d_farray_buffer_r[vars.BZ]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("j2"))) {
                 // compute total current rms
                 // we can reuse the computeEnstrophy function
-                output_var = param_ptr->spookyOutVar.computeEnstrophy(fields_ptr->d_farray[BX],
-                                                                    fields_ptr->d_farray[BY],
-                                                                    fields_ptr->d_farray[BZ]);
+                output_var = param_ptr->spookyOutVar.computeEnstrophy(fields_ptr->d_farray[vars.BX],
+                                                                    fields_ptr->d_farray[vars.BY],
+                                                                    fields_ptr->d_farray[vars.BZ]);
             }
         }
         if (param_ptr->boussinesq or param_ptr->heat_equation) {
@@ -151,7 +151,7 @@ void InputOutput::WriteTimevarOutput() {
 
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("et"))) {
                 // thermal/potential energy
-                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[TH]);
+                output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.TH]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("dissgradT"))) {
                 // thermal dissipation (isotropic or anisotropic)
@@ -161,7 +161,7 @@ void InputOutput::WriteTimevarOutput() {
                                                                             fields_ptr->d_all_buffer_r);
             }
             else {
-                output_var = param_ptr->spookyOutVar.computeDissipation(fields_ptr->d_farray[TH]);
+                output_var = param_ptr->spookyOutVar.computeDissipation(fields_ptr->d_farray[vars.TH]);
             }
         }
         if (param_ptr->anisotropic_diffusion) {
@@ -176,11 +176,11 @@ void InputOutput::WriteTimevarOutput() {
         if (param_ptr->boussinesq) {
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("thvx"))) {
                 // convective flux
-                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[TH], fields_ptr->d_farray_buffer_r[VX]);
+                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.TH], fields_ptr->d_farray_buffer_r[vars.VX]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("thvz"))) {
                 // convective flux
-                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[TH], fields_ptr->d_farray_buffer_r[VZ]);
+                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.TH], fields_ptr->d_farray_buffer_r[vars.VZ]);
             }
         }
         else {

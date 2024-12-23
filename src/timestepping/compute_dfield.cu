@@ -38,7 +38,7 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
 
     if (param_ptr->incompressible) {
 
-        // before we do anything we need to transform from
+        // before we do agrid.NYthing we need to transform from
         // complex to real. However, when stage_step == 0
         // (at the beginning of the hydro_mhd_advance function)
         // this has already been done by the compute_dt function
@@ -48,7 +48,7 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
             // copies the complex fields from d_all_fields into d_all_buffer_r and performs
             // an in-place r2c FFT to give the real fields. This buffer is reserved for the real fields!
 
-            supervisor_ptr->Complex2RealFields(complex_Fields, real_Buffer, fields_ptr->num_fields);
+            supervisor_ptr->Complex2RealFields(complex_Fields, real_Buffer, vars.NUM_FIELDS);
         }
 
         // compute hyperbolic terms
@@ -70,8 +70,8 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
         */
 
         // compute pseudo-pressure and subtract grad p_tilde from dfields
-        blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-        GradPseudoPressure<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dFields, ntotal_complex);
+        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+        GradPseudoPressure<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dFields, grid.NTOTAL_COMPLEX);
 
     } //end INCOMPRESSIBLE
 

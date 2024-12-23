@@ -43,7 +43,7 @@ class Fields {
 //     scalar_type *r_data;
 //     data_type *c_data;
 public:
-    int num_fields;
+    // int num_fields;
     int num_tmp_array;
     Supervisor *supervisor_ptr;
     // double current_dt;

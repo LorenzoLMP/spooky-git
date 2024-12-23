@@ -58,25 +58,25 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
         // The results are saved in the temp_arrays from [0, 1, ..., 4]
         data_type* shear_matrix = fields_ptr->d_all_tmparray;
 
-        blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+        blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
 
         if (param_ptr->mhd) {
-            TracelessShearMatrixMHD<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type*) shear_matrix,  2 * ntotal_complex);
+            TracelessShearMatrixMHD<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type*) shear_matrix,  2 * grid.NTOTAL_COMPLEX);
         }
         else {
-            TracelessShearMatrix<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type*) shear_matrix,  2 * ntotal_complex);
+            TracelessShearMatrix<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type*) shear_matrix,  2 * grid.NTOTAL_COMPLEX);
         }
 
 
         // take fft of 5 independent components of B_ij
         for (int n = 0; n < 5; n++) {
-            r2c_fft((scalar_type*) shear_matrix + 2*n*ntotal_complex, shear_matrix + n*ntotal_complex, supervisor_ptr);
+            r2c_fft((scalar_type*) shear_matrix + 2*n*grid.NTOTAL_COMPLEX, shear_matrix + n*grid.NTOTAL_COMPLEX, supervisor_ptr);
         }
 
         // compute derivative of traceless shear matrix and assign to dfields
         // this kernel works also if MHD
-        blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-        NonLinHydroAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, shear_matrix, complex_dFields, mask, ntotal_complex);
+        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+        NonLinHydroAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, shear_matrix, complex_dFields, mask, grid.NTOTAL_COMPLEX);
 
         if (param_ptr->mhd) {
 
@@ -87,17 +87,17 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
 
             data_type* emf = fields_ptr->d_all_tmparray;
 
-            blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-            MagneticEmf<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type*) emf,  2 * ntotal_complex);
+            blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+            MagneticEmf<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type*) emf,  2 * grid.NTOTAL_COMPLEX);
 
             // take fourier transforms of the 3 independent components of the antisymmetric shear matrix
             for (int n = 0; n < 3; n++) {
-                r2c_fft((scalar_type*) emf + 2*n*ntotal_complex, emf + n*ntotal_complex, supervisor_ptr);
+                r2c_fft((scalar_type*) emf + 2*n*grid.NTOTAL_COMPLEX, emf + n*grid.NTOTAL_COMPLEX, supervisor_ptr);
             }
 
             // compute derivative of antisymmetric magnetic shear matrix and assign to dfields
-            blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-            MagneticShear<<<blocksPerGrid, threadsPerBlock>>>(kvec, emf, complex_dFields, mask, ntotal_complex);
+            blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+            MagneticShear<<<blocksPerGrid, threadsPerBlock>>>(kvec, emf, complex_dFields, mask, grid.NTOTAL_COMPLEX);
 
         }
 
@@ -129,30 +129,30 @@ void Physics::ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer
 
     int blocksPerGrid;
 
-    blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
+    blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
 
     if (param_ptr->incompressible) {
         // for explicit treatment of diffusion terms
-        // with incompressible d_all_fields always points at VX
-        nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Fields + ntotal_complex * VX, complex_dFields + ntotal_complex * VX, param_ptr->nu, (size_t) ntotal_complex, ADD);
+        // with incompressible d_all_fields always points at vars.VX
+        nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Fields + grid.NTOTAL_COMPLEX * vars.VEL, complex_dFields + grid.NTOTAL_COMPLEX * vars.VEL, param_ptr->nu, (size_t) grid.NTOTAL_COMPLEX, ADD);
     }
 
     if (param_ptr->mhd) {
         // for explicit treatment of diffusion terms
-        // point d_all_fields at BX
-        nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Fields + ntotal_complex * BX, complex_dFields + ntotal_complex * BX, param_ptr->nu_m, (size_t) ntotal_complex, ADD);
+        // point d_all_fields at vars.BX
+        nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Fields + grid.NTOTAL_COMPLEX * vars.MAG, complex_dFields + grid.NTOTAL_COMPLEX * vars.MAG, param_ptr->nu_m, (size_t) grid.NTOTAL_COMPLEX, ADD);
     }
 
     if (param_ptr->boussinesq or param_ptr->heat_equation) {
         if (param_ptr->anisotropic_diffusion) {
-            AnisotropicConduction(complex_Fields, real_Buffer, complex_dFields + ntotal_complex * TH);
+            AnisotropicConduction(complex_Fields, real_Buffer, complex_dFields + grid.NTOTAL_COMPLEX * vars.TH);
         }
         else {
             if (param_ptr->heat_equation) {
                 // this is because the nabla scalar will *add* to d_dfarray, and with HEAT_EQ we want to *set*
-                VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(complex_dFields + ntotal_complex * TH, data_type(0.0,0.0), ntotal_complex);
+                VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(complex_dFields + grid.NTOTAL_COMPLEX * vars.TH, data_type(0.0,0.0), grid.NTOTAL_COMPLEX);
             }
-            nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Fields + ntotal_complex * TH, complex_dFields + ntotal_complex * TH, param_ptr->nu_th, (size_t) ntotal_complex, ADD);
+            nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Fields + grid.NTOTAL_COMPLEX * vars.TH, complex_dFields + grid.NTOTAL_COMPLEX * vars.TH, param_ptr->nu_th, (size_t) grid.NTOTAL_COMPLEX, ADD);
         }
     }
 

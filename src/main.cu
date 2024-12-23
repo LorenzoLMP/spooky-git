@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
     
     std::printf("-----------Initializing cufft, cublas...\n");
 
-    init_plan(fft_size);
+    init_plan(grid.FFT_SIZE);
     init_cublas();
 
     //----------------------------------------------------------------------------------------
@@ -79,9 +79,9 @@ int main(int argc, char *argv[]) {
     // Supervisor spooky(stats_frequency);
     //
     // Parameters param(input_dir);
-    // Fields fields(param, NUM_FIELDS);
+    // Fields fields(param, vars.NUM_FIELDS);
     // Physics phys(spooky);
-    // TimeStepping timestep(NUM_FIELDS, param, spooky);
+    // TimeStepping timestep(vars.NUM_FIELDS, param, spooky);
     // InputOutput inout(spooky);
 
 

@@ -11,7 +11,7 @@ class TimeStepping;
 
 class RKLegendre {
 public:
-    RKLegendre(int num_fields, Parameters &p_in, Supervisor &sup_in);
+    RKLegendre(Parameters &p_in, Supervisor &sup_in);
 
     // Fields *fields;
     // Parameters *param;

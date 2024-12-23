@@ -461,6 +461,13 @@ int Parameters::checkParameters(){
 void Parameters::popVariablesGrid() {
 
 	vars.NUM_FIELDS = 0;
+	vars.VX = 0; vars.VY = 0; vars.VZ = 0;
+    vars.BX = 0; vars.BY = 0; vars.BZ = 0;
+    vars.TH = 0;
+    vars.VEL = 0; vars.MAG = 0;
+
+
+    int NUM_FIELDS;
 
 	vars.KX = 0;
 	vars.KY = 1;
@@ -471,12 +478,14 @@ void Parameters::popVariablesGrid() {
 		vars.VY = 1;
 		vars.VZ = 2;
 		vars.NUM_FIELDS += 3;
+		vars.VEL = 0;
 
 		if (mhd) {
 			vars.BX = 3;
 			vars.BY = 4;
 			vars.BZ = 5;
 			vars.NUM_FIELDS += 3;
+			vars.MAG = 3;
 
 			if (boussinesq) {
 				vars.TH = 6;
@@ -496,17 +505,17 @@ void Parameters::popVariablesGrid() {
 		vars.NUM_FIELDS += 1;
 	}
 
-	grid.nx = (size_t) nx;
-	grid.ny = (size_t) ny;
-	grid.nz = (size_t) nz;
+	grid.NX = (size_t) nx;
+	grid.NY = (size_t) ny;
+	grid.NZ = (size_t) nz;
 
-	grid.fft_size[0] = grid.nx;
-	grid.fft_size[1] = grid.ny;
-	grid.fft_size[2] = grid.nz;
+	grid.FFT_SIZE[0] = grid.NX;
+	grid.FFT_SIZE[1] = grid.NY;
+	grid.FFT_SIZE[2] = grid.NZ;
 
-	grid.ntotal = grid.nx * grid.ny * grid.nz;
+	grid.NTOTAL = grid.NX * grid.NY * grid.NZ;
 
-	grid.ntotal_complex = grid.nx * grid.ny * (( grid.nz / 2) + 1);
+	grid.NTOTAL_COMPLEX = grid.NX * grid.NY * (( grid.NZ / 2) + 1);
 
 
 

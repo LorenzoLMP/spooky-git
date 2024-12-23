@@ -83,18 +83,18 @@ void InputOutput::WriteDataFile() {
 
     long int idx, idx_complex;
     scalar_type *scratch;
-    scratch = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal);
-    DataSpace data_field(ntotal);
+    scratch = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * grid.NTOTAL);
+    DataSpace data_field(grid.NTOTAL);
 
-    for (int n = 0; n < fields_ptr->num_fields; n++){
+    for (int n = 0; n < vars.NUM_FIELDS; n++){
 
-        for (int i = 0; i < nx; i++){
-            for (int j = 0; j < ny; j++){
-                for (int k = 0; k < nz; k++){
+        for (int i = 0; i < grid.NX; i++){
+            for (int j = 0; j < grid.NY; j++){
+                for (int k = 0; k < grid.NZ; k++){
                     // need to rearrange the data to remove zero padding
-                    idx = k + nz * ( j + i * ny);
-                    idx_complex = k + (nz/2+1)*2 * ( j + i * ny);
-                    // idx_complex = k + (nz + 2) * j + (nz + 2) * ny * i;
+                    idx = k + grid.NZ * ( j + i * grid.NY);
+                    idx_complex = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
+                    // idx_complex = k + (grid.NZ + 2) * j + (grid.NZ + 2) * grid.NY * i;
                     // scratch[idx] = 1.0;
                     scratch[idx] = fields_ptr->farray_r[n][idx_complex];
                 }
@@ -128,11 +128,11 @@ void InputOutput::ReadDataFile(int restart_num) {
     long int idx, idx_complex;
     unsigned int save_step;
     scalar_type *scratch;
-    scratch = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * ntotal);
+    scratch = (scalar_type *) malloc( (size_t) sizeof(scalar_type) * grid.NTOTAL);
 
     // DataSet dataset;
     DataSpace data_scalar(1);
-    DataSpace data_field(ntotal);
+    DataSpace data_field(grid.NTOTAL);
 
     /***************************
      * Select the right data file OR
@@ -203,7 +203,7 @@ void InputOutput::ReadDataFile(int restart_num) {
 
 
             // Now read data_fields
-            for (int n = 0; n < fields_ptr->num_fields; n++){
+            for (int n = 0; n < vars.NUM_FIELDS; n++){
 
                 std::string var_name(list_of_variables[n]);
                 dataset = file.getDataSet(var_name);
@@ -212,12 +212,12 @@ void InputOutput::ReadDataFile(int restart_num) {
                 dataset.read(scratch);
 
                 // let's rearrange it to remove zero padding
-                for (int i = 0; i < nx; i++){
-                    for (int j = 0; j < ny; j++){
-                        for (int k = 0; k < nz; k++){
+                for (int i = 0; i < grid.NX; i++){
+                    for (int j = 0; j < grid.NY; j++){
+                        for (int k = 0; k < grid.NZ; k++){
                             // two indices
-                            idx = k + nz * ( j + i * ny);
-                            idx_complex = k + (nz/2+1)*2 * ( j + i * ny);
+                            idx = k + grid.NZ * ( j + i * grid.NY);
+                            idx_complex = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
 
                             fields_ptr->farray_r[n][idx_complex] = scratch[idx];
                             // if (i < 10 && k == 0) std::printf("farray_r %.2e \n",scratch[idx]);

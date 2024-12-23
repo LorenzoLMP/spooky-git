@@ -20,7 +20,7 @@ void Physics::EntropyStratification(data_type* complex_Fields, scalar_type* real
         // add N2 u_strat to temperature equation
         // this is for normalization where theta is in units of g [L/T^2]
         // other normalizations possible
-        blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-        BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields, complex_dFields, param_ptr->N2, ntotal_complex, STRAT_DIR);
+        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+        BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields, complex_dFields, param_ptr->N2, grid.NTOTAL_COMPLEX, STRAT_DIR);
     }
 }

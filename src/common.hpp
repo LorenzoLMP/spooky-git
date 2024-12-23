@@ -25,9 +25,9 @@ struct Variables {
 extern Variables vars;
 
 struct Grid {
-    size_t nx, ny, nz;
-    size_t fft_size[3];
-    size_t ntotal, ntotal_complex;
+    size_t NX, NY, NZ;
+    size_t FFT_SIZE[3];
+    size_t NTOTAL, NTOTAL_COMPLEX;
 };
 
 extern Grid grid;

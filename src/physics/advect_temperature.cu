@@ -25,18 +25,18 @@ void Physics::AdvectTemperature(data_type* complex_Fields, scalar_type* real_Buf
 
         // first compute energy flux vector [ u_x theta, u_y theta, u_z theta]
         // we can re-utilize tmparrays store result in in the temp_arrays from [0, 1, 2]
-        blocksPerGrid = ( 2 * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-        EnergyFluxVector<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type *) en_flux,  2 * ntotal_complex);
+        blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+        EnergyFluxVector<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type *) en_flux,  2 * grid.NTOTAL_COMPLEX);
 
 
         // take fourier transforms of the 3 energy flux vector components
         for (int n = 0; n < 3; n++) {
-            r2c_fft(en_flux + 2*n*ntotal_complex,  en_flux + n*ntotal_complex, supervisor_ptr);
+            r2c_fft(en_flux + 2*n*grid.NTOTAL_COMPLEX,  en_flux + n*grid.NTOTAL_COMPLEX, supervisor_ptr);
         }
 
 
         // compute derivative of energy flux vector and assign u nabla theta to the dfield for theta
-        blocksPerGrid = ( ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-        NonLinBoussinesqAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, en_flux, complex_dFields, mask, ntotal_complex);
+        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+        NonLinBoussinesqAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, en_flux, complex_dFields, mask, grid.NTOTAL_COMPLEX);
     }
 }

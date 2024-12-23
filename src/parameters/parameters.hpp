@@ -51,9 +51,9 @@ class Parameters {
 	double ly;				/**< Box length in Y*/
 	double lz;				/**< Box length in Z*/
 
-	int nx;			// real grid size in x-direction
-	int ny;			// real grid size in y-direction
-	int nz;			// real grid size in z-direction
+	int grid.NX;			// real grid size in x-direction
+	int grid.NY;			// real grid size in y-direction
+	int grid.NZ;			// real grid size in z-direction
 
 	double reynolds;		/**< Reynolds number (actully the inverse of the viscosity) */
 	double nu;

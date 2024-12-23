@@ -189,13 +189,13 @@ __global__ void addReset( const data_type *X, data_type *Y, data_type *Z, scalar
 
 // __global__ void scalarDissipation( const scalar_type *d_all_kvec, const data_type *X, scalar_type *Z, size_t N) {
 //     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-//     // int KX = 0; int KY = 1; int KZ = 2;
+//     // int vars.KX = 0; int vars.KY = 1; int vars.KZ = 2;
 //     // this is the imaginary unit
 //     // data_type imI = data_type(0.0,1.0);
 //
 //
 //     if (i < N) {
-//         Z[i] = - (d_all_kvec[KX * N + i] * d_all_kvec[KX * N + i] + d_all_kvec[KY * N + i] * d_all_kvec[KY * N + i] + d_all_kvec[KZ * N + i] * d_all_kvec[KZ * N + i] ) * (X[i].real() * X[i].real() + X[i].imag() * X[i].imag());
+//         Z[i] = - (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i] ) * (X[i].real() * X[i].real() + X[i].imag() * X[i].imag());
 //     }
 //
 //

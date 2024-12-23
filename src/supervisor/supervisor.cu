@@ -88,7 +88,7 @@ void Supervisor::updateMainLooptime(){
 
 void Supervisor::print_partial_stats(){
 
-    std::printf("---- The avg number of cell updates / sec is %.4e [cell_updates/s]  \n",ntotal*stats_frequency/TimeSpentInMainLoopPartial);
+    std::printf("---- The avg number of cell updates / sec is %.4e [cell_updates/s]  \n",grid.NTOTAL*stats_frequency/TimeSpentInMainLoopPartial);
 
     TimeSpentInMainLoopPartial = 0.0;
 }
@@ -110,7 +110,7 @@ void Supervisor::print_final_stats(){
     std::printf("@@\tThe mainloop took %d FFTs and %d steps to complete \n", NumFFTs, tot_steps);
     std::printf("@@\t\t- FFTs per loop: %d \n", NumFFTs/tot_steps);
     std::cout << "@@" << std::endl;
-    std::printf("@@\tThe average performance is: \n@@\t\t\t %.4e [cell_updates/s]  \n",ntotal*tot_steps/TimeSpentInMainLoop);
+    std::printf("@@\tThe average performance is: \n@@\t\t\t %.4e [cell_updates/s]  \n",grid.NTOTAL*tot_steps/TimeSpentInMainLoop);
 
     std::printf("@@ ------------------------------------------------------------------------ @@ \n");
     std::printf("@@@@@ ------------------------------------------------------------------ @@@@@ \n");
@@ -120,7 +120,7 @@ void Supervisor::displayConfiguration(){
 
     std::printf("lx = %f \t ly = %f \t lz = %f\n",param_ptr->lx, param_ptr->ly, param_ptr->lz);
     std::printf("kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",fields_ptr->wavevector.kxmax,fields_ptr->wavevector.kymax, fields_ptr->wavevector.kzmax);
-    std::printf("numfields = %d",fields_ptr->num_fields);
+    std::printf("numfields = %d",vars.NUM_FIELDS);
 
     if (param_ptr->boussinesq) {
         std::printf("nu_th = %.2e \n",param_ptr->nu_th);
@@ -192,12 +192,12 @@ Supervisor::~Supervisor(){
 void Supervisor::Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields){
 
     // assign fields to [num_fields] tmparray (memory block starts at d_all_tmparray)
-    int blocksPerGrid = ( num_fields * ntotal_complex + threadsPerBlock - 1) / threadsPerBlock;
-    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(ComplexField_in, (data_type*) RealField_out, num_fields * ntotal_complex);
+    int blocksPerGrid = ( num_fields * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(ComplexField_in, (data_type*) RealField_out, num_fields * grid.NTOTAL_COMPLEX);
 
     // compute FFTs from complex to real fields
     for (int n = 0; n < num_fields; n++){
-        c2r_fft((data_type*) RealField_out + n * ntotal_complex,  RealField_out + n * 2*ntotal_complex, this);
+        c2r_fft((data_type*) RealField_out + n * grid.NTOTAL_COMPLEX,  RealField_out + n * 2*grid.NTOTAL_COMPLEX, this);
     }
 
 }
