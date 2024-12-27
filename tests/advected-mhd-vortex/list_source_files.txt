@@ -1,6 +1,5 @@
 list(APPEND spooky_src
 ${PROJECT_SOURCE_DIR}/src/main.cu
-${PROJECT_SOURCE_DIR}/src/tests.cu
 ##### cuda files #####
 ${PROJECT_SOURCE_DIR}/src/cuda/cublas_routines.cu
 ${PROJECT_SOURCE_DIR}/src/cuda/cuda_kernels.cu
