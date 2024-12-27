@@ -1,9 +1,7 @@
-#include "define_types.hpp"
+#include "common.hpp"
 #include "cufft_routines.hpp"
 // #include "cuda_kernels.hpp"
 #include "fields.hpp"
-#include "spooky.hpp"
-#include "common.hpp"
 #include "parameters.hpp"
 #include "supervisor.hpp"
 

@@ -1,10 +1,8 @@
-#include "define_types.hpp"
+#include "common.hpp"
 #include <filesystem>
 // #include <stdlib.h>
 // #include "fields.hpp"
 #include "cufft_routines.hpp"
-#include "spooky.hpp"
-#include "common.hpp"
 // #include "../libs/HighFive/include/highfive/highfive.hpp"
 #include <highfive/highfive.hpp>
 #include "fields.hpp"

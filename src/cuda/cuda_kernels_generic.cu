@@ -1,10 +1,8 @@
 #include <cuda_runtime.h>
 #include <cufftXt.h>
-// #include "spooky.hpp"
 #include "cufft_utils.h"
-#include "define_types.hpp"
 // #include "cufft_routines.hpp"
-// #include "common.hpp"
+#include "common.hpp"
 
 __global__ void scaleKernel(cufftDoubleComplex *ft, scalar_type scale, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;

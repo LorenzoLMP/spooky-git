@@ -1,8 +1,6 @@
-#include "define_types.hpp"
+#include "common.hpp"
 // #include "fields.hpp"
 // #include "cufft_routines.hpp"
-#include "spooky.hpp"
-#include "common.hpp"
 // #include "../libs/HighFive/include/highfive/highfive.hpp"
 // #include <highfive/highfive.hpp>
 #include "inputoutput.hpp"

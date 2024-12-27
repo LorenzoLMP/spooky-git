@@ -1,8 +1,6 @@
-#include "define_types.hpp"
+#include "common.hpp"
 #include "rkl.hpp"
 // #include "cufft_routines.hpp"
-#include "spooky.hpp"
-#include "common.hpp"
 #include "cublas_routines.hpp"
 #include "cuda_kernels.hpp"
 #include "cuda_kernels_generic.hpp"
@@ -11,10 +9,8 @@
 #include "fields.hpp"
 #include "physics.hpp"
 #include <cuda_runtime.h>
-// #include <cufftXt.h>
-// #include "spooky.hpp"
 #include "cufft_utils.h"
-// #include "define_types.hpp"
+
 #include "supervisor.hpp"
 #include "timestepping.hpp"
 // #include <cstdlib>
@@ -26,58 +22,81 @@ RKLegendre::RKLegendre(Parameters &p_in, Supervisor &sup_in) {
     // fields = &f_in;
 
     supervisor_ptr = &sup_in;
-    // ts = (double*)malloc(sizeof(double)*STS_MAX_STEPS);
-    ts = new double[STS_MAX_STEPS];
-    for (int i = 0; i < STS_MAX_STEPS; i++){
-      ts[i] = 0.0;
-    }
 
-    // std::printf("The TimeSpentInFFTs is: %.4e",supervisor_ptr->TimeSpentInFFTs);
     dt = 0.0;
     stage = 0;
     cfl_rkl = p_in.cfl_par;
     rmax_par = p_in.safety_sts;
-    // std::vector<double> ts(STS_MAX_STEPS, 0.0);
 
     blocksPerGrid = ( vars.NUM_FIELDS * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
     // this is the mega array that contains intermediate fields during multi-stage timestepping
     // std::printf("num fields ts: %d \n", vars.NUM_FIELDS);
-    std::printf("num rkl scratch arrays: %d \n",4);
-    std::printf("blocksPerGrid: %d \n",blocksPerGrid);
+    if (p_in.sts_algorithm.compare(std::string("sts"))) {
 
+        sts_algorithm = "sts";
+        ts = new double[STS_MAX_STEPS];
+        for (int i = 0; i < STS_MAX_STEPS; i++){
+            ts[i] = 0.0;
+        }
 
-    CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
-    CUDA_RT_CALL(cudaMalloc(&d_all_dU0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
-    CUDA_RT_CALL(cudaMalloc(&d_all_Uc0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
-    CUDA_RT_CALL(cudaMalloc(&d_all_Uc1, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+        std::printf("num rkl scratch arrays: %d \n",vars.NUM_FIELDS);
+        CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
 
-    VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU,  data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
-    VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU0, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
-    VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_Uc0, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
-    VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_Uc1, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
+        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU,  data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
 
-    d_farray_dU  = new data_type*[vars.NUM_FIELDS];
-    d_farray_dU0 = new data_type*[vars.NUM_FIELDS];
-    d_farray_Uc0 = new data_type*[vars.NUM_FIELDS];
-    d_farray_Uc1 = new data_type*[vars.NUM_FIELDS];
+        d_farray_dU  = new data_type*[vars.NUM_FIELDS];
 
-    for (int i = 0; i < vars.NUM_FIELDS; i++){
-      d_farray_dU[i]   = d_all_dU + i*grid.NTOTAL_COMPLEX;
-      d_farray_dU0[i]   = d_all_dU0 + i*grid.NTOTAL_COMPLEX;
-      d_farray_Uc0[i]   = d_all_Uc0 + i*grid.NTOTAL_COMPLEX;
-      d_farray_Uc1[i]   = d_all_Uc1 + i*grid.NTOTAL_COMPLEX;
+        for (int i = 0; i < vars.NUM_FIELDS; i++){
+            d_farray_dU[i]   = d_all_dU + i*grid.NTOTAL_COMPLEX;
+        }
+
     }
+    else if (p_in.sts_algorithm.compare(std::string("rkl3"))) {
+        sts_algorithm = "rkl3";
+        std::printf("num rkl scratch arrays: %d \n",4*vars.NUM_FIELDS);
+
+        CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+        CUDA_RT_CALL(cudaMalloc(&d_all_dU0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+        CUDA_RT_CALL(cudaMalloc(&d_all_Uc0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+        CUDA_RT_CALL(cudaMalloc(&d_all_Uc1, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+
+        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU,  data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
+        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU0, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
+        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_Uc0, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
+        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_Uc1, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
+
+        d_farray_dU  = new data_type*[vars.NUM_FIELDS];
+        d_farray_dU0 = new data_type*[vars.NUM_FIELDS];
+        d_farray_Uc0 = new data_type*[vars.NUM_FIELDS];
+        d_farray_Uc1 = new data_type*[vars.NUM_FIELDS];
+
+        for (int i = 0; i < vars.NUM_FIELDS; i++){
+            d_farray_dU[i]   = d_all_dU + i*grid.NTOTAL_COMPLEX;
+            d_farray_dU0[i]   = d_all_dU0 + i*grid.NTOTAL_COMPLEX;
+            d_farray_Uc0[i]   = d_all_Uc0 + i*grid.NTOTAL_COMPLEX;
+            d_farray_Uc1[i]   = d_all_Uc1 + i*grid.NTOTAL_COMPLEX;
+        }
+    }
+
+    std::printf("blocksPerGrid: %d \n",blocksPerGrid);
 
 }
 
 RKLegendre::~RKLegendre(){
-    CUDA_RT_CALL(cudaFree(d_all_dU));
-    CUDA_RT_CALL(cudaFree(d_all_dU0));
-    CUDA_RT_CALL(cudaFree(d_all_Uc0));
-    CUDA_RT_CALL(cudaFree(d_all_Uc1));
+    if (sts_algorithm.compare(std::string("sts"))) {
+        CUDA_RT_CALL(cudaFree(d_all_dU));
+        delete d_farray_dU;
+        delete ts;
+    }
+    else if (sts_algorithm.compare(std::string("rkl3"))) {
 
-    delete ts;
-    delete d_farray_dU, d_farray_dU0, d_farray_Uc0, d_farray_Uc1;
+        CUDA_RT_CALL(cudaFree(d_all_dU));
+        CUDA_RT_CALL(cudaFree(d_all_dU0));
+        CUDA_RT_CALL(cudaFree(d_all_Uc0));
+        CUDA_RT_CALL(cudaFree(d_all_Uc1));
+        delete d_farray_dU, d_farray_dU0, d_farray_Uc0, d_farray_Uc1;
+    }
+
 }
 
 

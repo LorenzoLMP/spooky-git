@@ -1,12 +1,20 @@
+#ifndef COMMON_HPP
+#define COMMON_HPP
+
 #include <array>
 #include <complex>
 #include <forward_list>
 #include <vector>
-// #include "spooky.hpp"
-#include "define_types.hpp"
-// #include "parameters.hpp"
-// extern Parameters param;
-// #include "physics_modules.hpp"
+#include <thrust/complex.h>
+
+using scalar_type = double;
+// using data_type = std::complex<scalar_type>;
+using data_type = thrust::complex<scalar_type>;
+using cpudata_t = std::vector<scalar_type>;
+using dim_t = std::array<size_t, 3>;
+
+
+const int threadsPerBlock{512};
 
 #define SET 0
 #define ADD 1
@@ -32,5 +40,4 @@ struct Grid {
 
 extern Grid grid;
 
-// extern Parameters param;
-
+#endif

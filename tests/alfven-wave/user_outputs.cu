@@ -1,6 +1,5 @@
-#include "spooky.hpp"
-#include "common.hpp"
 
+#include "common.hpp"
 // #include "parameters.hpp"
 // #include "user_outputs.hpp"
 #include "cublas_routines.hpp"

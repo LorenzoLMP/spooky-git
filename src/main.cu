@@ -1,17 +1,11 @@
-#include "spooky.hpp"
+#include "common.hpp"
 #include <cuda_runtime.h>
-// #include <cufftXt.h>
 #include "cufft_utils.h"
 #include "cufft_routines.hpp"
 #include "cublas_routines.hpp"
 #include "tests.hpp"
 #include <complex.h>
 #include "fields.hpp"
-// #include "wavevector.hpp"
-#include "common.hpp"
-// #include "parameters.hpp"
-// #include "cuda_kernels.hpp"
-// #include "cuda_kernels_generic.hpp"
 #include <argparse/argparse.hpp>
 #include "parameters.hpp"
 #include "inputoutput.hpp"

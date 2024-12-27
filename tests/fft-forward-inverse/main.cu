@@ -1,4 +1,4 @@
-#include "spooky.hpp"
+#include "main.hpp"
 #include <cuda_runtime.h>
 // #include <cufftXt.h>
 #include "cufft_utils.h"

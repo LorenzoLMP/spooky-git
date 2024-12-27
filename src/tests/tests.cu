@@ -4,15 +4,14 @@
 #include <random>
 #include <stdexcept>
 #include <vector>
-#include "spooky.hpp"
 #include "cufft_routines.hpp"
 #include <cuda_runtime.h>
-#include "define_types.hpp"
+#include "common.hpp"
 #include "cublas_routines.hpp"
 // #include "cuda_kernels.hpp"
 #include "cuda_kernels_generic.hpp"
 // #include <cuda.h>
-#include "common.hpp"
+
 
 
 

@@ -1,4 +1,4 @@
-#include "define_types.hpp"
+#include "common.hpp"
 #include <vector>
 
 // use forward declarations in the header files to get around the circular dependencies
@@ -17,6 +17,7 @@ public:
     // Parameters *param;
     Supervisor *supervisor_ptr;
 
+    std::string sts_algorithm; 	// supertimestepping algorithm. Valid choices: "sts", "rkl3"
     // int stage_step;
     // unsigned int current_step;
     // double current_dt;

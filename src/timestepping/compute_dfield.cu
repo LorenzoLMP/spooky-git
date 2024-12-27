@@ -1,7 +1,5 @@
-#include "define_types.hpp"
-#include "cufft_routines.hpp"
-#include "spooky.hpp"
 #include "common.hpp"
+#include "cufft_routines.hpp"
 #include "cuda_kernels.hpp"
 #include "cuda_kernels_generic.hpp"
 #include "timestepping.hpp"

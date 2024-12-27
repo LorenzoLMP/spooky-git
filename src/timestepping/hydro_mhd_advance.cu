@@ -1,7 +1,6 @@
-#include "define_types.hpp"
+#include "common.hpp"
 #include "timestepping.hpp"
 #include "cufft_routines.hpp"
-#include "spooky.hpp"
 #include "hydro_mhd_advance.hpp"
 #include "cublas_routines.hpp"
 #include "cuda_kernels.hpp"

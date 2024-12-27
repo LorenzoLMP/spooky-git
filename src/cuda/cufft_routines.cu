@@ -1,11 +1,9 @@
 #include <cufftXt.h>
-#include "define_types.hpp"
-
+#include "common.hpp"
 #include "cufft_routines.hpp"
 #include "cuda_kernels_generic.hpp"
-#include "spooky.hpp"
 #include "supervisor.hpp"
-#include "common.hpp"
+
 // cufftHandle plan_r2c{}, plan_c2r{};
 
 cufftHandle plan_r2c{};

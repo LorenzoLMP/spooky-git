@@ -1,4 +1,4 @@
-#include "define_types.hpp"
+#include "common.hpp"
 
 // use forward declarations in the header files to get around the circular dependencies
 // https://stackoverflow.com/questions/994253/two-classes-that-refer-to-each-other

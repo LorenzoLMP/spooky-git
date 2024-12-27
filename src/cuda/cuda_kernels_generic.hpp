@@ -1,8 +1,7 @@
 #include <cuda_runtime.h>
 #include <cufftXt.h>
-// #include "spooky.hpp"
 #include "cufft_utils.h"
-#include "define_types.hpp"
+#include "common.hpp"
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/copy.h>

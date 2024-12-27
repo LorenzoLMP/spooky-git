@@ -9,6 +9,7 @@ ${PROJECT_SOURCE_DIR}/src/timestepping/
 ${PROJECT_SOURCE_DIR}/src/parameters/
 ${PROJECT_SOURCE_DIR}/src/supervisor/
 ${PROJECT_SOURCE_DIR}/src/rkl/
+${PROJECT_SOURCE_DIR}/src/tests/
 )
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/)
@@ -16,7 +17,7 @@ include(list_source_files.txt)
 
 ### these can be modified
 add_executable(test_fft-forward-inverse
-spooky.cu
+main.cu
 cufft_routines.cu
 ${spooky_src})
 

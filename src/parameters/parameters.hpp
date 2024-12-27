@@ -3,8 +3,7 @@
 // #include <vector>
 // #include <array>
 // #include <complex>
-#include "define_types.hpp"
-// #include "spooky_outputs.hpp"
+#include "common.hpp"
 #include "user_outputs.hpp"
 // #include "fields.hpp"
 
@@ -32,7 +31,7 @@ class Parameters {
 	int debug;   				// debug levels = 0 (no debug), 1 (less verbose), 2 (very verbose)
 	int incompressible;			// HD module
 	int heat_equation;			// heat_equation module (incompatible with incompressible)
-	int explicit_dissipation; 	// need to check this
+	// int explicit_dissipation; 	// need to check this
 	int boussinesq; 			// add boussinesq module (only with incompressible)
 	int stratification;			// when boussinesq = true, if background stratification
 	int strat_direction;		// with boussinesq and stratification, direction of strat (0=x, 1=y, 2=z)
@@ -51,9 +50,9 @@ class Parameters {
 	double ly;				/**< Box length in Y*/
 	double lz;				/**< Box length in Z*/
 
-	int grid.NX;			// real grid size in x-direction
-	int grid.NY;			// real grid size in y-direction
-	int grid.NZ;			// real grid size in z-direction
+	int nx;			// real grid size in x-direction
+	int ny;			// real grid size in y-direction
+	int nz;			// real grid size in z-direction
 
 	double reynolds;		/**< Reynolds number (actully the inverse of the viscosity) */
 	double nu;

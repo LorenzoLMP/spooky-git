@@ -1,10 +1,9 @@
-#include "define_types.hpp"
+#include "common.hpp"
 // #include "wavevector.hpp"
 #include "cufft_routines.hpp"
-#include "spooky.hpp"
 #include "fields.hpp"
 #include "parameters.hpp"
-#include "common.hpp"
+
 
 
 Wavevector::~Wavevector() {

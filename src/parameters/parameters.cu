@@ -84,9 +84,9 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	if(!config_lookup_bool(&config, "modules.heat_equation",&heat_equation)) {
 		heat_equation = 0;
 	}
-	if(!config_lookup_bool(&config, "modules.explicit_dissipation",&explicit_dissipation)) {
-		explicit_dissipation = 0;
-	}
+	// if(!config_lookup_bool(&config, "modules.explicit_dissipation",&explicit_dissipation)) {
+	// 	explicit_dissipation = 0;
+	// }
 	if(!config_lookup_bool(&config, "modules.boussinesq",&boussinesq)) {
 		boussinesq = 0;
 	}
@@ -130,13 +130,13 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 		lz = 1.0;
 	}
 
-	if(config_lookup_int(&config, "physics.nx",&nx)) {
+	if(config_lookup_int(&config, "physics.gridsize.[0]",&nx)) {
 		nx = 32;
 	}
-	if(config_lookup_int(&config, "physics.ny",&ny)) {
+	if(config_lookup_int(&config, "physics.gridsize.[1]",&ny)) {
 		ny = 32;
 	}
-	if(config_lookup_int(&config, "physics.nz",&nz)) {
+	if(config_lookup_int(&config, "physics.gridsize.[2]",&nz)) {
 		nz = 32;
 	}
 

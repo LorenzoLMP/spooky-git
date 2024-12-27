@@ -1,4 +1,4 @@
-#include "define_types.hpp"
+#include "common.hpp"
 #include <cublas_v2.h>
 
 extern cublasHandle_t handle0;

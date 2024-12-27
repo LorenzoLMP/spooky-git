@@ -1,7 +1,5 @@
 // #include <cufftXt.h>
-// #include "spooky.hpp"
-#include "define_types.hpp"
-
+#include "common.hpp"
 #include <cuda_runtime.h>
 #include "cufft_utils.h"
 
