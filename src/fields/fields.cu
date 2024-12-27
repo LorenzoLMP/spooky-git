@@ -103,7 +103,7 @@ Fields::Fields(Supervisor &sup_in, Parameters &p_in) : wavevector(p_in) {
         all_dfields[i] = data_type(0.0,0.0);
     }
 
-    init_SpatialStructure(p_in);
+    initSpatialStructure();
     // wavevector.init_Wavevector(p_in);
     // std::printf("vars.NUM_FIELDS: %d \n",vars.NUM_FIELDS);
     // for (int n = 0 ; n < vars.NUM_FIELDS ; n++) {

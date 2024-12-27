@@ -5,7 +5,9 @@
 #include "parameters.hpp"
 
 
-void Fields::init_SpatialStructure(Parameters &param){
+void Fields::initSpatialStructure(){
+
+	std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
 	int i,j,k;
 
@@ -24,13 +26,13 @@ void Fields::init_SpatialStructure(Parameters &param){
  //
  //    // Initialize the arrays
 	// // MPI_Printf("grid.NZ = %d \n", grid.NZ);
-    #ifndef WITH_2D
+    #ifndef WIvars.TH_2D
 	for(i = 0 ; i < grid.NX ; i++) {
 		for(j = 0 ; j < grid.NY ; j++) {
 			for(k = 0 ; k < grid.NZ ; k++) {
-				x[k + (grid.NZ + 2) * j + (grid.NZ + 2) * grid.NY * i] = - param.lx / 2 + (param.lx * i) / grid.NX;
-				y[k + (grid.NZ + 2) * j + (grid.NZ + 2) * grid.NY * i] = - param.ly / 2 + (param.ly * j ) / grid.NY;
-				z[k + (grid.NZ + 2) * j + (grid.NZ + 2) * grid.NY * i] = - param.lz / 2 + (param.lz * k ) / grid.NZ;
+				x[k + (grid.NZ + 2) * j + (grid.NZ + 2) * grid.NY * i] = - param_ptr->lx / 2 + (param_ptr->lx * i) / grid.NX;
+				y[k + (grid.NZ + 2) * j + (grid.NZ + 2) * grid.NY * i] = - param_ptr->ly / 2 + (param_ptr->ly * j ) / grid.NY;
+				z[k + (grid.NZ + 2) * j + (grid.NZ + 2) * grid.NY * i] = - param_ptr->lz / 2 + (param_ptr->lz * k ) / grid.NZ;
 			}
 		}
 		// std::printf("x[%d] = %.2e \t",i,x[(grid.NZ + 2) * grid.NY * i]);
@@ -41,15 +43,15 @@ void Fields::init_SpatialStructure(Parameters &param){
 	for(i = 0 ; i < grid.NX ; i++) {
 		for(j = 0 ; j < grid.NY ; j++) {
 			for(k = 0 ; k < grid.NZ ; k++) {
-				x[k + (grid.NZ) * j + (grid.NZ) * (grid.NY + 2) * i] = - param.lx / 2 + (param.lx * i) / grid.NX;
-				y[k + (grid.NZ) * j + (grid.NZ) * (grid.NY + 2) * i] = - param.ly / 2 + (param.ly * j ) / grid.NY;
-				z[k + (grid.NZ) * j + (grid.NZ) * (grid.NY + 2) * i] = - param.lz / 2 + (param.lz * k ) / grid.NZ;
+				x[k + (grid.NZ) * j + (grid.NZ) * (grid.NY + 2) * i] = - param_ptr->lx / 2 + (param_ptr->lx * i) / grid.NX;
+				y[k + (grid.NZ) * j + (grid.NZ) * (grid.NY + 2) * i] = - param_ptr->ly / 2 + (param_ptr->ly * j ) / grid.NY;
+				z[k + (grid.NZ) * j + (grid.NZ) * (grid.NY + 2) * i] = - param_ptr->lz / 2 + (param_ptr->lz * k ) / grid.NZ;
 			}
 		}
 	}
     #endif
 	// Initialize the extra points (k=grid.NZ and k=grid.NZ+1) to zero to prevent stupid things from happening...
-	#ifndef WITH_2D
+	#ifndef WIvars.TH_2D
 	for(i = 0 ; i < grid.NX ; i++) {
 		for(j = 0 ; j < grid.NY ; j++) {
 			for(k = grid.NZ ; k < grid.NZ + 2 ; k++) {
@@ -77,24 +79,24 @@ void Fields::init_SpatialStructure(Parameters &param){
 	///////////////////////////////////////
 
 	double sigma  = 0.9341413811120219;
-	double Pe     = param.reynolds_ani;
-    double Reeta  = param.reynolds_m;
-    double kparallel  = (2.0*M_PI/param.lx)*12.0;
+	double Pe     = param_ptr->reynolds_ani;
+    double Reeta  = param_ptr->reynolds_m;
+    double kparallel  = (2.0*M_PI/param_ptr->lx)*12.0;
 	double B0 = 1e-4;
 
 	for (int i = 0; i < 2*grid.NTOTAL_COMPLEX; i++){
 
 		// MTI eigenmode
 
-		farray_r[VX][i] = 0.0 ;
-		farray_r[VY][i] = 0.0 ;
-		farray_r[VZ][i] = -0.00001*sin(kparallel*x[i]);
+		farray_r[vars.VX][i] = 0.0 ;
+		farray_r[vars.VY][i] = 0.0 ;
+		farray_r[vars.VZ][i] = -0.00001*sin(kparallel*x[i]);
 
-		farray_r[BX][i] = B0 ;
-		farray_r[BY][i] = 0.0 ;
-		farray_r[BZ][i] = -0.00001*cos(kparallel*x[i])*B0*kparallel/(sigma+kparallel*kparallel/Reeta);
+		farray_r[vars.BX][i] = B0 ;
+		farray_r[vars.BY][i] = 0.0 ;
+		farray_r[vars.BZ][i] = -0.00001*cos(kparallel*x[i])*B0*kparallel/(sigma+kparallel*kparallel/Reeta);
 
-		farray_r[TH][i] = 1.0/(sigma + kparallel*kparallel/Pe)*(param.N2 - kparallel*kparallel/Pe/(sigma+kparallel*kparallel/Reeta) ) * farray_r[VZ][i];
+		farray_r[vars.TH][i] = 1.0/(sigma + kparallel*kparallel/Pe)*(param_ptr->N2 - kparallel*kparallel/Pe/(sigma+kparallel*kparallel/Reeta) ) * farray_r[vars.VZ][i];
 
 
 	}

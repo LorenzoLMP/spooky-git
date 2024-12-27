@@ -3,7 +3,6 @@
 #include "cufft_utils.h"
 #include "cufft_routines.hpp"
 #include "cublas_routines.hpp"
-#include "tests.hpp"
 #include <complex.h>
 #include "fields.hpp"
 #include <argparse/argparse.hpp>
