@@ -26,7 +26,7 @@ void Fields::initSpatialStructure(){
  //
  //    // Initialize the arrays
 	// // MPI_Printf("grid.NZ = %d \n", grid.NZ);
-    #ifndef WIvars.TH_2D
+    #ifndef WITH_2D
 	for(i = 0 ; i < grid.NX ; i++) {
 		for(j = 0 ; j < grid.NY ; j++) {
 			for(k = 0 ; k < grid.NZ ; k++) {
@@ -51,7 +51,7 @@ void Fields::initSpatialStructure(){
 	}
     #endif
 	// Initialize the extra points (k=grid.NZ and k=grid.NZ+1) to zero to prevent stupid things from happening...
-	#ifndef WIvars.TH_2D
+	#ifndef WITH_2D
 	for(i = 0 ; i < grid.NX ; i++) {
 		for(j = 0 ; j < grid.NY ; j++) {
 			for(k = grid.NZ ; k < grid.NZ + 2 ; k++) {
