@@ -41,3 +41,17 @@ __global__ void VecInitComplex( data_type *X, data_type a, size_t N);
 
 __global__ void axpy5ComplexAssign( data_type *A, data_type *B, data_type *C, data_type *D, data_type *E, scalar_type a, scalar_type b, scalar_type c, scalar_type d, scalar_type e, size_t N);
 // __global__ void scalarDissipation( const scalar_type *d_all_kvec, const data_type *X, scalar_type *Z, size_t N);
+
+__global__ void nablaOpScalar( const scalar_type *kvec, const data_type *X, data_type *Z, scalar_type a, size_t N, int flag);
+
+__global__ void nablaOpVector( const scalar_type *kvec, const data_type *X, data_type *Z, scalar_type a, size_t N, int flag);
+
+__global__ void Gradient( const scalar_type *kvec, const data_type *X, data_type *Z, size_t N);
+
+__global__ void Divergence( const scalar_type *kvec, const data_type *X, data_type *Z, size_t N);
+
+__global__ void Curl(const scalar_type *kvec, const data_type *Vector, data_type *OutVector, size_t N);
+
+__global__ void CleanDivergence( const scalar_type *kvec, const data_type *X, data_type *Z, size_t N);
+
+__global__ void DivergenceMask( const scalar_type *kvec, const data_type *X, data_type *Z, const scalar_type *mask, size_t N, int flag);

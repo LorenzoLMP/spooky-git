@@ -166,35 +166,152 @@ __global__ void addReset( const data_type *X, data_type *Y, data_type *Z, scalar
     }
 }
 
-// computes a * nabla X, where X is complex vector, out-of-place (unless Z = X), a is double
-// __global__ void nablaOp( scalar_type *kx, scalar_type *ky, scalar_type *kz, cufftDoubleComplex *X, cufftDoubleComplex *Z, scalar_type a, size_t N, int flag) {
-//     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-//
-//     if ( flag == 0 ){ // overwrite i-th element
-//         if (i < N) {
-//             Z[i].x = - a * (kx[i] * kx[i] + ky[i] * ky[i] + kz[i] * kz[i] ) * X[i].x;
-//             Z[i].y = - a * (kx[i] * kx[i] + ky[i] * ky[i] + kz[i] * kz[i] ) * X[i].y;
-//         }
-//     }
-//     else if ( flag == 1) { // accumulate to i-th element
-//         if (i < N) {
-//             Z[i].x += - a * (kx[i] * kx[i] + ky[i] * ky[i] + kz[i] * kz[i] ) * X[i].x;
-//             Z[i].y += - a * (kx[i] * kx[i] + ky[i] * ky[i] + kz[i] * kz[i] ) * X[i].y;
-//         }
-//     }
-//
-// }
 
-// __global__ void scalarDissipation( const scalar_type *d_all_kvec, const data_type *X, scalar_type *Z, size_t N) {
-//     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-//     // int vars.KX = 0; int vars.KY = 1; int vars.KZ = 2;
-//     // this is the imaginary unit
-//     // data_type imI = data_type(0.0,1.0);
-//
-//
-//     if (i < N) {
-//         Z[i] = - (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i] ) * (X[i].real() * X[i].real() + X[i].imag() * X[i].imag());
-//     }
-//
-//
-// }
+/*
+ * In the following kernels it is always
+ * assumed that:
+ *
+ * vars.KX = 0
+ * vars.KY = 1
+ * vars.KZ = 2
+ *
+ * Therefore:
+ *
+ * kvec[vars.KX * N + i] = i-th element of KX = kvec[0 * N + i]
+ * kvec[vars.KY * N + i] = i-th element of KY = kvec[1 * N + i]
+ * ...
+*/
+
+__global__ void nablaOpScalar( const scalar_type *kvec, const data_type *X, data_type *Z, scalar_type a, size_t N, int flag) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+
+    if ( flag == 0 ){ // overwrite i-th element
+        if (i < N) {
+            Z[i] = - a * (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i] ) * X[i];
+        }
+    }
+    else if ( flag == 1) { // accumulate to i-th element
+        if (i < N) {
+            Z[i] += - a * (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i] ) * X[i];
+        }
+    }
+
+}
+
+
+__global__ void nablaOpVector( const scalar_type *kvec, const data_type *X, data_type *Z, scalar_type a, size_t N, int flag) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // assuming that X and Z are pointing to the first element of the 3D vector, then this kernel also works for magnetic field
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+    if ( flag == 0 ){ // overwrite i-th element
+        if (i < N) {
+            // VX/BX component
+            Z[i] = - a * (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i] ) * X[i];
+
+            // VY/BY component
+            Z[N + i] = - a * (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i] ) * X[N + i];
+
+            // VZ/BZ component
+            Z[2 * N + i] = - a * (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i] ) * X[2 * N + i];
+        }
+    }
+    else if ( flag == 1) { // accumulate to i-th element
+        if (i < N) {
+            // VX/BX component
+            Z[i] += - a * (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i] ) * X[i];
+
+            // VY/BY component
+            Z[N + i] += - a * (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i] ) * X[N + i];
+
+            // VZ/BZ component
+            Z[2 * N + i] += - a * (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i] ) * X[2 * N + i];
+        }
+    }
+
+}
+
+__global__ void Gradient( const scalar_type *kvec, const data_type *X, data_type *Z, size_t N) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // X points to the first element of the 1D scalar, Z points to the first element of the 3D vector (complex) output
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+    if (i < N) {
+        // gradient of scalar field
+        Z[i]         = imI *  ( kvec[0 * N + i] * X[i] );
+        Z[N + i]     = imI *  ( kvec[1 * N + i] * X[i] );
+        Z[2 * N + i] = imI *  ( kvec[2 * N + i] * X[i] );
+    }
+}
+
+__global__ void Divergence( const scalar_type *kvec, const data_type *X, data_type *Z, size_t N) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // X points to the first element of the 3D vector, Z is the scalar (complex) output
+    // This kernel works for velocity and magnetic field
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+    if (i < N) {
+        // divergence of vfeld/bfield
+        Z[i] = imI *  (kvec[0 * N + i] * X[i] + kvec[1 * N + i] * X[N + i] + kvec[2 * N + i] * X[2 * N + i] );
+    }
+}
+
+// compute curl of a vector field and assign it to the first three output arrays
+__global__ void Curl(const scalar_type *kvec, const data_type *Vector, data_type *OutVector, size_t N){
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+    if (i < N) {
+        OutVector[0 * N + i] =  imI * ( kvec[1 * N + i] * Vector[2 * N + i] - kvec[2 * N + i] * Vector[    N + i] );
+        OutVector[1 * N + i] =  imI * ( kvec[2 * N + i] * Vector[        i] - kvec[0 * N + i] * Vector[2 * N + i] );
+        OutVector[2 * N + i] =  imI * ( kvec[0 * N + i] * Vector[1 * N + i] - kvec[1 * N + i] * Vector[        i] );
+
+    }
+
+}
+
+__global__ void CleanDivergence( const scalar_type *kvec, const data_type *X, data_type *Z, size_t N) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // X points to the first element of the 3D vector, Z is the scalar (complex) output
+    // This kernel works for velocity and magnetic field
+    data_type q0;
+    scalar_type ik2 = 0.0;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+    if (i < N) {
+        // divergence of vfeld/bfield
+        q0 = imI *  (kvec[0 * N + i] * X[i] + kvec[1 * N + i] * X[N + i] + kvec[2 * N + i] * X[2 * N + i] );
+
+        if (i > 0) {
+            ik2 = 1.0 / (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
+        }
+
+        Z[        i] = X[        i] + imI * kvec[0 * N + i] * q0 * ik2;
+        Z[    N + i] = X[    N + i] + imI * kvec[1 * N + i] * q0 * ik2;
+        Z[2 * N + i] = X[2 * N + i] + imI * kvec[2 * N + i] * q0 * ik2;
+
+    }
+}
+
+__global__ void DivergenceMask( const scalar_type *kvec, const data_type *X, data_type *Z, const scalar_type *mask, size_t N, int flag) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // X points to the first element of the 3D vector, Z is the scalar (complex) output
+    // This kernel works for velocity and magnetic field
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+
+    if ( flag == 0 ){ // overwrite i-th element
+        if (i < N) {
+            // divergence of vfeld/bfield
+            Z[i] = imI * mask[i] * (kvec[0 * N + i] * X[i] + kvec[1 * N + i] * X[N + i] + kvec[2 * N + i] * X[2 * N + i] );
+        }
+    }
+    else if ( flag == 1) { // accumulate to i-th element
+        if (i < N) {
+            // divergence of vfeld/bfield
+            Z[i] += imI * mask[i] * (kvec[0 * N + i] * X[i] + kvec[1 * N + i] * X[N + i] + kvec[2 * N + i] * X[2 * N + i] );
+        }
+    }
+}

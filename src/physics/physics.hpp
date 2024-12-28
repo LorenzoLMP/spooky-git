@@ -17,7 +17,8 @@ public:
 
     void AdvectTemperature(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
     // void AnisotropicConduction(Fields &fields, Parameters &param);
-    void AnisotropicConduction(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
+    void AnisotropicConduction(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dTheta);
+
     void EntropyStratification(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
 
     void ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);

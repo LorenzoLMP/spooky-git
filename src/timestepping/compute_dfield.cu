@@ -68,8 +68,9 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
         */
 
         // compute pseudo-pressure and subtract grad p_tilde from dfields
+        data_type* complex_dVel = complex_dFields + vars.VEL * grid.NTOTAL_COMPLEX ;
         blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        GradPseudoPressure<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dFields, grid.NTOTAL_COMPLEX);
+        GradPseudoPressure<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dVel, grid.NTOTAL_COMPLEX);
 
     } //end INCOMPRESSIBLE
 

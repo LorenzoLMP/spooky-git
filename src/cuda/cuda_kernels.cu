@@ -4,189 +4,81 @@
 // #include "cufft_routines.hpp"
 #include "common.hpp"
 
+/*
+ * In the following kernels it is always
+ * assumed that:
+ *
+ * vars.KX = 0
+ * vars.KY = 1
+ * vars.KZ = 2
+ *
+ * Therefore:
+ *
+ * kvec[vars.KX * N + i] = i-th element of KX = kvec[0 * N + i]
+ * kvec[vars.KY * N + i] = i-th element of KY = kvec[1 * N + i]
+ * ...
+*/
 
-__global__ void nablaOpScalar( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, scalar_type a, size_t N, int flag) {
-    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    // this is the imaginary unit
-    data_type imI = data_type(0.0,1.0);
+/*
+ * In the following kernels it is
+ * assumed that:
+ *
+ * vars.VX = 0
+ * vars.VY = 1
+ * vars.VZ = 2
+ *
+ * Therefore:
+ *
+ * VelField[vars.VX * N + i] = i-th element of VX = VelField[0 * N + i]
+ * VelField[vars.VY * N + i] = i-th element of VY = VelField[1 * N + i]
+ * ...
+*/
 
-    if ( flag == 0 ){ // overwrite i-th element
-        if (i < N) {
-            Z[i] = - a * (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i] ) * X[i];
-        }
-    }
-    else if ( flag == 1) { // accumulate to i-th element
-        if (i < N) {
-            Z[i] += - a * (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i] ) * X[i];
-        }
-    }
-
-}
-
-
-__global__ void nablaOpVector( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, scalar_type a, size_t N, int flag) {
-    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    // assuming that X and Z are pointing to the first element of the 3D vector, then this kernel also works for magnetic field
-    // this is the imaginary unit
-    data_type imI = data_type(0.0,1.0);
-    if ( flag == 0 ){ // overwrite i-th element
-        if (i < N) {
-            // vars.VX/vars.BX component
-            Z[i] = - a * (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i] ) * X[i];
-
-            // vars.VY/vars.BY component
-            Z[N + i] = - a * (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i] ) * X[N + i];
-
-            // vars.VZ/vars.BZ component
-            Z[2 * N + i] = - a * (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i] ) * X[2 * N + i];
-        }
-    }
-    else if ( flag == 1) { // accumulate to i-th element
-        if (i < N) {
-            // vars.VX/vars.BX component
-            Z[i] += - a * (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i] ) * X[i];
-
-            // vars.VY/vars.BY component
-            Z[N + i] += - a * (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i] ) * X[N + i];
-
-            // vars.VZ/vars.BZ component
-            Z[2 * N + i] += - a * (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i] ) * X[2 * N + i];
-        }
-    }
-
-}
-
-__global__ void Gradient( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N) {
-    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    // X points to the first element of the 1D scalar, Z points to the first element of the 3D vector (complex) output
-    // this is the imaginary unit
-    data_type imI = data_type(0.0,1.0);
-    if (i < N) {
-        // gradient of scalar field
-        Z[i]         = imI *  ( d_all_kvec[vars.KX * N + i] * X[i] );
-        Z[N + i]     = imI *  ( d_all_kvec[vars.KY * N + i] * X[i] );
-        Z[2 * N + i] = imI *  ( d_all_kvec[vars.KZ * N + i] * X[i] );
-    }
-}
-
-__global__ void Divergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N) {
-    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    // X points to the first element of the 3D vector, Z is the scalar (complex) output 
-    // This kernel works for velocity and magnetic field
-    // this is the imaginary unit
-    data_type imI = data_type(0.0,1.0);
-    if (i < N) {
-        // divergence of vfeld/bfield
-        Z[i] = imI *  (d_all_kvec[vars.KX * N + i] * X[i] + d_all_kvec[vars.KY * N + i] * X[N + i] + d_all_kvec[vars.KZ * N + i] * X[2 * N + i] );
-    }
-}
-
-// compute curl of a vector field and assign it to the first three output arrays
-__global__ void Curl(const scalar_type *d_all_kvec, const data_type *Vector, data_type *OutVector, size_t N){
-    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    // this is the imaginary unit
-    data_type imI = data_type(0.0,1.0);
-    if (i < N) {
-        OutVector[0 * N + i] =  imI * ( d_all_kvec[vars.KY * N + i] * Vector[2 * N + i] - d_all_kvec[vars.KZ * N + i] * Vector[    N + i] );
-        OutVector[1 * N + i] =  imI * ( d_all_kvec[vars.KZ * N + i] * Vector[        i] - d_all_kvec[vars.KX * N + i] * Vector[2 * N + i] );
-        OutVector[2 * N + i] =  imI * ( d_all_kvec[vars.KX * N + i] * Vector[1 * N + i] - d_all_kvec[vars.KY * N + i] * Vector[        i] );
-
-    }
-
-}
-
-__global__ void CleanDivergence( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, size_t N) {
-    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    // X points to the first element of the 3D vector, Z is the scalar (complex) output 
-    // This kernel works for velocity and magnetic field
-    data_type q0;
-    scalar_type ik2 = 0.0;
-    // this is the imaginary unit
-    data_type imI = data_type(0.0,1.0);
-    if (i < N) {
-        // divergence of vfeld/bfield
-        q0 = imI *  (d_all_kvec[vars.KX * N + i] * X[i] + d_all_kvec[vars.KY * N + i] * X[N + i] + d_all_kvec[vars.KZ * N + i] * X[2 * N + i] );
-
-        if (i > 0) {
-            ik2 = 1.0 / (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i]);
-        }
-
-        Z[        i] = X[        i] + imI * d_all_kvec[vars.KX * N + i] * q0 * ik2;
-        Z[    N + i] = X[    N + i] + imI * d_all_kvec[vars.KY * N + i] * q0 * ik2;
-        Z[2 * N + i] = X[2 * N + i] + imI * d_all_kvec[vars.KZ * N + i] * q0 * ik2;
-        
-    }
-}
-
-__global__ void DivergenceMask( const scalar_type *d_all_kvec, const data_type *X, data_type *Z, const scalar_type *d_mask, size_t N, int flag) {
-    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    // X points to the first element of the 3D vector, Z is the scalar (complex) output
-    // This kernel works for velocity and magnetic field
-    // this is the imaginary unit
-    data_type imI = data_type(0.0,1.0);
-
-    if ( flag == 0 ){ // overwrite i-th element
-        if (i < N) {
-            // divergence of vfeld/bfield
-            Z[i] = imI * d_mask[i] * (d_all_kvec[vars.KX * N + i] * X[i] + d_all_kvec[vars.KY * N + i] * X[N + i] + d_all_kvec[vars.KZ * N + i] * X[2 * N + i] );
-        }
-    }
-    else if ( flag == 1) { // accumulate to i-th element
-        if (i < N) {
-            // divergence of vfeld/bfield
-            Z[i] += imI * d_mask[i] * (d_all_kvec[vars.KX * N + i] * X[i] + d_all_kvec[vars.KY * N + i] * X[N + i] + d_all_kvec[vars.KZ * N + i] * X[2 * N + i] );
-        }
-    }
-}
-
-
-// compute the elements of the traceless symmetric matrix B_ij = u_i u_j - delta_ij Tr (u_i u_j) / 3. It has only 5 independent components B_xx, B_xy, B_xz, Byy, B_yz. (B_zz = - B_xx - B_yy)
-// the results are saved in the first 5 temp_arrays (after those reserved for the fields, the memory block points already at the right location)
-__global__ void TracelessShearMatrix( const scalar_type *d_all_fields, scalar_type *d_all_tmparray, size_t N) {
+// compute the elements of the traceless symmetric matrix S_ij = u_i u_j - delta_ij Tr (u_i u_j) / 3. It has only 5 independent components S_xx, S_xy, S_xz, Byy, S_yz. (S_zz = - S_xx - S_yy)
+// the results are saved in 5 temp arrays (the memory block ShearMatrix points already at the right location)
+__global__ void TracelessShearMatrix( const scalar_type *VelField, scalar_type *ShearMatrix, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
 
     if (i < N) {
 
-        // 0: B_xx = u_x^2 - u^2/3
-        d_all_tmparray[i] = ( 2.0 * d_all_fields[ vars.VX * N + i] * d_all_fields[ vars.VX * N + i] - d_all_fields[ vars.VY * N + i] * d_all_fields[ vars.VY * N + i] - d_all_fields[ vars.VZ * N + i] * d_all_fields[ vars.VZ * N + i] ) / 3.0;
-        // 1: B_xy = u_x u_y
-        d_all_tmparray[N + i] = d_all_fields[ vars.VX * N + i] * d_all_fields[ vars.VY * N + i] ;
-        // 2: B_xz = u_x u_z
-        d_all_tmparray[ 2 * N + i] = d_all_fields[ vars.VX * N + i] * d_all_fields[ vars.VZ * N + i] ;
-        // 3: B_yy = u_y^2 - u^2/3
-        d_all_tmparray[ 3 * N + i] = ( - d_all_fields[ vars.VX * N + i] * d_all_fields[ vars.VX * N + i] + 2.0 * d_all_fields[ vars.VY * N + i] * d_all_fields[ vars.VY * N + i] - d_all_fields[ vars.VZ * N + i] * d_all_fields[ vars.VZ * N + i] ) / 3.0;
-        // 4: B_yz = u_y u_z
-        d_all_tmparray[ 4 * N + i] = d_all_fields[ vars.VY * N + i] * d_all_fields[ vars.VZ * N + i] ;
+        // 0: S_xx = u_x^2 - u^2/3
+        ShearMatrix[ 0 * N + i] = ( 2.0 * VelField[ 0 * N + i] * VelField[ 0 * N + i] - VelField[ 1 * N + i] * VelField[ 1 * N + i] - VelField[ 2 * N + i] * VelField[ 2 * N + i] ) / 3.0;
+        // 1: S_xy = u_x u_y
+        ShearMatrix[ 1 * N + i] = VelField[ 0 * N + i] * VelField[ 1 * N + i] ;
+        // 2: S_xz = u_x u_z
+        ShearMatrix[ 2 * N + i] = VelField[ 0 * N + i] * VelField[ 2 * N + i] ;
+        // 3: S_yy = u_y^2 - u^2/3
+        ShearMatrix[ 3 * N + i] = ( - VelField[ 0 * N + i] * VelField[ 0 * N + i] + 2.0 * VelField[ 1 * N + i] * VelField[ 1 * N + i] - VelField[ 2 * N + i] * VelField[ 2 * N + i] ) / 3.0;
+        // 4: S_yz = u_y u_z
+        ShearMatrix[ 4 * N + i] = VelField[ 1 * N + i] * VelField[ 2 * N + i] ;
     }
 }
 
 
 
 // compute derivative of traceless shear matrix and assign to dfields
-__global__ void NonLinHydroAdv(const scalar_type *d_all_kvec, const data_type *ShearMatrix, data_type *d_all_dfields, const scalar_type *d_mask, size_t N){
+__global__ void NonLinHydroAdv(const scalar_type *kvec, const data_type *ShearMatrix, data_type *dVelField, const scalar_type *mask, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // this is the imaginary unit
     data_type imI = data_type(0.0,1.0);
     if (i < N) {
-        // delta u_x = - ( I k_x B_xx + I k_y B_xy + I k_z B_xz)
-        d_all_dfields[vars.VX * N + i] = - imI * d_mask[i] * (  d_all_kvec[vars.KX * N + i] * ShearMatrix[i] + d_all_kvec[vars.KY * N + i] * ShearMatrix[N + i] + d_all_kvec[vars.KZ * N + i] * ShearMatrix[2 * N + i] );
+        // delta u_x = - ( I k_x S_xx + I k_y S_xy + I k_z S_xz)
+        dVelField[0 * N + i] = - imI * mask[i] * (  kvec[0 * N + i] * ShearMatrix[i] + kvec[1 * N + i] * ShearMatrix[N + i] + kvec[2 * N + i] * ShearMatrix[2 * N + i] );
 
-        // delta u_y = - ( I k_x B_yx + I k_y B_yy + I k_z B_yz)
-        d_all_dfields[vars.VY * N + i] = - imI * d_mask[i] * (  d_all_kvec[vars.KX * N + i] * ShearMatrix[N + i] + d_all_kvec[vars.KY * N + i] * ShearMatrix[3 * N + i] + d_all_kvec[vars.KZ * N + i] * ShearMatrix[4 * N + i] );
+        // delta u_y = - ( I k_x S_yx + I k_y S_yy + I k_z S_yz)
+        dVelField[1 * N + i] = - imI * mask[i] * (  kvec[0 * N + i] * ShearMatrix[N + i] + kvec[1 * N + i] * ShearMatrix[3 * N + i] + kvec[2 * N + i] * ShearMatrix[4 * N + i] );
 
-
-        // delta u_z = - ( I k_x B_zx + I k_y B_zy + I k_z B_zz)
-        // note that B_zz = - B_xx - B_yy
-        d_all_dfields[vars.VZ * N + i] =  - imI * d_mask[i] * (  d_all_kvec[vars.KX * N + i] * ShearMatrix[2 * N + i] + d_all_kvec[vars.KY * N + i] * ShearMatrix[4 * N + i] - d_all_kvec[vars.KZ * N + i] * ( ShearMatrix[i] + ShearMatrix[3 * N + i] ) );
+        // delta u_z = - ( I k_x S_zx + I k_y S_zy + I k_z S_zz)
+        // note that S_zz = - S_xx - S_yy
+        dVelField[2 * N + i] =  - imI * mask[i] * (  kvec[0 * N + i] * ShearMatrix[2 * N + i] + kvec[1 * N + i] * ShearMatrix[4 * N + i] - kvec[2 * N + i] * ( ShearMatrix[i] + ShearMatrix[3 * N + i] ) );
 
     }
-
 }
 
 
 
 // compute pseudo-pressure and subtract grad p_tilde from dfields
-__global__ void GradPseudoPressure(const scalar_type *d_all_kvec, data_type *d_all_dfields, size_t N){
+__global__ void GradPseudoPressure(const scalar_type *kvec, data_type *dVelField, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     data_type divDeltaField;
     scalar_type ik2 = 1.0;
@@ -194,47 +86,61 @@ __global__ void GradPseudoPressure(const scalar_type *d_all_kvec, data_type *d_a
     data_type imI = data_type(0.0,1.0);
 
     if (i < N) {
-        divDeltaField = imI * ( d_all_kvec[vars.KX * N + i] * d_all_dfields[vars.VX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_dfields[vars.VY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_dfields[vars.VZ * N + i] ) ;
+        divDeltaField = imI * ( kvec[0 * N + i] * dVelField[0 * N + i] + kvec[1 * N + i] * dVelField[1 * N + i] + kvec[2 * N + i] * dVelField[2 * N + i] ) ;
 
         // compute 1/k2
         if (i > 0){
-            ik2 = 1.0 / (d_all_kvec[vars.KX * N + i] * d_all_kvec[vars.KX * N + i] + d_all_kvec[vars.KY * N + i] * d_all_kvec[vars.KY * N + i] + d_all_kvec[vars.KZ * N + i] * d_all_kvec[vars.KZ * N + i]);
+            ik2 = 1.0 / (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
         }
 
         // add -grad p
         // vx component
-        d_all_dfields[vars.VX * N + i] += imI * d_all_kvec[vars.KX * N + i] * ik2 * divDeltaField;
+        dVelField[0 * N + i] += imI * kvec[0 * N + i] * ik2 * divDeltaField;
 
         // vy component
-        d_all_dfields[vars.VY * N + i] += imI * d_all_kvec[vars.KY * N + i] * ik2 * divDeltaField;
+        dVelField[1 * N + i] += imI * kvec[1 * N + i] * ik2 * divDeltaField;
 
         // vz component
-        d_all_dfields[vars.VZ * N + i] += imI * d_all_kvec[vars.KZ * N + i] * ik2 * divDeltaField;
+        dVelField[2 * N + i] += imI * kvec[2 * N + i] * ik2 * divDeltaField;
 
     }
 
 }
 
+/*
+ * In the following kernels it is
+ * assumed that:
+ *
+ * vars.BX = 0
+ * vars.BY = 1
+ * vars.BZ = 2
+ *
+ * Therefore:
+ *
+ * MagField[vars.BX * N + i] = i-th element of BX = MagField[0 * N + i]
+ *
+ * ...
+*/
 
 // compute the elements of the traceless symmetric matrix in the MHD case T_ij = u_i u_j  - delta_ij Tr (u_i u_j) / 3 - B_i B_j + delta_ij Tr (B_i B_j) / 3. It has only 5 independent components T_xx, T_xy, T_xz, Tyy, T_yz. (T_zz = - T_xx - T_yy)
-// the results are saved in the first 5 temp_arrays (after those reserved for the fields, the memory block points already at the right location)
-__global__ void TracelessShearMatrixMHD( const scalar_type *d_all_fields, scalar_type *d_all_tmparray, size_t N) {
+// the results are saved in 5 temp arrays (the memory block TShearMatrix points already at the right location)
+__global__ void TracelessShearMatrixMHD( const scalar_type *VelField, const scalar_type *MagField, scalar_type *TShearMatrix, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
 
     if (i < N) {
 
         // 0: T_xx = u_x^2 - u^2/3 - B_x^2 + B^2/3 = (2./3.) ( u_x^2 - B_x^2) - (1./3.) ( u_y^2 - B_y^2 + u_z^2 - B_z^2 )
-        d_all_tmparray[         i] = ( 2.0 * d_all_fields[ vars.VX * N + i] * d_all_fields[ vars.VX * N + i] - d_all_fields[ vars.VY            * N + i] * d_all_fields[ vars.VY * N + i] - d_all_fields[ vars.VZ * N + i] * d_all_fields[ vars.VZ * N + i]
-        - 2.0 * d_all_fields[ vars.BX * N + i] * d_all_fields[ vars.BX * N + i] + d_all_fields[ vars.BY * N + i] * d_all_fields[ vars.BY * N + i] + d_all_fields[ vars.BZ * N + i] * d_all_fields[ vars.BZ * N + i] ) / 3.0;
+        TShearMatrix[         i] = ( 2.0 * VelField[ 0 * N + i] * VelField[ 0 * N + i] - VelField[ 1            * N + i] * VelField[ 1 * N + i] - VelField[ 2 * N + i] * VelField[ 2 * N + i]
+        - 2.0 * MagField[ 0 * N + i] * MagField[ 0 * N + i] + MagField[ 1 * N + i] * MagField[ 1 * N + i] + MagField[ 2 * N + i] * MagField[ 2 * N + i] ) / 3.0;
         // 1: T_xy = u_x u_y - B_x B_y
-        d_all_tmparray[N      + i] = d_all_fields[ vars.VX * N + i] * d_all_fields[ vars.VY * N + i] - d_all_fields[ vars.BX * N + i] * d_all_fields[ vars.BY * N + i] ;
+        TShearMatrix[N      + i] = VelField[ 0 * N + i] * VelField[ 1 * N + i] - MagField[ 0 * N + i] * MagField[ 1 * N + i] ;
         // 2: T_xz = u_x u_z - B_x B_z
-        d_all_tmparray[ 2 * N + i] = d_all_fields[ vars.VX * N + i] * d_all_fields[ vars.VZ * N + i] - d_all_fields[ vars.BX * N + i] * d_all_fields[ vars.BZ * N + i] ;
+        TShearMatrix[ 2 * N + i] = VelField[ 0 * N + i] * VelField[ 2 * N + i] - MagField[ 0 * N + i] * MagField[ 2 * N + i] ;
         // 3: T_yy = u_y^2 - u^2/3 - B_y^2 + B^2/3 = - 1./3 ( u_x^2 - B_x^3 ) + 2./3. ( u_y^2 - B_y^2 ) - 1./3. ( u_z^2 - B_z^2)
-        d_all_tmparray[ 3 * N + i] = ( - d_all_fields[ vars.VX * N + i] * d_all_fields[ vars.VX * N + i] + 2.0 * d_all_fields[ vars.VY * N + i] * d_all_fields[ vars.VY * N + i] - d_all_fields[ vars.VZ * N + i] * d_all_fields[ vars.VZ * N + i]
-        + d_all_fields[ vars.BX * N + i] * d_all_fields[ vars.BX * N + i] - 2.0 * d_all_fields[ vars.BY * N + i] * d_all_fields[ vars.BY * N + i] + d_all_fields[ vars.BZ * N + i] * d_all_fields[ vars.BZ * N + i] ) / 3.0;
+        TShearMatrix[ 3 * N + i] = ( - VelField[ 0 * N + i] * VelField[ 0 * N + i] + 2.0 * VelField[ 1 * N + i] * VelField[ 1 * N + i] - VelField[ 2 * N + i] * VelField[ 2 * N + i]
+        + MagField[ 0 * N + i] * MagField[ 0 * N + i] - 2.0 * MagField[ 1 * N + i] * MagField[ 1 * N + i] + MagField[ 2 * N + i] * MagField[ 2 * N + i] ) / 3.0;
         // 4: T_yz = u_y u_z - B_y B_z
-        d_all_tmparray[ 4 * N + i] = d_all_fields[ vars.VY * N + i] * d_all_fields[ vars.VZ * N + i] - d_all_fields[ vars.BY * N + i] * d_all_fields[ vars.BZ * N + i];
+        TShearMatrix[ 4 * N + i] = VelField[ 1 * N + i] * VelField[ 2 * N + i] - MagField[ 1 * N + i] * MagField[ 2 * N + i];
     }
 }
 
@@ -242,39 +148,39 @@ __global__ void TracelessShearMatrixMHD( const scalar_type *d_all_fields, scalar
 // compute emf = u x B:
 // emf_x = u_y B_z - u_z B_y , emf_y = u_z B_x - u_x B_z , emf_z = u_x B_y - u_y B_x
 // the results are saved in the first 3 temp_arrays (after those reserved for the fields, the memory block points already at the right location) as [emf_x, emf_y, emf_z] (they are the x,y,z components of the emf)
-__global__ void MagneticEmf( const scalar_type *d_all_fields, scalar_type *d_all_tmparray, size_t N) {
+__global__ void MagneticEmf( const scalar_type *VelField, const scalar_type *MagField, scalar_type *Emf, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
 
     if (i < N) {
 
-        // 2: emf_z = u_x B_y - u_y B_x
-        d_all_tmparray[ 2 * N + i] = - d_all_fields[ vars.BX * N + i] * d_all_fields[ vars.VY * N + i] + d_all_fields[ vars.BY * N + i] * d_all_fields[ vars.VX * N + i] ;
-        // 1: emf_y = u_z B_x - u_x B_z
-        d_all_tmparray[     N + i] =   d_all_fields[ vars.BX * N + i] * d_all_fields[ vars.VZ * N + i] - d_all_fields[ vars.BZ * N + i] * d_all_fields[ vars.VX * N + i] ;
         // 0: emf_x = u_y B_z - u_z B_y
-        d_all_tmparray[         i] = - d_all_fields[ vars.BY * N + i] * d_all_fields[ vars.VZ * N + i] + d_all_fields[ vars.BZ * N + i] * d_all_fields[ vars.VY * N + i] ;
+        Emf[         i] = - MagField[ 1 * N + i] * VelField[ 2 * N + i] + MagField[ 2 * N + i] * VelField[ 1 * N + i] ;
+        // 1: emf_y = u_z B_x - u_x B_z
+        Emf[     N + i] =   MagField[ 0 * N + i] * VelField[ 2 * N + i] - MagField[ 2 * N + i] * VelField[ 0 * N + i] ;
+        // 2: emf_z = u_x B_y - u_y B_x
+        Emf[ 2 * N + i] = - MagField[ 0 * N + i] * VelField[ 1 * N + i] + MagField[ 1 * N + i] * VelField[ 0 * N + i] ;
     }
 }
 
 
 // compute derivatives of emf and assign to magnetic fields
 // curl of emf is in the first 3 temp_arrays (after those reserved for the fields, the memory block points already at the right location)
-__global__ void MagneticShear(const scalar_type *d_all_kvec, const data_type *MagEmf, data_type *d_all_dfields, const scalar_type *d_mask, size_t N){
+__global__ void MagneticShear(const scalar_type *kvec, const data_type *MagEmf, data_type *dMagField, const scalar_type *mask, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // this is the imaginary unit
     data_type imI = data_type(0.0,1.0);
     if (i < N) {
         // delta B_x =  ( I k_y emf_z - I k_z emf_y )
         // operations divided in real and complex part
-        d_all_dfields[vars.BX * N + i] =  imI * d_mask[i] * ( d_all_kvec[vars.KY * N + i] * MagEmf[2 * N + i] - d_all_kvec[vars.KZ * N + i] * MagEmf[    N + i] );
+        dMagField[0 * N + i] =  imI * mask[i] * ( kvec[1 * N + i] * MagEmf[2 * N + i] - kvec[2 * N + i] * MagEmf[    N + i] );
 
         // delta B_y =  ( I k_z emf_x - I k_x emf_z )
         // operations divided in real and complex part
-        d_all_dfields[vars.BY * N + i] =  imI * d_mask[i] * ( d_all_kvec[vars.KZ * N + i] * MagEmf[        i] - d_all_kvec[vars.KX * N + i] * MagEmf[2 * N + i] );
+        dMagField[1 * N + i] =  imI * mask[i] * ( kvec[2 * N + i] * MagEmf[        i] - kvec[0 * N + i] * MagEmf[2 * N + i] );
 
         // delta B_z =  ( I k_x emf_y - I k_y emf_x )
         // operations divided in real and complex part
-        d_all_dfields[vars.BZ * N + i] =  imI * d_mask[i] * ( d_all_kvec[vars.KX * N + i] * MagEmf[1 * N + i] - d_all_kvec[vars.KY * N + i] * MagEmf[        i] );
+        dMagField[2 * N + i] =  imI * mask[i] * ( kvec[0 * N + i] * MagEmf[1 * N + i] - kvec[1 * N + i] * MagEmf[        i] );
     }
 
 }
@@ -282,29 +188,29 @@ __global__ void MagneticShear(const scalar_type *d_all_kvec, const data_type *Ma
 
 // compute the elements of the energy flux vector matrix E_i = u_i x theta. It has 3 independent components E_x, E_y, E_z
 // the results are saved in the first 3 temp_arrays (after those reserved for the fields, the memory block points already at the right location)
-__global__ void EnergyFluxVector( const scalar_type *d_all_fields, scalar_type *d_all_tmparray, size_t N) {
+__global__ void EnergyFluxVector( const scalar_type *VelField, const scalar_type *Theta, scalar_type *EnFlux, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
 
     if (i < N) {
 
         // 0: E_x = u_x  theta
-        d_all_tmparray[         i] = d_all_fields[ vars.VX * N + i] * d_all_fields[ vars.TH * N + i] ;
+        EnFlux[         i] = VelField[ 0 * N + i] * Theta[i] ;
         // 1: E_y = u_y  theta
-        d_all_tmparray[     N + i] = d_all_fields[ vars.VY * N + i] * d_all_fields[ vars.TH * N + i] ;
+        EnFlux[     N + i] = VelField[ 1 * N + i] * Theta[i] ;
         // 2: E_z = u_z  theta
-        d_all_tmparray[ 2 * N + i] = d_all_fields[ vars.VZ * N + i] * d_all_fields[ vars.TH * N + i] ;
+        EnFlux[ 2 * N + i] = VelField[ 2 * N + i] * Theta[i] ;
     }
 }
 
 
 // compute derivative of energy flux vector and assign u nabla theta to the dfield for theta
-__global__ void NonLinBoussinesqAdv(const scalar_type *d_all_kvec, const data_type *EnergyFlux, data_type *d_all_dfields, const scalar_type *d_mask, size_t N){
+__global__ void NonLinBoussinesqAdv(const scalar_type *kvec, const data_type *EnergyFlux, data_type *dTheta, const scalar_type *mask, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // this is the imaginary unit
     data_type imI = data_type(0.0,1.0);
     if (i < N) {
         // delta theta = - ( I k_x E_x + I k_y E_y + I k_z E_z)
-        d_all_dfields[vars.TH * N + i] = - imI * d_mask[i] * (  d_all_kvec[vars.KX * N + i] * EnergyFlux[i] + d_all_kvec[vars.KY * N + i] * EnergyFlux[N + i] + d_all_kvec[vars.KZ * N + i] * EnergyFlux[2 * N + i]);
+        dTheta[i] = - imI * mask[i] * (  kvec[0 * N + i] * EnergyFlux[i] + kvec[1 * N + i] * EnergyFlux[N + i] + kvec[2 * N + i] * EnergyFlux[2 * N + i]);
 
 
     }
@@ -315,7 +221,7 @@ __global__ void NonLinBoussinesqAdv(const scalar_type *d_all_kvec, const data_ty
 // add N2 u_strat to temperature equation
 // this is for normalization where theta is in units of g [L/T^2]
 // other normalizations possible
-__global__ void BoussinesqStrat( const data_type *d_all_fields, data_type *d_all_dfields, double BV_freq2, size_t N, int strat_dir){
+__global__ void BoussinesqStrat( const scalar_type *VelField, const scalar_type *Theta, data_type *dVelField, data_type *dTheta, double BV_freq2, size_t N, int strat_dir){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // this is the imaginary unit
     data_type imI = data_type(0.0,1.0);
@@ -323,11 +229,11 @@ __global__ void BoussinesqStrat( const data_type *d_all_fields, data_type *d_all
     if (i < N) {
         // add - th e_strat to velocity component in the strat direction
         // strat_dir can be 0 (e_x), 1 (e_y), 2 (e_z) and is defined in common.hpp
-        d_all_dfields[strat_dir * N + i] +=   - d_all_fields[vars.TH * N + i] ;
+        dVelField[strat_dir * N + i] +=   - Theta[i] ;
 
         // add N2 u_strat to temperature equation
         // BV_freq2 is the squared BV frequency (can be negative)
-        d_all_dfields[vars.TH * N + i] +=   BV_freq2 * d_all_fields[strat_dir * N + i] ;
+        dTheta[i] +=   BV_freq2 * VelField[strat_dir * N + i] ;
 
     }
 }

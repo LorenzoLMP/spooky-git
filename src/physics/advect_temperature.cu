@@ -21,10 +21,13 @@ void Physics::AdvectTemperature(data_type* complex_Fields, scalar_type* real_Buf
 
         data_type* en_flux = fields_ptr->d_all_tmparray;
 
+        scalar_type* real_velField = real_Buffer + vars.VEL * 2 * grid.NTOTAL_COMPLEX ;
+        scalar_type* real_Theta = real_Buffer + vars.TH * 2 * grid.NTOTAL_COMPLEX ;
+
         // first compute energy flux vector [ u_x theta, u_y theta, u_z theta]
         // we can re-utilize tmparrays store result in in the temp_arrays from [0, 1, 2]
         blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        EnergyFluxVector<<<blocksPerGrid, threadsPerBlock>>>(real_Buffer, (scalar_type *) en_flux,  2 * grid.NTOTAL_COMPLEX);
+        EnergyFluxVector<<<blocksPerGrid, threadsPerBlock>>>(real_velField, real_Theta, (scalar_type *) en_flux,  2 * grid.NTOTAL_COMPLEX);
 
 
         // take fourier transforms of the 3 energy flux vector components
@@ -34,7 +37,9 @@ void Physics::AdvectTemperature(data_type* complex_Fields, scalar_type* real_Buf
 
 
         // compute derivative of energy flux vector and assign u nabla theta to the dfield for theta
+        data_type* complex_dTheta = complex_dFields + vars.TH * grid.NTOTAL_COMPLEX ;
+
         blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        NonLinBoussinesqAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, en_flux, complex_dFields, mask, grid.NTOTAL_COMPLEX);
+        NonLinBoussinesqAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, en_flux, complex_dTheta, mask, grid.NTOTAL_COMPLEX);
     }
 }
