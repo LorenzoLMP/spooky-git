@@ -467,7 +467,7 @@ void Parameters::popVariablesGrid() {
     vars.VEL = 0; vars.MAG = 0;
 
 
-    int NUM_FIELDS;
+    // int NUM_FIELDS;
 
 	vars.KX = 0;
 	vars.KY = 1;

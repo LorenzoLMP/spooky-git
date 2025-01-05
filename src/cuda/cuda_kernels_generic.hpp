@@ -2,22 +2,22 @@
 #include <cufftXt.h>
 #include "cufft_utils.h"
 #include "common.hpp"
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
-#include <thrust/copy.h>
-#include <thrust/fill.h>
-#include <thrust/complex.h>
-#include <thrust/transform.h>
-#include <thrust/functional.h>
-#include <thrust/transform_reduce.h>
-#include <thrust/iterator/zip_iterator.h>
-
-// #include "cufft_routines.hpp"
-
-
-// extern const int threadsPerBlock;
-// extern int blocksPerGrid;
-
+// #include <thrust/host_vector.h>
+// #include <thrust/device_vector.h>
+// #include <thrust/copy.h>
+// #include <thrust/fill.h>
+// #include <thrust/complex.h>
+// #include <thrust/transform.h>
+// #include <thrust/functional.h>
+// #include <thrust/transform_reduce.h>
+// #include <thrust/iterator/zip_iterator.h>
+//
+// // #include "cufft_routines.hpp"
+//
+//
+// // extern const int threadsPerBlock;
+// // extern int blocksPerGrid;
+//
 __global__ void scaleKernel(cufftDoubleComplex *ft, scalar_type scale, size_t N);
 __global__ void RRvectorMultiply(const scalar_type *A, const scalar_type *B, scalar_type *C, scalar_type a, size_t N);
 __global__ void RRvectorDivide(const scalar_type *A, const scalar_type *B, scalar_type *C, scalar_type a, size_t N);

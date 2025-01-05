@@ -80,6 +80,12 @@ $ ctest -V -R "spooky"
 
 which will run all the spooky tests and show the output.
 
+## On local laptop (last update: 2025-01-05)
+
+```
+cmake -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="-O3 -std=c++2a" ..
+```
+
 ## On Newton (last update: 2024-11-17)
 
 For interactive jobs:

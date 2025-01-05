@@ -12,6 +12,9 @@
 #include "physics.hpp"
 #include "supervisor.hpp"
 
+#define SET 0
+#define ADD 1
+
 void startup();
 
 Variables vars;

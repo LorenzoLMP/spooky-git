@@ -17,8 +17,6 @@ using dim_t = std::array<size_t, 3>;
 // const int threadsPerBlock{512};
 extern int threadsPerBlock;
 
-#define SET 0
-#define ADD 1
 
 struct Variables {
     int KX, KY, KZ;
@@ -31,7 +29,7 @@ struct Variables {
     int NUM_FIELDS;
 };
 
-extern Variables vars;
+extern struct Variables vars;
 
 struct Grid {
     size_t NX, NY, NZ;
@@ -39,6 +37,6 @@ struct Grid {
     size_t NTOTAL, NTOTAL_COMPLEX;
 };
 
-extern Grid grid;
+extern struct Grid grid;
 
 #endif

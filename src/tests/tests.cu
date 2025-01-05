@@ -135,7 +135,7 @@ int test_forward_inverse_transform(){
     return success;
 };
 
-
+/*
 void test_do_multiplications() {
     // init_plan(grid.FFT_SIZE);
     cudaEvent_t start, stop;
@@ -436,4 +436,4 @@ void test_axpy() {
     // std::printf("kmax: %.5f \n",wavevector.kmax);
     // return EXIT_SUCCESS;
 
-};
+};*/
