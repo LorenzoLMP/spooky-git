@@ -24,7 +24,7 @@
 
 // const double c_pi =
 
-const int threadsPerBlock{512};
+// const int threadsPerBlock{512};
 // extern int dimGrid, dimBlock;
 
 const  size_t nx = 512;        // Attribute (int variable)

@@ -3,6 +3,7 @@
 // #include "cuda_kernels.hpp"
 #include "fields.hpp"
 #include "parameters.hpp"
+#include "supervisor.hpp"
 
 void Fields::initSpatialStructure(){
 

@@ -12,11 +12,12 @@
 // #include "parameters.hpp"
 #include "cuda_kernels.hpp"
 #include <argparse/argparse.hpp>
-#include "physics_modules.hpp"
+// #include "physics_modules.hpp"
 
 
 // Parameters param;
-// int threadsPerBlock = 512;
+int threadsPerBlock = 512;
+// int threadsPerBlock{512};
 
 int main(int argc, char *argv[]) {
 

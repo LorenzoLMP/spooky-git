@@ -14,7 +14,8 @@ using cpudata_t = std::vector<scalar_type>;
 using dim_t = std::array<size_t, 3>;
 
 
-const int threadsPerBlock{512};
+// const int threadsPerBlock{512};
+extern int threadsPerBlock;
 
 #define SET 0
 #define ADD 1

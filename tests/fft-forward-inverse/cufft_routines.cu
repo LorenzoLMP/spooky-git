@@ -2,8 +2,10 @@
 #include "common.hpp"
 #include "cufft_routines.hpp"
 #include "cuda_kernels_generic.hpp"
+#include "main.hpp"
 // #include "supervisor.hpp"
 // cufftHandle plan_r2c{}, plan_c2r{};
+
 
 cufftHandle plan_r2c{};
 cufftHandle plan_c2r{};
@@ -23,10 +25,10 @@ void c2r_fft(void *c_data_in, void *r_data_out) {
 
     // Scale complex results
     int dimGrid, dimBlock;
-    dimGrid = (grid.NTOTAL + threadsPerBlock - 1) / threadsPerBlock;
+    dimGrid = (ntotal + threadsPerBlock - 1) / threadsPerBlock;
     dimBlock = threadsPerBlock;
 
-    scaleKernel<<<dimGrid, dimBlock>>>(reinterpret_cast<cufftDoubleComplex *>(c_data_in), (double) 1./(grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * grid.FFT_SIZE[2]), grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * ((grid.FFT_SIZE[2] / 2) + 1));
+    scaleKernel<<<dimGrid, dimBlock>>>(reinterpret_cast<cufftDoubleComplex *>(c_data_in), (double) 1./(fft_size[0] * fft_size[1] * fft_size[2]), fft_size[0] * fft_size[1] * ((fft_size[2] / 2) + 1));
     //CUDA_RT_CALL( cudaPeekAtLastError() );
     //CUDA_RT_CALL( cudaDeviceSynchronize() );
 

@@ -30,7 +30,7 @@ UserOutput::UserOutput(Supervisor &sup_in)
 
 void InputOutput::WriteUserTimevarOutput() {
 
-    NVTX3_FUNC_RANGE();
+    // NVTX3_FUNC_RANGE();
 
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
