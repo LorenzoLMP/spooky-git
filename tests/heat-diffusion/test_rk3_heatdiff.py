@@ -179,6 +179,7 @@ def main():
     # # final dt to stop precisely at t = 100
     # dT_hat, chi = step(T_hat,tend-t)
     # T_hat += dT_hat
+    print("dt=",dt)
     T[:] = irfft(T_hat)
     # j += 1
     # if save:
