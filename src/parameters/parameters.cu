@@ -130,13 +130,13 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 		lz = 1.0;
 	}
 
-	if(config_lookup_int(&config, "physics.gridsize.[0]",&nx)) {
+	if(!config_lookup_int(&config, "physics.gridsize.[0]",&nx)) {
 		nx = 32;
 	}
-	if(config_lookup_int(&config, "physics.gridsize.[1]",&ny)) {
+	if(!config_lookup_int(&config, "physics.gridsize.[1]",&ny)) {
 		ny = 32;
 	}
-	if(config_lookup_int(&config, "physics.gridsize.[2]",&nz)) {
+	if(!config_lookup_int(&config, "physics.gridsize.[2]",&nz)) {
 		nz = 32;
 	}
 
@@ -473,7 +473,11 @@ void Parameters::popVariablesGrid() {
 	vars.KY = 1;
 	vars.KZ = 2;
 
-	if (incompressible) {
+	if (heat_equation) {
+		vars.TH = 0;
+		vars.NUM_FIELDS += 1;
+	}
+	else if (incompressible) {
 		vars.VX = 0;
 		vars.VY = 1;
 		vars.VZ = 2;
@@ -500,18 +504,39 @@ void Parameters::popVariablesGrid() {
 		}
 	}
 
+	// set name of variables (for output)
+	vars.VAR_LIST.resize(vars.NUM_FIELDS);
+
 	if (heat_equation) {
-		vars.TH = 0;
-		vars.NUM_FIELDS += 1;
+		vars.VAR_LIST = {"th"};
+	}
+	else if (incompressible) {
+
+		if (mhd) {
+			if (boussinesq) {
+				vars.VAR_LIST = {"vx","vy","vz","bx","by","bz","th"};
+			}
+			else {
+				vars.VAR_LIST = {"vx","vy","vz","bx","by","bz"};
+			}
+		}
+		else { // not mhd
+			if (boussinesq) {
+				vars.VAR_LIST = {"vx","vy","vz","th"};
+			}
+			else {
+				vars.VAR_LIST = {"vx","vy","vz"};
+			}
+		}
 	}
 
-	grid.NX = (size_t) nx;
-	grid.NY = (size_t) ny;
-	grid.NZ = (size_t) nz;
+	grid.NX =  nx;
+	grid.NY =  ny;
+	grid.NZ =  nz;
 
-	grid.FFT_SIZE[0] = grid.NX;
-	grid.FFT_SIZE[1] = grid.NY;
-	grid.FFT_SIZE[2] = grid.NZ;
+	grid.FFT_SIZE[0] = (size_t) grid.NX;
+	grid.FFT_SIZE[1] = (size_t) grid.NY;
+	grid.FFT_SIZE[2] = (size_t) grid.NZ;
 
 	grid.NTOTAL = grid.NX * grid.NY * grid.NZ;
 

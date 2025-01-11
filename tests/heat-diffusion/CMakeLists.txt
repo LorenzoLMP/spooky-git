@@ -9,6 +9,7 @@ ${PROJECT_SOURCE_DIR}/src/timestepping/
 ${PROJECT_SOURCE_DIR}/src/parameters/
 ${PROJECT_SOURCE_DIR}/src/supervisor/
 ${PROJECT_SOURCE_DIR}/src/rkl/
+${PROJECT_SOURCE_DIR}/src/user/
 )
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/)

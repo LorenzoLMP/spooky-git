@@ -13,7 +13,7 @@ sp_savename = 'snap'
 
 
 nx = 1024
-ny = 1
+ny = 2
 nz = 2
 
 tol = 1e-15

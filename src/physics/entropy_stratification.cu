@@ -28,6 +28,6 @@ void Physics::EntropyStratification(data_type* complex_Fields, scalar_type* real
 
 
         blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( complex_velField, complex_Theta, complex_dVel, complex_dTheta, param_ptr->N2, grid.NTOTAL_COMPLEX, STRAT_DIR);
+        BoussinesqStrat<<<blocksPerGrid, threadsPerBlock>>>( complex_velField, complex_Theta, complex_dVel, complex_dTheta, param_ptr->N2, grid.NTOTAL_COMPLEX, param_ptr->strat_direction);
     }
 }

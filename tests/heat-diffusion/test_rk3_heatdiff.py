@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import argparse
 
 nx = 1024
-ny = 1
+ny = 2
 nz = 2
 
 cfl = 1.5
@@ -85,9 +85,10 @@ def RK3(data,dt):
 
 a = 0.01
 delta = 1.0
-output_rate = 0.1
-dt_saverate = 5.0
-tend = 10
+output_rate = 0.005
+dt_saverate = 0.005
+# tend = 10
+tend = 0.01
 save = True
 show = False
 

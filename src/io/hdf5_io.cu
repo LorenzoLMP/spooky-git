@@ -6,7 +6,7 @@
 // #include "../libs/HighFive/include/highfive/highfive.hpp"
 #include <highfive/highfive.hpp>
 #include "fields.hpp"
-#include "hdf5_io.hpp"
+// #include "hdf5_io.hpp"
 #include "parameters.hpp"
 #include "inputoutput.hpp"
 #include "timestepping.hpp"
@@ -98,7 +98,7 @@ void InputOutput::WriteDataFile() {
                 }
             }
         }
-        std::string var_name(list_of_variables[n]);
+        std::string var_name(vars.VAR_LIST[n]);
         dataset = file.createDataSet<scalar_type>(var_name, data_field);
         dataset.write(scratch);
 
@@ -203,7 +203,7 @@ void InputOutput::ReadDataFile(int restart_num) {
             // Now read data_fields
             for (int n = 0; n < vars.NUM_FIELDS; n++){
 
-                std::string var_name(list_of_variables[n]);
+                std::string var_name(vars.VAR_LIST[n]);
                 dataset = file.getDataSet(var_name);
                 //
                 // let's read our vector into the scratch

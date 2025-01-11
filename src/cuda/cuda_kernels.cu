@@ -221,7 +221,7 @@ __global__ void NonLinBoussinesqAdv(const scalar_type *kvec, const data_type *En
 // add N2 u_strat to temperature equation
 // this is for normalization where theta is in units of g [L/T^2]
 // other normalizations possible
-__global__ void BoussinesqStrat( const scalar_type *VelField, const scalar_type *Theta, data_type *dVelField, data_type *dTheta, double BV_freq2, size_t N, int strat_dir){
+__global__ void BoussinesqStrat( const data_type *VelField, const data_type *Theta, data_type *dVelField, data_type *dTheta, double BV_freq2, size_t N, int strat_dir){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // this is the imaginary unit
     data_type imI = data_type(0.0,1.0);

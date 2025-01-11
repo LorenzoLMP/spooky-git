@@ -1,4 +1,4 @@
-
+/*
 
 #ifdef HEAT_EQ
     const std::string list_of_variables[vars.NUM_FIELDS] = {"th"};
@@ -19,3 +19,5 @@
         #endif
     #endif
 #endif
+
+*/

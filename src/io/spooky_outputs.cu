@@ -1,6 +1,6 @@
 #include "common.hpp"
 #include "fields.hpp"
-// #include "parameters.hpp"
+#include "parameters.hpp"
 #include "spooky_outputs.hpp"
 #include "cublas_routines.hpp"
 #include "cuda_kernels.hpp"
@@ -235,7 +235,7 @@ scalar_type SpookyOutput::computeAnisoInjection(data_type* complex_Fields, scala
         // compute vector b_z \vec b (depending on which direction is the stratification)
         // and put it into the [num_fields - num_fields + 3] d_tmparray
         blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        Computebbstrat<<<blocksPerGrid, threadsPerBlock>>>( mag_vec, bzb_vec, (size_t) 2 * grid.NTOTAL_COMPLEX, STRAT_DIR);
+        Computebbstrat<<<blocksPerGrid, threadsPerBlock>>>( mag_vec, bzb_vec, (size_t) 2 * grid.NTOTAL_COMPLEX, param_ptr->strat_direction);
 
         // transform to complex space
         for (int n = 0; n < 3; n++) {
@@ -244,7 +244,7 @@ scalar_type SpookyOutput::computeAnisoInjection(data_type* complex_Fields, scala
 
         // compute divergence of this vector
         blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type*) bzb_vec, divbzb_vec, mask, grid.NTOTAL_COMPLEX, SET);
+        DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type*) bzb_vec, divbzb_vec, mask, grid.NTOTAL_COMPLEX, 0);
 
         // transform to real space
         c2r_fft(divbzb_vec, (scalar_type *) divbzb_vec);

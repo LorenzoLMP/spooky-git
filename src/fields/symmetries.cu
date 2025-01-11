@@ -3,6 +3,7 @@
 #include "cufft_routines.hpp"
 #include "cublas_routines.hpp"
 #include "cuda_kernels.hpp"
+#include "cuda_kernels_generic.hpp"
 #include "parameters.hpp"
 #include "timestepping.hpp"
 #include "supervisor.hpp"
@@ -81,6 +82,8 @@ double Fields::ComputeDivergence( data_type* complex_Fields ){
 // }
 
 void Fields::CleanFieldDivergence( ){
+
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
     int blocksPerGrid;
 

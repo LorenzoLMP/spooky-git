@@ -60,6 +60,8 @@ void InputOutput::WriteTimevarOutput() {
         // std::printf("variable = %s \t",param_ptr->spookyOutVar.name[i]);
         // std::cout << param_ptr->spookyOutVar.name[i] << "\t";
         // if(!strcmp(param_ptr->spookyOutVar.name[i],"t")) {
+        output_var = -1.0;
+
         if(!param_ptr->spookyOutVar.name[i].compare(std::string("t"))) {
             // current time
             output_var = timestep_ptr->current_time;
@@ -67,7 +69,7 @@ void InputOutput::WriteTimevarOutput() {
 
         if (param_ptr->incompressible) {
 
-            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("ev"))) {
+            if(!param_ptr->spookyOutVar.name[i].compare(std::string("ev"))) {
                 // kinetic energy
                 output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.VX]);
                 output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.VY]);
@@ -106,7 +108,7 @@ void InputOutput::WriteTimevarOutput() {
         }
         if (param_ptr->mhd) {
 
-            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("em"))) {
+            if(!param_ptr->spookyOutVar.name[i].compare(std::string("em"))) {
                 // magnetic energy
                 output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.BX]);
                 output_var += param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.BY]);
@@ -146,25 +148,26 @@ void InputOutput::WriteTimevarOutput() {
         }
         if (param_ptr->boussinesq or param_ptr->heat_equation) {
 
-
-            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("et"))) {
+            if(!param_ptr->spookyOutVar.name[i].compare(std::string("et"))) {
                 // thermal/potential energy
                 output_var = param_ptr->spookyOutVar.computeEnergy(fields_ptr->d_farray[vars.TH]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("dissgradT"))) {
                 // thermal dissipation (isotropic or anisotropic)
-                #if defined(ANISOTROPIC_DIFFUSION) && defined(MHD)
+                // #if defined(ANISOTROPIC_DIFFUSION) && defined(MHD)
+                if (param_ptr->anisotropic_diffusion and param_ptr->mhd) {
                 // the minus sign is for consistency with snoopy
-                output_var = - param_ptr->spookyOutVar.computeAnisoDissipation(fields_ptr->d_all_fields,
+                    output_var = - param_ptr->spookyOutVar.computeAnisoDissipation(fields_ptr->d_all_fields,
                                                                             fields_ptr->d_all_buffer_r);
-            }
-            else {
-                output_var = param_ptr->spookyOutVar.computeDissipation(fields_ptr->d_farray[vars.TH]);
+                }
+                else {
+                    output_var = param_ptr->spookyOutVar.computeDissipation(fields_ptr->d_farray[vars.TH]);
+                }
             }
         }
         if (param_ptr->anisotropic_diffusion) {
 
-            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("fluxbbgradT"))) {
+            if(!param_ptr->spookyOutVar.name[i].compare(std::string("fluxbbgradT"))) {
                 // thermal dissipation (isotropic or anisotropic)
                 // for now it's only anisotropic
                 output_var = param_ptr->spookyOutVar.computeAnisoInjection(fields_ptr->d_all_fields,
@@ -172,7 +175,7 @@ void InputOutput::WriteTimevarOutput() {
             }
         }
         if (param_ptr->boussinesq) {
-            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("thvx"))) {
+            if(!param_ptr->spookyOutVar.name[i].compare(std::string("thvx"))) {
                 // convective flux
                 output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.TH], fields_ptr->d_farray_buffer_r[vars.VX]);
             }
@@ -180,9 +183,6 @@ void InputOutput::WriteTimevarOutput() {
                 // convective flux
                 output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.TH], fields_ptr->d_farray_buffer_r[vars.VZ]);
             }
-        }
-        else {
-            output_var = -1.0;
         }
 
         outputfile << std::scientific << std::setprecision(8) << output_var << "\t";

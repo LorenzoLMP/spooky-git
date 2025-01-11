@@ -7,6 +7,8 @@
 #include <vector>
 #include <thrust/complex.h>
 
+#include <nvtx3/nvtx3.hpp>
+
 using scalar_type = double;
 // using data_type = std::complex<scalar_type>;
 using data_type = thrust::complex<scalar_type>;
@@ -27,6 +29,7 @@ struct Variables {
     int MAG;
 
     int NUM_FIELDS;
+    std::vector<std::string> VAR_LIST;
 };
 
 extern struct Variables vars;

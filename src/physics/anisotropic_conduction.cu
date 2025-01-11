@@ -49,7 +49,7 @@ void Physics::AnisotropicConduction(data_type* complex_Fields, scalar_type* real
         // compute the anisotropic heat flux and put it in the [0, 1, 2] tmp array
         scalar_type* heat_flux = fields_ptr->d_tmparray_r[0];
 
-        ComputeAnisotropicHeatFlux<<<blocksPerGrid, threadsPerBlock>>>( real_magField, Bgrad_theta, heat_flux, param_ptr->OmegaT2, (1./param_ptr->reynolds_ani), 2 * grid.NTOTAL_COMPLEX, STRAT_DIR);
+        ComputeAnisotropicHeatFlux<<<blocksPerGrid, threadsPerBlock>>>( real_magField, Bgrad_theta, heat_flux, param_ptr->OmegaT2, (1./param_ptr->reynolds_ani), 2 * grid.NTOTAL_COMPLEX, param_ptr->strat_direction);
 
         // take fourier transforms of the heat flux
         for (int n = 0 ; n < 3; n++) {
@@ -58,7 +58,7 @@ void Physics::AnisotropicConduction(data_type* complex_Fields, scalar_type* real
 
         // take divergence of heat flux and add to dtemp
         blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type*) heat_flux, complex_dTheta, mask, grid.NTOTAL_COMPLEX, ADD);
+        DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type*) heat_flux, complex_dTheta, mask, grid.NTOTAL_COMPLEX, 1);
     }
 
 }

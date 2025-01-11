@@ -38,7 +38,7 @@ __global__ void EnergyFluxVector( const scalar_type *VelField, const scalar_type
 
 __global__ void NonLinBoussinesqAdv(const scalar_type *kvec, const data_type *EnergyFlux, data_type *dTheta, const scalar_type *mask, size_t N);
 
-__global__ void BoussinesqStrat( const scalar_type *VelField, const scalar_type *Theta, data_type *dVelField, data_type *dTheta, double BV_freq2, size_t N, int strat_dir);
+__global__ void BoussinesqStrat( const data_type *VelField, const data_type *Theta, data_type *dVelField, data_type *dTheta, double BV_freq2, size_t N, int strat_dir);
 
 __global__ void ComputeBGradTheta( const scalar_type *B, const scalar_type *GradTheta, scalar_type *Z, size_t N);
 

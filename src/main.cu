@@ -12,8 +12,8 @@
 #include "physics.hpp"
 #include "supervisor.hpp"
 
-#define SET 0
-#define ADD 1
+// #define SET 0
+// #define ADD 1
 
 void startup();
 
@@ -61,11 +61,6 @@ int main(int argc, char *argv[]) {
 
 
     startup();
-    
-    std::printf("-----------Initializing cufft, cublas...\n");
-
-    init_plan(grid.FFT_SIZE);
-    init_cublas();
 
     //----------------------------------------------------------------------------------------
     //! Initialize objects
@@ -81,6 +76,12 @@ int main(int argc, char *argv[]) {
     // TimeStepping timestep(vars.NUM_FIELDS, param, spooky);
     // InputOutput inout(spooky);
 
+    std::printf("grid size: %d %d %d  \n",int(grid.FFT_SIZE[0]),int(grid.FFT_SIZE[1]),int(grid.FFT_SIZE[2]));
+
+    std::printf("-----------Initializing cufft, cublas...\n");
+
+    init_plan(grid.FFT_SIZE);
+    init_cublas();
 
     std::printf("Finished reading in params and initializing objects.\n");
 

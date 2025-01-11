@@ -1,3 +1,6 @@
+#ifndef SPOOKY_OUTPUTS_HPP
+#define SPOOKY_OUTPUTS_HPP
+
 #include "common.hpp"
 #include <vector>
 #include <array>
@@ -29,3 +32,4 @@ class SpookyOutput { // The class
 
 };
 
+#endif

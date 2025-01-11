@@ -49,11 +49,12 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
         scalar_type* real_velField = real_Buffer + vars.VEL * 2 * grid.NTOTAL_COMPLEX ;
         data_type* complex_dVel = complex_dFields + vars.VEL * grid.NTOTAL_COMPLEX ;
 
-        if (param_ptr->mhd) {
-
-            scalar_type* real_magField = real_Buffer + vars.MAG * 2 * grid.NTOTAL_COMPLEX ;
-            data_type* complex_dMag = complex_dFields + vars.MAG * grid.NTOTAL_COMPLEX ;
-        }
+        scalar_type* real_magField = real_Buffer + vars.MAG * 2 * grid.NTOTAL_COMPLEX ;
+        data_type* complex_dMag = complex_dFields + vars.MAG * grid.NTOTAL_COMPLEX ;
+//         if (param_ptr->mhd) {
+//
+//
+//         }
 
         // we use Basdevant formulation [1983]
         // compute the elements of the traceless symmetric matrix
@@ -146,7 +147,7 @@ void Physics::ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer
         data_type* complex_velField = complex_Fields + vars.VEL * grid.NTOTAL_COMPLEX ;
         data_type* complex_dVel = complex_dFields + vars.VEL * grid.NTOTAL_COMPLEX ;
 
-        nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_velField, complex_dVel, param_ptr->nu, (size_t) grid.NTOTAL_COMPLEX, ADD);
+        nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_velField, complex_dVel, param_ptr->nu, (size_t) grid.NTOTAL_COMPLEX, 1);
     }
 
     if (param_ptr->mhd) {
@@ -156,7 +157,7 @@ void Physics::ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer
         data_type* complex_magField = complex_Fields + vars.MAG * grid.NTOTAL_COMPLEX ;
         data_type* complex_dMag = complex_dFields + vars.MAG * grid.NTOTAL_COMPLEX ;
 
-        nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_magField, complex_dMag, param_ptr->nu_m, (size_t) grid.NTOTAL_COMPLEX, ADD);
+        nablaOpVector<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_magField, complex_dMag, param_ptr->nu_m, (size_t) grid.NTOTAL_COMPLEX, 1);
     }
 
     if (param_ptr->boussinesq or param_ptr->heat_equation) {
@@ -172,7 +173,7 @@ void Physics::ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer
                 // this is because the nabla scalar will *add* to d_dfarray, and with HEAT_EQ we want to *set*
                 VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(complex_dTheta, data_type(0.0,0.0), grid.NTOTAL_COMPLEX);
             }
-            nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Theta, complex_dTheta, param_ptr->nu_th, (size_t) grid.NTOTAL_COMPLEX, ADD);
+            nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Theta, complex_dTheta, param_ptr->nu_th, (size_t) grid.NTOTAL_COMPLEX, 1);
         }
     }
 
