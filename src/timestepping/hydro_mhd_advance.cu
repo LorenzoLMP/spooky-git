@@ -54,10 +54,10 @@ void TimeStepping::HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr) {
         // an in-place r2c FFT to give the real fields. This buffer is reserved for the real fields!
         supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
 
-        if (param_ptr->sts_algorithm.compare(std::string("sts"))) {
+        if (!param_ptr->sts_algorithm.compare(std::string("sts"))) {
             rkl->compute_cycle_STS(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
         }
-        else if (param_ptr->sts_algorithm.compare(std::string("rkl3"))) {
+        else if (!param_ptr->sts_algorithm.compare(std::string("rkl3"))) {
             rkl->compute_cycle_RKL(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
         }
     }

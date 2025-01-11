@@ -3,12 +3,12 @@
 // #include "cuda_kernels.hpp"
 #include "fields.hpp"
 #include "parameters.hpp"
+#include "supervisor.hpp"
 
 void Fields::initSpatialStructure(){
 
-	std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
-
 	int i,j,k;
+	std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
 	/*******************************************************************
 	** This part does not need to be modified **************************
@@ -76,12 +76,9 @@ void Fields::initSpatialStructure(){
 	///////////////////////////////////////
 	// initial conditions on host data
 	///////////////////////////////////////
-	double a = 0.01;
+	// double a = 0.01;
 	for (int i = 0; i < 2*grid.NTOTAL_COMPLEX; i++){
-	#ifdef HEAT_EQ
-		farray_r[vars.TH][i] = 1.0 +  0.5 * (tanh((x[i] + 0.375) / a) - tanh((x[i] + 0.125) / a)) + 0.5 * (tanh((x[i] - 0.125) / a) - tanh((x[i] - 0.375) / a));
-	#endif
-	#ifdef INCOMPRESSIBLE
+
 		// farray_r[vars.VX][i] = 1.0 ;
 		// // // farray_r[vars.VY][i] = 1.0 * sin(2.0*M_PI*x[i]);
 		// farray_r[vars.VY][i] = 2.0;
@@ -91,10 +88,7 @@ void Fields::initSpatialStructure(){
 		// farray_r[vars.VY][i] = 1.0 * sin(2.0*M_PI*x[i]);
 		farray_r[vars.VY][i] = - cos(2.0*M_PI*x[i]/param_ptr->lx) * sin(2.0*M_PI*y[i]/param_ptr->ly);
 		farray_r[vars.VZ][i] = 0.0;
-	#endif
-	#ifdef BOUSSINESQ
-		farray_r[vars.TH][i] = 0.0;
-	#endif
+
 	}
 
 // 	for (int i = 0; i < 10; i++){

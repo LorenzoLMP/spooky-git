@@ -31,7 +31,7 @@ RKLegendre::RKLegendre(Parameters &p_in, Supervisor &sup_in) {
     blocksPerGrid = ( vars.NUM_FIELDS * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
     // this is the mega array that contains intermediate fields during multi-stage timestepping
     // std::printf("num fields ts: %d \n", vars.NUM_FIELDS);
-    if (p_in.sts_algorithm.compare(std::string("sts"))) {
+    if (!p_in.sts_algorithm.compare(std::string("sts"))) {
 
         sts_algorithm = "sts";
         ts = new double[STS_MAX_STEPS];
@@ -51,7 +51,7 @@ RKLegendre::RKLegendre(Parameters &p_in, Supervisor &sup_in) {
         }
 
     }
-    else if (p_in.sts_algorithm.compare(std::string("rkl3"))) {
+    else if (!p_in.sts_algorithm.compare(std::string("rkl3"))) {
         sts_algorithm = "rkl3";
         std::printf("num rkl scratch arrays: %d \n",4*vars.NUM_FIELDS);
 
@@ -83,12 +83,12 @@ RKLegendre::RKLegendre(Parameters &p_in, Supervisor &sup_in) {
 }
 
 RKLegendre::~RKLegendre(){
-    if (sts_algorithm.compare(std::string("sts"))) {
+    if (!sts_algorithm.compare(std::string("sts"))) {
         CUDA_RT_CALL(cudaFree(d_all_dU));
         delete d_farray_dU;
         delete ts;
     }
-    else if (sts_algorithm.compare(std::string("rkl3"))) {
+    else if (!sts_algorithm.compare(std::string("rkl3"))) {
 
         CUDA_RT_CALL(cudaFree(d_all_dU));
         CUDA_RT_CALL(cudaFree(d_all_dU0));
@@ -140,7 +140,7 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
 
         if (n > 1){
             dt_par_corr = STS_CorrectTimeStep(n, dt_hyp, STS_NU);
-            if (param_ptr->debug > 0) {
+            if (param_ptr->debug > 1) {
                 std::printf("STS::::: dt_par_corr: %4.e \n",dt_par_corr);
             }
             STS_ComputeSubSteps(dt_par_corr, ts, n, STS_NU);

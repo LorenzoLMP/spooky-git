@@ -31,4 +31,7 @@ ${PROJECT_SOURCE_DIR}/src/physics/anisotropic_conduction.cu
 ${PROJECT_SOURCE_DIR}/src/supervisor/supervisor.cu
 ##### rungekuttalegendre class ######
 ${PROJECT_SOURCE_DIR}/src/rkl/rkl.cu
+##### user functions ######
+${PROJECT_SOURCE_DIR}/src/user/user_defined_cuda_kernels.cu
+${PROJECT_SOURCE_DIR}/src/user/user_outputs.cu
 )

@@ -3,12 +3,12 @@
 // #include "cuda_kernels.hpp"
 #include "fields.hpp"
 #include "parameters.hpp"
+#include "supervisor.hpp"
 
 void Fields::initSpatialStructure(){
 
-	std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
-
 	int i,j,k;
+	std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
 	/*******************************************************************
 	** This part does not need to be modified **************************
