@@ -85,10 +85,10 @@ def RK3(data,dt):
 
 a = 0.01
 delta = 1.0
-output_rate = 0.005
-dt_saverate = 0.005
+output_rate = 5.0
+dt_saverate = 5.0
 # tend = 10
-tend = 0.01
+tend = 10.0
 save = True
 show = False
 
