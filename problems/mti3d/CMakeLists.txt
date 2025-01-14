@@ -1,4 +1,4 @@
-### these do not need to be modified
+# ### these do not need to be modified
 include_directories(
 ${PROJECT_SOURCE_DIR}/src/
 ${PROJECT_SOURCE_DIR}/src/cuda/
@@ -12,17 +12,8 @@ ${PROJECT_SOURCE_DIR}/src/rkl/
 ${PROJECT_SOURCE_DIR}/src/user/
 )
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/)
 
-include(list_source_files.txt)
-
+### do not modify
 add_executable(spooky-mti3d
-initflow.cu
-${spooky_src})
-
-
-
-target_link_libraries(spooky-mti3d CUDA::cufft CUDA::cublas CUDA::cudart config hdf5-lib)
-target_link_libraries(spooky-mti3d HighFive)
-target_link_libraries(spooky-mti3d argparse)
-
+initflow.cu)
+target_link_libraries(spooky-mti3d spooky-lib)
