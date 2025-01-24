@@ -7,7 +7,7 @@
 #include "timestepping.hpp"
 // #include "wavevector.hpp"
 #include "supervisor.hpp"
-
+#include "cuda_kernels_generic.hpp"
 
 Fields::~Fields() {
     free(all_fields);
@@ -32,7 +32,7 @@ Fields::~Fields() {
 }
 
 // void Fields::init_Fields( int num, Parameters *p_in )  {
-Fields::Fields(Supervisor &sup_in, Parameters &p_in) : wavevector(p_in) {
+Fields::Fields(Supervisor &sup_in, Parameters &p_in) : wavevector(sup_in, p_in) {
 
     supervisor_ptr = &sup_in;
     // vars.NUM_FIELDS = vars.NUM_FIELDS;
@@ -483,6 +483,19 @@ void Fields::clean_gpu(){
     wavevector.clean_gpu();
 }
 
+void Fields::RemapField(data_type *vecField){
+
+    data_type *vecRemap = d_tmparray[0];
+    scalar_type *mask = wavevector.d_mask;
+
+    int blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+
+    VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(vecRemap, data_type(0.0,0.0), grid.NTOTAL_COMPLEX);
+
+    RemapComplexVec<<<blocksPerGrid, threadsPerBlock>>>(vecField, vecRemap, grid.FFT_SIZE, grid.NTOTAL_COMPLEX);
+
+    MaskVector<<<blocksPerGrid, threadsPerBlock>>>(vecRemap, mask, vecField, grid.NTOTAL_COMPLEX);
+}
 // void Fields::Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int vars.NUM_FIELDS){
 //
 //

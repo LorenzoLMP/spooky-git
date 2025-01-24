@@ -55,3 +55,11 @@ __global__ void Curl(const scalar_type *kvec, const data_type *Vector, data_type
 __global__ void CleanDivergence( const scalar_type *kvec, const data_type *X, data_type *Z, size_t N);
 
 __global__ void DivergenceMask( const scalar_type *kvec, const data_type *X, data_type *Z, const scalar_type *mask, size_t N, int flag);
+
+__device__ int3 ComputeIndices(size_t index, const size_t *fft_size);
+
+__global__ void ShearWavevector( scalar_type *kx, const scalar_type *ky, double tremapShear, double kxmin, const size_t *fft_size, size_t N);
+
+__global__ void RemapComplexVec(data_type *vec, data_type *vec_remap, const size_t *fft_size, size_t N);
+
+__global__ void MaskVector(const data_type *vec, scalar_type *mask, data_type *vec_masked, size_t N);

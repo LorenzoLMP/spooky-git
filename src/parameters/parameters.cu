@@ -171,16 +171,16 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	if(!config_lookup_float(&config, "physics.conductivity_alpha",&ALPHA)) {
 		ALPHA = 0.0;
 	}
-	// if(!config_lookup_float(&config, "physics.omega",&omega)) {
-	// 	omega = 0.0;
-	// }
+	if(!config_lookup_float(&config, "physics.omega",&omega)) {
+		omega = 0.0;
+	}
 // #ifndef WITH_ROTATION
 // 		// Omega should be forced to zero in order to be fool-proof
 // 		omega = 0.0;
 // #endif
-// 		if(!config_lookup_float(&config, "physics.shear",&shear)) {
-// 			shear = 0.0;
-// 		}
+	if(!config_lookup_float(&config, "physics.shear",&shear)) {
+		shear = 0.0;
+	}
 // #ifndef WITH_SHEAR
 // 		// same for the shear
 // 		shear = 0.0;

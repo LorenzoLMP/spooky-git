@@ -25,13 +25,14 @@ public:
     scalar_type *d_mask;
     scalar_type lx, ly, lz;
 
-    Wavevector(Parameters &p_in);
+    Wavevector(Supervisor &sup_in, Parameters &p_in);
+    Supervisor *supervisor_ptr;
     // Wavevector();
 
     // void init_Wavevector(Parameters *p_in);
     void print_values();
     void allocate_and_move_to_gpu();
-    void shear_Wavevector( double t, double dt);
+    void shearWavevector(double tremap);
     void sync_with_host();
     void clean_gpu();
     ~Wavevector();
@@ -90,9 +91,11 @@ public:
 
     void clean_gpu();
     // void RungeKutta3();
-    double ComputeDivergence(data_type* complex_Fields);
+    double ComputeDivergence(data_type *complex_Fields);
     void CleanFieldDivergence();
     void CheckSymmetries();
+
+    void RemapField(data_type *vecField);
     // void CleanDivergence();
 
     // void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);
