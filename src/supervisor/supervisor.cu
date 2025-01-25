@@ -134,6 +134,11 @@ void Supervisor::displayConfiguration(){
 
 void Supervisor::executeMainLoop(){
 
+    if (param_ptr->shearing) {
+        timestep_ptr->ShiftTime();
+        fields_ptr->wavevector.shearWavevector(timestep_ptr->tremap);
+        std::printf("t_remap = %.4e \n",timestep_ptr->tremap);
+    }
 
     while (timestep_ptr->current_time < param_ptr->t_final) {
 

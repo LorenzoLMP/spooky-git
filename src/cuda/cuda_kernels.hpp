@@ -44,6 +44,9 @@ __global__ void ComputeBGradTheta( const scalar_type *B, const scalar_type *Grad
 
 __global__ void ComputeAnisotropicHeatFlux( const scalar_type *B, const scalar_type *BGradTheta, scalar_type *Z, scalar_type OmegaT2, scalar_type chi, size_t N, int strat_dir);
 
+__global__ void ShearingFlow( const data_type *complex_Vecx, data_type *complex_dVecy,  double shear, size_t N);
+
+__global__ void CoriolisForce( const data_type *complex_Vecx, const data_type *complex_Vecy, data_type *complex_dVecx, data_type *complex_dVecy, double omega, size_t N);
 
 // absolute<T> computes the absolute value of a number f(x) -> |x|
 template <typename T>

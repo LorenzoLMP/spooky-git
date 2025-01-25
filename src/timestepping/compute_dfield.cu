@@ -36,7 +36,7 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
 
     if (param_ptr->incompressible) {
 
-        // before we do agrid.NYthing we need to transform from
+        // before we do anything we need to transform from
         // complex to real. However, when stage_step == 0
         // (at the beginning of the hydro_mhd_advance function)
         // this has already been done by the compute_dt function
@@ -60,6 +60,18 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
             phys_ptr->EntropyStratification(complex_Fields, real_Buffer, complex_dFields);
         }
 
+        if (param_ptr->shearing) {
+            // add du_y += param_ptr->shear * u_x
+            // and dB_y += param_ptr->shear * B_x (if MHD)
+            phys_ptr->BackgroundShear(complex_Fields, real_Buffer, complex_dFields);
+        }
+
+        if (param_ptr->rotating) {
+            // add du_x += 2.0 * param_ptr->omega * u_y
+            // add du_y -= 2.0 * param_ptr->omega * u_x
+            phys_ptr->BackgroundRotation(complex_Fields, real_Buffer, complex_dFields);
+        }
+
         /*
         *
         * Now we enforce the incompressibility
@@ -70,7 +82,15 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
         // compute pseudo-pressure and subtract grad p_tilde from dfields
         data_type* complex_dVel = complex_dFields + vars.VEL * grid.NTOTAL_COMPLEX ;
         blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        GradPseudoPressure<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dVel, grid.NTOTAL_COMPLEX);
+
+        if (not param_ptr->shearing) {
+            GradPseudoPressure<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dVel, grid.NTOTAL_COMPLEX);
+        }
+        else {
+            // need to finish this
+            GradPseudoPressureShearing<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dVel, grid.NTOTAL_COMPLEX);
+        }
+
 
     } //end INCOMPRESSIBLE
 

@@ -90,13 +90,13 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
 
         gamma_v = ( fields_ptr->wavevector.kxmax ) * maxfx + fields_ptr->wavevector.kymax * maxfy + fields_ptr->wavevector.kzmax * maxfz;
 
-        // if (param_ptr->rotation) {
-        //     gamma_v += fabs(param_ptr->omega) / param_ptr->safety_source;
-        // }
-        //
-        // if (param_ptr->shear) {
-        //     gamma_v += fabs(param_ptr->shear) / param_ptr->safety_source;
-        // }
+        if (param_ptr->rotating) {
+            gamma_v += fabs(param_ptr->omega) / param_ptr->safety_source;
+        }
+
+        if (param_ptr->shearing) {
+            gamma_v += fabs(param_ptr->shear) / param_ptr->safety_source;
+        }
 
         gamma_par += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu;	// CFL condition on viscosity in incompressible regime
 

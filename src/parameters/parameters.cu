@@ -112,6 +112,12 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	else{
 		std::printf("no sts_algorithm chosen. \n");
 	}
+	if(!config_lookup_bool(&config, "modules.shearing",&shearing)) {
+		shearing = 0;
+	}
+	if(!config_lookup_bool(&config, "modules.rotating",&rotating)) {
+		rotating = 0;
+	}
 
 
 	/*******************

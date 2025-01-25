@@ -483,19 +483,9 @@ void Fields::clean_gpu(){
     wavevector.clean_gpu();
 }
 
-void Fields::RemapField(data_type *vecField){
 
-    data_type *vecRemap = d_tmparray[0];
-    scalar_type *mask = wavevector.d_mask;
 
-    int blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
 
-    VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(vecRemap, data_type(0.0,0.0), grid.NTOTAL_COMPLEX);
-
-    RemapComplexVec<<<blocksPerGrid, threadsPerBlock>>>(vecField, vecRemap, grid.FFT_SIZE, grid.NTOTAL_COMPLEX);
-
-    MaskVector<<<blocksPerGrid, threadsPerBlock>>>(vecRemap, mask, vecField, grid.NTOTAL_COMPLEX);
-}
 // void Fields::Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int vars.NUM_FIELDS){
 //
 //

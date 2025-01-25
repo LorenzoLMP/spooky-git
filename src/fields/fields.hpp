@@ -95,7 +95,7 @@ public:
     void CleanFieldDivergence();
     void CheckSymmetries();
 
-    void RemapField(data_type *vecField);
+
     // void CleanDivergence();
 
     // void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);

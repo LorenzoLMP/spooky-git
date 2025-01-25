@@ -15,6 +15,7 @@ ${PROJECT_SOURCE_DIR}/src/io/hdf5_io.cu
 ${PROJECT_SOURCE_DIR}/src/io/check_output.cu
 ${PROJECT_SOURCE_DIR}/src/io/output_timevar.cu
 ${PROJECT_SOURCE_DIR}/src/io/spooky_outputs.cu
+${PROJECT_SOURCE_DIR}/src/io/remap_output.cu
 ##### parameters files #####
 ${PROJECT_SOURCE_DIR}/src/parameters/parameters.cu
 ##### timestepping files ######
@@ -22,11 +23,13 @@ ${PROJECT_SOURCE_DIR}/src/timestepping/timestepping.cu
 ${PROJECT_SOURCE_DIR}/src/timestepping/hydro_mhd_advance.cu
 ${PROJECT_SOURCE_DIR}/src/timestepping/compute_dfield.cu
 ${PROJECT_SOURCE_DIR}/src/timestepping/compute_dt.cu
+${PROJECT_SOURCE_DIR}/src/timestepping/shearing_remapping.cu
 ##### physics files ######
 ${PROJECT_SOURCE_DIR}/src/physics/physics.cu
 ${PROJECT_SOURCE_DIR}/src/physics/advect_temperature.cu
 ${PROJECT_SOURCE_DIR}/src/physics/entropy_stratification.cu
 ${PROJECT_SOURCE_DIR}/src/physics/anisotropic_conduction.cu
+${PROJECT_SOURCE_DIR}/src/physics/shear_rotation.cu
 ##### supervisor class ######
 ${PROJECT_SOURCE_DIR}/src/supervisor/supervisor.cu
 ##### rungekuttalegendre class ######

@@ -39,6 +39,8 @@ class Parameters {
 	int anisotropic_diffusion; 	// anisotropic diffusion of heat along magnetic fields
 	int supertimestepping; 		// supertimestepping of parabolic terms
 	std::string sts_algorithm; 	// supertimestepping algorithm. Valid choices: "sts", "rkl3"
+	int shearing; 			// add background shearing
+	int rotating;			// add background rotation
 
 	/*******************
 	 *
