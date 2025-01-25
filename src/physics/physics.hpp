@@ -24,6 +24,7 @@ public:
     void ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
     void HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
 
+    double ShiftTime(double time);
     // int stage_step;
     // unsigned int current_step;
     // double current_dt;

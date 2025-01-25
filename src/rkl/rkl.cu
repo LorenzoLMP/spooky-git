@@ -117,10 +117,10 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
     double dt_par_corr = dt_par;
 
     // std::printf("now in supertimestepping function");
-    int i;
+    // int i;
     int nv, n, m;
     double N;
-    int nv_indx, nvar_rkl;
+    // int nv_indx, nvar_rkl;
     double tau;
 
 
@@ -199,12 +199,12 @@ void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_
     // static double **v;
     double s_str;                          /* The "s" parameter */
 
-    int i;
-    int nv, n, m, s, s_RKL = 0;
-    double N, scrh;
-    int nv_indx, var_list[vars.NUM_FIELDS], nvar_rkl;
+    // int i;
+    int nv, s, s_RKL = 0;
+    double scrh;
+    // int nv_indx, var_list[vars.NUM_FIELDS], nvar_rkl;
     double mu_j, nu_j, mu_tilde_j, gamma_j;
-    data_type Y;
+    // data_type Y;
     double a_jm1, b_j, b_jm1, b_jm2, w1;
 
 

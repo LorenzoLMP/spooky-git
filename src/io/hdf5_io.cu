@@ -98,6 +98,8 @@ void InputOutput::WriteDataFile() {
                 }
             }
         }
+
+
         std::string var_name(vars.VAR_LIST[n]);
         dataset = file.createDataSet<scalar_type>(var_name, data_field);
         dataset.write(scratch);
