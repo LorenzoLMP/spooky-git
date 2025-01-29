@@ -15,7 +15,7 @@ ${PROJECT_SOURCE_DIR}/src/io/hdf5_io.cu
 ${PROJECT_SOURCE_DIR}/src/io/check_output.cu
 ${PROJECT_SOURCE_DIR}/src/io/output_timevar.cu
 ${PROJECT_SOURCE_DIR}/src/io/spooky_outputs.cu
-${PROJECT_SOURCE_DIR}/src/io/remap_output.cu
+${PROJECT_SOURCE_DIR}/src/io/unshear_output.cu
 ##### parameters files #####
 ${PROJECT_SOURCE_DIR}/src/parameters/parameters.cu
 ##### timestepping files ######

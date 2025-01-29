@@ -113,19 +113,46 @@ void Supervisor::print_final_stats(){
 
 void Supervisor::displayConfiguration(){
 
-    std::printf("lx = %f \t ly = %f \t lz = %f\n",param_ptr->lx, param_ptr->ly, param_ptr->lz);
-    std::printf("kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",fields_ptr->wavevector.kxmax,fields_ptr->wavevector.kymax, fields_ptr->wavevector.kzmax);
-    std::printf("numfields = %d",vars.NUM_FIELDS);
+    std::printf("You are running SPOOKY with the following configuration: \n");
+    std::printf("Number of fields = %d \n",vars.NUM_FIELDS);
+    std::printf("Grid size (real space) (NX, NY, NZ) = (%d \t %d \t %d)\n",grid.NX, grid.NY, grid.NZ);
+    std::printf("Size of the domain: lx = %f \t ly = %f \t lz = %f\n",param_ptr->lx, param_ptr->ly, param_ptr->lz);
+    std::printf("kxmax = %.4e  kymax = %.4e  kzmax = %.4e \n",fields_ptr->wavevector.kxmax,fields_ptr->wavevector.kymax, fields_ptr->wavevector.kzmax);
 
-    if (param_ptr->boussinesq) {
-        std::printf("nu_th = %.2e \n",param_ptr->nu_th);
+    if (param_ptr->incompressible) {
+        std::printf("Re = %.4e \n",param_ptr->reynolds);
+    }
+    if (param_ptr->boussinesq or param_ptr->heat_equation) {
+        std::printf("Re_th = %.4e \n",param_ptr->reynolds_th);
+    }
+    if (param_ptr->mhd) {
+        std::printf("Re_m = %.4e \n",param_ptr->reynolds_m);
+    }
+    if (param_ptr->anisotropic_diffusion) {
+        std::printf("Re_aniso = %.4e \n",param_ptr->reynolds_ani);
+        std::printf("Omega_T2 = %.4e \n",param_ptr->OmegaT2);
     }
 
-    std::printf("nu = %.2e \n",param_ptr->nu);
     if (param_ptr->stratification) {
-        std::printf("N2 = %.2e \n",param_ptr->N2);
+        std::printf("Background stratification in direction: %d \n",param_ptr->strat_direction);
+        std::printf("N2 = %.4e \n",param_ptr->N2);
+
     }
-    std::printf("t_final = %.2e \n",param_ptr->t_final);
+    if (param_ptr->shearing) {
+        std::printf("S = %.4e \n",param_ptr->shear);
+    }
+    if (param_ptr->rotating) {
+        std::printf("Omega = %.4e \n",param_ptr->omega);
+    }
+
+    if (param_ptr->supertimestepping) {
+        std::printf("Algorithm for supertimestepping: %s \n",param_ptr->sts_algorithm);
+    }
+
+    std::printf("t_initial = %.4e \n",param_ptr->t_initial);
+    std::printf("t_current = %.4e \n",timestep_ptr->current_time);
+    std::printf("t_final = %.4e \n",param_ptr->t_final);
+
     std::printf("Enforcing symmetries every %d steps \n",param_ptr->symmetries_step);
     std::printf("Saving snapshot every  dt = %.2e \n",param_ptr->toutput_flow);
     std::printf("Saving timevar every  dt = %.2e \n",param_ptr->toutput_time);
@@ -186,6 +213,16 @@ void Supervisor::Restart(int restart_num){
 }
 
 Supervisor::~Supervisor(){
+
+}
+
+void Supervisor::Complex2RealFields(data_type* ComplexField_in, int num_fields){
+
+    // version with in-place transform
+    // compute FFTs from complex to real fields
+    for (int n = 0; n < num_fields; n++){
+        c2r_fft(ComplexField_in + n * grid.NTOTAL_COMPLEX,  ((scalar_type*) ComplexField_in) + n * 2*grid.NTOTAL_COMPLEX, this);
+    }
 
 }
 

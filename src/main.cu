@@ -106,9 +106,10 @@ int main(int argc, char *argv[]) {
         std::cout << "printing stats every " << spooky.stats_frequency << " steps " << std::endl;
     }
 
+    spooky.Restart(restart_num);
+
     spooky.displayConfiguration();
 
-    spooky.Restart(restart_num);
 
     if (spooky.param_ptr->debug > 1) {
         spooky.fields_ptr->wavevector.print_values();
@@ -127,15 +128,15 @@ int main(int argc, char *argv[]) {
     spooky.print_final_stats();
 
     // std::printf("Starting copy back to host\n");
-    spooky.fields_ptr->copy_back_to_host();
+    // spooky.fields_ptr->copy_back_to_host();
     
 
     spooky.fields_ptr->clean_gpu();
     std::printf("Finished fields gpu cleanup\n");
 
-    if (spooky.param_ptr->debug > 1) {
-        spooky.fields_ptr->print_host_values();
-    }
+    // if (spooky.param_ptr->debug > 1) {
+    //     spooky.fields_ptr->print_host_values();
+    // }
 
     std::printf("Finishing cufft\n");
     finish_cufft();

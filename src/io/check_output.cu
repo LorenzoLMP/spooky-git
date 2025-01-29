@@ -48,8 +48,22 @@ void InputOutput::CheckOutput(){
 
 
         fields_ptr->CleanFieldDivergence();
+        // before we copy back to host we need to check if
+        // fields need to be unsheared (when shearing is on)
+        if (param_ptr->shearing) {
+            // unshear fields
+            // and transforms to real in d_all_buffer_r
+            UnshearOutput(fields_ptr->d_all_fields,
+                          fields_ptr->d_all_buffer_r,
+                          current_time);
+        }
+        else {
+            supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields,
+                                               fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
+        }
         std::printf("Starting copy back to host\n");
-        fields_ptr->copy_back_to_host();
+        // change following so that one can pass pointer
+        fields_ptr->copy_back_to_host(fields_ptr->d_all_buffer_r);
         std::printf("Saving data snap at t= %.6e \t and step n. %d \n",current_time, timestep_ptr->current_step);
         if (current_time != 0.0) t_lastsnap += param_ptr->toutput_flow;
         WriteDataFile();

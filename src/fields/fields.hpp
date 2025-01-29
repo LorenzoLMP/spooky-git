@@ -82,7 +82,8 @@ public:
     // double advance_timestep( double t, double t_end, int* p_step);
     // void compute_dfield(int stage_step);
     // void compute_dt();
-    void copy_back_to_host();
+    // void copy_back_to_host();
+    void copy_back_to_host(scalar_type *d_AllRealFields);
 
     // void CheckOutput();
     // void write_data_file();

@@ -146,7 +146,7 @@ void Wavevector::shearWavevector(double tremap){
 
     int blocksPerGrid = (grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
 
-    ShearWavevector<<<blocksPerGrid, threadsPerBlock>>>( d_kvec[vars.KX], d_kvec[vars.KY], tremap*param_ptr->shear, kxmin, grid.FFT_SIZE, grid.NTOTAL_COMPLEX);
+    ShearWavevector<<<blocksPerGrid, threadsPerBlock>>>( d_kvec[vars.KX], d_kvec[vars.KY], tremap*param_ptr->shear, kxmin, grid.NX, grid.NY, grid.NZ, grid.NTOTAL_COMPLEX);
 
 }
 

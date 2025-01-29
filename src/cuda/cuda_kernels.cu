@@ -113,7 +113,7 @@ __global__ void GradPseudoPressure(const scalar_type *kvec, data_type *dVelField
 
 // need to finish this
 
-__global__ void GradPseudoPressureShearing(const scalar_type *kvec, data_type *dVelField, size_t N){
+__global__ void GradPseudoPressureShearing(const scalar_type *kvec, data_type *dVelField, data_type *Velx, double shear, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     data_type divDeltaField;
     scalar_type ik2 = 1.0;
@@ -121,7 +121,8 @@ __global__ void GradPseudoPressureShearing(const scalar_type *kvec, data_type *d
     data_type imI = data_type(0.0,1.0);
 
     if (i < N) {
-        divDeltaField = imI * ( kvec[0 * N + i] * dVelField[0 * N + i] + kvec[1 * N + i] * dVelField[1 * N + i] + kvec[2 * N + i] * dVelField[2 * N + i] ) ;
+        // the background shear is added: shear * ky * vx
+        divDeltaField = imI * ( shear * kvec[1 * N + i] * Velx[i] + kvec[0 * N + i] * dVelField[0 * N + i] + kvec[1 * N + i] * dVelField[1 * N + i] + kvec[2 * N + i] * dVelField[2 * N + i] ) ;
 
         // compute 1/k2
         if (i > 0){

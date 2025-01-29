@@ -81,14 +81,18 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
 
         // compute pseudo-pressure and subtract grad p_tilde from dfields
         data_type* complex_dVel = complex_dFields + vars.VEL * grid.NTOTAL_COMPLEX ;
+
         blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
 
         if (not param_ptr->shearing) {
+
             GradPseudoPressure<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dVel, grid.NTOTAL_COMPLEX);
         }
         else {
-            // need to finish this
-            GradPseudoPressureShearing<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dVel, grid.NTOTAL_COMPLEX);
+
+            data_type* complex_Velx = complex_Fields + vars.VX * grid.NTOTAL_COMPLEX ; // this is needed for the shearing
+
+            GradPseudoPressureShearing<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dVel, complex_Velx, param_ptr->shear, grid.NTOTAL_COMPLEX);
         }
 
 

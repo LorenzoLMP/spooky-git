@@ -316,7 +316,7 @@ __global__ void DivergenceMask( const scalar_type *kvec, const data_type *X, dat
     }
 }
 
-__device__ int3 ComputeIndices(size_t index, const size_t *fft_size) {
+__device__ int3 ComputeIndices(size_t index, int NX, int NY, int NZ) {
 
     int3 indices3D;
 
@@ -330,10 +330,10 @@ __device__ int3 ComputeIndices(size_t index, const size_t *fft_size) {
     // index = idx_k + (nz/2+1) * (idx_j + idx_i * ny)
     // idx_tmp = (idx_j + idx_i * ny) = i // (nz/2+1)
 
-    idx_tmp = int(floor((double) index / (fft_size[2]/2+1)));
-    idx_i = int(floor( (double) idx_tmp / fft_size[1]));
-    idx_j = idx_tmp - idx_i * fft_size[1];
-    idx_k = index - (fft_size[2]/2+1)*idx_tmp;
+    idx_tmp = int(floor((double) index / (NZ/2+1)));
+    idx_i = int(floor( (double) idx_tmp / NY));
+    idx_j = idx_tmp - idx_i * NY;
+    idx_k = index - (NZ/2+1)*idx_tmp;
 
     indices3D.x = int(idx_i);
     indices3D.y = int(idx_j);
@@ -342,28 +342,31 @@ __device__ int3 ComputeIndices(size_t index, const size_t *fft_size) {
     return indices3D;
 }
 
-__global__ void ShearWavevector( scalar_type *kx, const scalar_type *ky, double tremapShear, double kxmin, const size_t *fft_size, size_t N) {
+__global__ void ShearWavevector( scalar_type *kx, const scalar_type *ky, double tremapShear, double kxmin, int NX, int NY, int NZ, size_t N) {
 
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    scalar_type kx0;
+    scalar_type kx0 = 0.0;
     int3 idx3D;
+    idx3D.x = 0;
+    idx3D.y = 0;
+    idx3D.z = 0;
     // tremapShear is tremap * param.shear
     // kxmin is 2 \pi / Lx
 
 
     if (i < N) {
-        // idx3D[0] is the kx index
-        // idx3D[1] is the ky index ...
-        idx3D = ComputeIndices(i, fft_size);
+        // idx3D.x is the kx index
+        // idx3D.y is the ky index ...
+        idx3D = ComputeIndices(i, NX, NY, NZ);
 
-        kx0 = kxmin * ( fmod( (double) idx3D.x + ( (double) fft_size[0] / 2) ,  (double) fft_size[0] ) - (double) fft_size[0] / 2 );
+        kx0 = kxmin * ( fmod( (double) idx3D.x + ( (double) NX / 2) ,  (double) NX ) - (double) NX / 2 );
 
         kx[i] = kx0 + tremapShear * ky[i];
 
     }
 }
 
-__global__ void RemapComplexVec(data_type *vec, data_type *vec_remap, const size_t *fft_size, size_t N){
+__global__ void RemapComplexVec(data_type *vec, data_type *vec_remap, int NX, int NY, int NZ, size_t N){
 
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     int3 idx3D;
@@ -374,16 +377,16 @@ __global__ void RemapComplexVec(data_type *vec, data_type *vec_remap, const size
     if (i < N) {
         // idx3D.x is the kx index
         // idx3D.y is the ky index ...
-        idx3D = ComputeIndices(i, fft_size);
-        nx = int(fmod( (double) idx3D.x + (  fft_size[0] / 2) ,  (double) fft_size[0] )) - fft_size[0] / 2 ;
-        ny = int(fmod( (double) idx3D.y + (  fft_size[1] / 2) ,  (double) fft_size[1] )) - fft_size[1] / 2 ;
+        idx3D = ComputeIndices(i, NX, NY, NZ);
+        nx = int(fmod( (double) idx3D.x + (  NX / 2) ,  (double) NX )) - NX / 2 ;
+        ny = int(fmod( (double) idx3D.y + (  NY / 2) ,  (double) NY )) - NY / 2 ;
 
         nxtarget = nx + ny; // We have a negative shear, hence nx plus ny
 
-        if ( (nxtarget > - fft_size[0] / 2) and (nxtarget < fft_size[0]/2)) {
-            if ( nxtarget < 0 ) nxtarget = nxtarget + fft_size[0];
+        if ( (nxtarget > - NX / 2) and (nxtarget < NX/2)) {
+            if ( nxtarget < 0 ) nxtarget = nxtarget + NX;
 
-            vec_remap[idx3D.z + (fft_size[2]/2+1) * idx3D.y + (fft_size[2]/2+1) * fft_size[1] * nxtarget] = vec[i];
+            vec_remap[idx3D.z + (NZ/2+1) * idx3D.y + (NZ/2+1) * NY * nxtarget] = vec[i];
 
         }
 
@@ -400,4 +403,20 @@ __global__ void MaskVector(const data_type *vec, scalar_type *mask, data_type *v
         vec_masked[i] = vec[i] * mask[i];
 
     }
+}
+
+__global__ void UnshearComplexVec(data_type *vec, scalar_type *ky, double prefactor, size_t N) {
+
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    data_type imI = data_type(0.0,1.0);
+    data_type cexp = data_type(0.0,0.0);
+
+    if (i < N) {
+
+        // this is the complex exponential
+        cexp = cos(-0.5 * ky[i] * prefactor) + imI * sin(-0.5 * ky[i] * prefactor);
+        vec[i] = vec[i] * cexp;
+
+    }
+
 }

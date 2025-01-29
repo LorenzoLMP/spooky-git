@@ -28,6 +28,8 @@ __global__ void NonLinHydroAdv(const scalar_type *kvec, const data_type *ShearMa
 
 __global__ void GradPseudoPressure(const scalar_type *kvec, data_type *dVelField, size_t N);
 
+__global__ void GradPseudoPressureShearing(const scalar_type *kvec, data_type *dVelField, data_type *Velx, double shear, size_t N);
+
 __global__ void TracelessShearMatrixMHD( const scalar_type *VelField, const scalar_type *MagField, scalar_type *TShearMatrix, size_t N);
 
 __global__ void MagneticEmf( const scalar_type *VelField, const scalar_type *MagField, scalar_type *Emf, size_t N);

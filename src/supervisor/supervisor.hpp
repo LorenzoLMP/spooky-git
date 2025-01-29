@@ -67,6 +67,7 @@ public:
     void initialDataDump();
     void Restart(int restart_num);
 
+    void Complex2RealFields(data_type* ComplexField_in, int num_fields);
     void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);
 
     ~Supervisor();
