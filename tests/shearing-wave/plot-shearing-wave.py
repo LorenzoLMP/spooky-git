@@ -18,9 +18,9 @@ if not os.path.exists(sp_savedir+'Plots'):
 # if (len(py_data_list) != len(sp_data_list)):
 #     print('Number of datafiles not the same!')
 
-nx = 128
-ny = 192
-nz = 16
+nx = 64
+ny = 64
+nz = 64
 
 lx = 1.0
 ly = 1.5
@@ -84,7 +84,7 @@ for i in range(len(sp_data_list)):
 
     vx_analytical = vx_0
     vy_analytical = vy_0
-    vz_analytical = shear_quantity(vz_0, t)*np.exp(-nu*ky0**2*t)
+    vz_analytical = shear_quantity(vz_0, t)
 
     # lecture 12 Gordon Ogilvie
     viscous_decay = np.exp(-nu*( (kx0**2 + ky0**2 + kz0**2)*t + shear*kx0*ky0*t**2 + (1./3.)*shear**2*ky0**2*t**3 ) )

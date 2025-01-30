@@ -22,6 +22,9 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
     dt_hyp = 0.0;
     // double dt_tot = 0.0;
     double gamma_v = 0.0, gamma_th = 0.0, gamma_par = 0.0, gamma_b = 0.0;
+    double kxmax = fields_ptr->wavevector.kxmax;
+    double kymax = fields_ptr->wavevector.kymax;
+    double kzmax = fields_ptr->wavevector.kzmax;
 
     if (param_ptr->debug > 0) {
         std::printf("Now entering compute_dt function \n");
@@ -32,7 +35,7 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
         // to real, because we can just use complex variables
         // and the dt is fixed (given by nu_th)
 
-        gamma_par = ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu_th;
+        gamma_par = ((kxmax )*( kxmax )+kymax*kymax+kzmax*kzmax) * param_ptr->nu_th;
         dt_par = param_ptr->cfl_par / gamma_par;
         current_dt = dt_par;
 
@@ -88,7 +91,7 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
 
 
 
-        gamma_v = ( fields_ptr->wavevector.kxmax ) * maxfx + fields_ptr->wavevector.kymax * maxfy + fields_ptr->wavevector.kzmax * maxfz;
+        gamma_v = ( kxmax + fabs(tremap)*kymax ) * maxfx + kymax * maxfy + kzmax * maxfz;
 
         if (param_ptr->rotating) {
             gamma_v += fabs(param_ptr->omega) / param_ptr->safety_source;
@@ -98,7 +101,7 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
             gamma_v += fabs(param_ptr->shear) / param_ptr->safety_source;
         }
 
-        gamma_par += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu;	// CFL condition on viscosity in incompressible regime
+        gamma_par += ((kxmax + fabs(tremap)*kymax )*( kxmax + fabs(tremap)*kymax)+kymax*kymax+kzmax*kzmax) * param_ptr->nu;	// CFL condition on viscosity in incompressible regime
 
 
         if (param_ptr->boussinesq) {
@@ -108,10 +111,10 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
 
                 gamma_th += pow(fabs(param_ptr->OmegaT2), 0.5) / param_ptr->safety_source;
 
-                gamma_par += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * (1./param_ptr->reynolds_ani);
+                gamma_par += ((kxmax + fabs(tremap)*kymax )*( kxmax + fabs(tremap)*kymax)+kymax*kymax+kzmax*kzmax) * (1./param_ptr->reynolds_ani);
             }
             else {
-                gamma_par += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu_th; // NB: this is very conservative. It should be combined with the condition on nu
+                gamma_par += ((kxmax + fabs(tremap)*kymax)*( kxmax + fabs(tremap)*kymax)+kymax*kymax+kzmax*kzmax) * param_ptr->nu_th; // NB: this is very conservative. It should be combined with the condition on nu
             }
         }
 
@@ -146,9 +149,9 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
             maxby=fabs(maxby);
             maxbz=fabs(maxbz);
 
-            gamma_b = ( fields_ptr->wavevector.kxmax ) * maxbx + fields_ptr->wavevector.kymax * maxby + fields_ptr->wavevector.kzmax * maxbz;
+            gamma_b = ( kxmax + fabs(tremap)*kymax) * maxbx + kymax * maxby + kzmax * maxbz;
 
-            gamma_par += ((fields_ptr->wavevector.kxmax )*( fields_ptr->wavevector.kxmax )+fields_ptr->wavevector.kymax*fields_ptr->wavevector.kymax+fields_ptr->wavevector.kzmax*fields_ptr->wavevector.kzmax) * param_ptr->nu_m;	// CFL condition on resistivity
+            gamma_par += ((kxmax + fabs(tremap)*kymax)*( kxmax + fabs(tremap)*kymax)+kymax*kymax+kzmax*kzmax) * param_ptr->nu_m;	// CFL condition on resistivity
 
             if (param_ptr->debug > 1) {
                 std::printf("maxbx: %.6e \t maxby: %.6e \t maxbz: %.6e \t gamma_b: %.6e \n",maxbx,maxby,maxbz,gamma_b);
