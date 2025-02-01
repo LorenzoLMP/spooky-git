@@ -461,6 +461,21 @@ int Parameters::checkParameters(){
 		std::cout << "Error: anisotropic_diffusion requires mhd and boussinesq module" << std::endl;
 	}
 
+	// is shearing is on, overwrite toutput_flow so that
+	// it will output only when the domain is exactly periodic
+	if (shearing) {
+		double tperiodic = ly / (shear * lx);
+		if (toutput_flow < tperiodic){
+			toutput_flow = tperiodic;
+		}
+		else {
+			toutput_flow = (double) int(toutput_flow/tperiodic);
+		}
+		std::cout << "Overwriting output for data snapshots because of shearing" << std::endl;
+		std::printf("toutput_flow = %.4e \n",toutput_flow);
+	}
+
+
 	return paramsConsistent;
 }
 

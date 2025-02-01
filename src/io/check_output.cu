@@ -42,7 +42,7 @@ void InputOutput::CheckOutput(){
         supervisor_ptr->TimeIOTimevar += supervisor_ptr->timevar_timer.elapsed();
     }
 
-    if( (current_time-t_lastsnap)>=param_ptr->toutput_flow || current_time == 0.0 ) {
+    if( (current_time-t_lastsnap + 1e-8)>=param_ptr->toutput_flow || current_time == 0.0 ) {
 
         supervisor_ptr->datadump_timer.reset();
 

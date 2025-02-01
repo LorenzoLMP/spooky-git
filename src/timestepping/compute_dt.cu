@@ -8,6 +8,7 @@
 #include "parameters.hpp"
 #include "physics.hpp"
 #include "supervisor.hpp"
+#include "inputoutput.hpp"
 
 
 void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffer) {
@@ -16,7 +17,7 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
 
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
-    // std::shared_ptr<Physics> phys_ptr = supervisor_ptr->phys;
+    std::shared_ptr<InputOutput> inout_ptr = supervisor_ptr->inout_ptr;
 
     dt_par = 0.0;
     dt_hyp = 0.0;
@@ -173,17 +174,31 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
             if ( dt_hyp > dt_par * param_ptr->safety_sts) {
                 dt_hyp =  dt_par * param_ptr->safety_sts;
             }
-            if ( dt_hyp < dt_par ) {
-                dt_par = dt_hyp;
-            }
+            // the following is checked later
+            // if ( dt_hyp < dt_par ) {
+            //     dt_par = dt_hyp;
+            // }
             current_dt = dt_hyp;
         }
 
     } //end INCOMPRESSIBLE
 
 
-
-    if ( current_time + current_dt > param_ptr->t_final) current_dt = param_ptr->t_final - current_time;
+    // this is to stop exactly at t_final
+    // or at the t_output flow
+    if ( current_time + current_dt > param_ptr->t_final) {
+        current_dt = param_ptr->t_final - current_time;
+    }
+    else if ( current_time + current_dt - inout_ptr->t_lastsnap > param_ptr->toutput_flow) {
+        current_dt = param_ptr->toutput_flow - current_time + inout_ptr->t_lastsnap;
+    }
+    // when using sts dt_par may also have to
+    // be shrunk accordingly
+    if (param_ptr->supertimestepping) {
+        if ( current_dt < dt_par ) {
+            dt_par = current_dt;
+        }
+    }
 
 
     if (param_ptr->debug > 0) {

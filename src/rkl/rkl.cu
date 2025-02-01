@@ -78,7 +78,7 @@ RKLegendre::RKLegendre(Parameters &p_in, Supervisor &sup_in) {
         }
     }
 
-    std::printf("blocksPerGrid: %d \n",blocksPerGrid);
+    // std::printf("blocksPerGrid: %d \n",blocksPerGrid);
 
 }
 
