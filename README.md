@@ -20,7 +20,7 @@
 
 ## Description
 
-Pseudospectral code to do HD/MHD simulations on a triply-periodic box on the GPU with CUDA. Work in progress.
+Pseudospectral code to do HD/MHD simulations on a triply-periodic box on (one) NVidia GPU with CUDA. Largely inspired by the Snoopy code (https://ipag.osug.fr/~lesurg/snoopy). Work in progress.
 
 ## Prerequisites 
 
