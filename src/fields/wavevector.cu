@@ -3,8 +3,8 @@
 #include "cufft_routines.hpp"
 #include "fields.hpp"
 #include "parameters.hpp"
-
-
+#include "cuda_kernels_generic.hpp"
+#include "supervisor.hpp"
 
 Wavevector::~Wavevector() {
     // free(kxt);
@@ -19,8 +19,9 @@ Wavevector::~Wavevector() {
 
 
 // void Wavevector::init_Wavevector(Parameters *p_in) {
-Wavevector::Wavevector(Parameters &p_in) {
+Wavevector::Wavevector(Supervisor &sup_in, Parameters &p_in) {
 
+    supervisor_ptr = &sup_in;
     unsigned int idx;
 
     // scalar_type Lx, scalar_type Ly, scalar_type Lz
@@ -133,8 +134,20 @@ void Wavevector::print_values() {
     // }
 }
 
-void Wavevector::shear_Wavevector( double t, double dt) {
-    // write routines for shearing kxt
+// void Wavevector::shear_Wavevector( double t, double dt) {
+//     // write routines for shearing kxt
+// }
+
+void Wavevector::shearWavevector(double tremap){
+
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+    // tremap is already non-dimensionalized qty: param.shear * tremap
+    double kxmin = (2.0 * M_PI) / param_ptr->lx;
+
+    int blocksPerGrid = (grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+
+    ShearWavevector<<<blocksPerGrid, threadsPerBlock>>>( d_kvec[vars.KX], d_kvec[vars.KY], tremap*param_ptr->shear, kxmin, grid.NX, grid.NY, grid.NZ, grid.NTOTAL_COMPLEX);
+
 }
 
 void Wavevector::allocate_and_move_to_gpu() {

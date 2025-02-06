@@ -7,7 +7,7 @@
 #include "timestepping.hpp"
 // #include "wavevector.hpp"
 #include "supervisor.hpp"
-
+#include "cuda_kernels_generic.hpp"
 
 Fields::~Fields() {
     free(all_fields);
@@ -32,7 +32,7 @@ Fields::~Fields() {
 }
 
 // void Fields::init_Fields( int num, Parameters *p_in )  {
-Fields::Fields(Supervisor &sup_in, Parameters &p_in) : wavevector(p_in) {
+Fields::Fields(Supervisor &sup_in, Parameters &p_in) : wavevector(sup_in, p_in) {
 
     supervisor_ptr = &sup_in;
     // vars.NUM_FIELDS = vars.NUM_FIELDS;
@@ -358,17 +358,17 @@ void Fields::allocate_and_move_to_gpu() {
 }
 
 
-void Fields::copy_back_to_host() {
+void Fields::copy_back_to_host(scalar_type *d_AllRealFields) {
 
-    for (int n = 0 ; n < vars.NUM_FIELDS ; n++) {
-        c2r_fft(d_farray[n], d_farray_r[n]);
-    }
+    // for (int n = 0 ; n < vars.NUM_FIELDS ; n++) {
+    //     c2r_fft(d_farray[n], d_farray_r[n]);
+    // }
 
-    CUDA_RT_CALL(cudaMemcpy(all_fields, d_all_fields, sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS, cudaMemcpyDeviceToHost));
+    CUDA_RT_CALL(cudaMemcpy(all_fields, (data_type *) d_AllRealFields, sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS, cudaMemcpyDeviceToHost));
 
-    for (int n = 0 ; n < vars.NUM_FIELDS ; n++) {
-        r2c_fft(d_farray_r[n], d_farray[n]);
-    }
+    // for (int n = 0 ; n < vars.NUM_FIELDS ; n++) {
+    //     r2c_fft(d_farray_r[n], d_farray[n]);
+    // }
 
 
     std::printf("array copied back from device \n");
@@ -482,6 +482,9 @@ void Fields::clean_gpu(){
 
     wavevector.clean_gpu();
 }
+
+
+
 
 // void Fields::Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int vars.NUM_FIELDS){
 //

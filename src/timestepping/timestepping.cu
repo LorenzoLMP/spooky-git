@@ -26,6 +26,7 @@ TimeStepping::TimeStepping(Supervisor &sup_in, Parameters &p_in) {
     current_dt = 0.0;
     current_time = 0.0;
     current_step = 0;
+    tremap = 0.0;
     // stage_step = 0;
 
     // this is the mega array that contains intermediate fields during multi-stage timestepping
@@ -40,3 +41,5 @@ TimeStepping::~TimeStepping(){
     CUDA_RT_CALL(cudaFree(d_all_scrtimestep));
     // delete rkl;
 }
+
+

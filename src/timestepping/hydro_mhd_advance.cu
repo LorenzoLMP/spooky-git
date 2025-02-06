@@ -122,6 +122,11 @@ void TimeStepping::RungeKutta3(data_type* complex_Fields, scalar_type* real_Buff
     if (param_ptr->debug > 1) {
         std::printf("RK3, doing step n. %d ...\n",stage_step+1);
     }
+
+    if (param_ptr->shearing) {
+        fields_ptr->wavevector.shearWavevector(tremap + gammaRK[0]*dt_RK);
+    }
+
     // std::printf("...Computing dfield\n");
     compute_dfield(complex_Fields, real_Buffer, complex_dFields);
 
@@ -142,6 +147,10 @@ void TimeStepping::RungeKutta3(data_type* complex_Fields, scalar_type* real_Buff
         std::printf("RK3, doing step n. %d ...\n",stage_step+1);
     }
 
+    if (param_ptr->shearing) {
+        fields_ptr->wavevector.shearWavevector(tremap + (gammaRK[0] + xiRK[0] + gammaRK[1])*dt_RK);
+    }
+
     // std::printf("...Computing dfield\n");
     compute_dfield(complex_Fields, real_Buffer, complex_dFields);
 
@@ -152,6 +161,20 @@ void TimeStepping::RungeKutta3(data_type* complex_Fields, scalar_type* real_Buff
     axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_all_scrtimestep, complex_dFields, complex_Fields, (scalar_type) 1.0, gammaRK[2]*dt_RK,  grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
 
     current_time += current_dt;
+
+    if (param_ptr->shearing) {
+
+        tremap += current_dt;
+        // is a remap necessary?
+        if (tremap > param_ptr->ly / (2.0 * param_ptr->shear * param_ptr->lx)) {
+            // if yes recompute tremap
+            ShiftTime();
+            // and remap fields
+            RemapAllFields(complex_Fields);
+        }
+
+        fields_ptr->wavevector.shearWavevector(tremap);
+    }
 
     // end of stage 3
     stage_step++;

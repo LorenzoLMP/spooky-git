@@ -107,6 +107,42 @@ __global__ void GradPseudoPressure(const scalar_type *kvec, data_type *dVelField
 
 }
 
+
+// compute pseudo-pressure and subtract grad p_tilde from dfields
+// with background shearing ON
+
+// need to finish this
+
+__global__ void GradPseudoPressureShearing(const scalar_type *kvec, data_type *dVelField, data_type *Velx, double shear, size_t N){
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    data_type divDeltaField;
+    scalar_type ik2 = 1.0;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+
+    if (i < N) {
+        // the background shear is added: shear * ky * vx
+        divDeltaField = imI * ( shear * kvec[1 * N + i] * Velx[i] + kvec[0 * N + i] * dVelField[0 * N + i] + kvec[1 * N + i] * dVelField[1 * N + i] + kvec[2 * N + i] * dVelField[2 * N + i] ) ;
+
+        // compute 1/k2
+        if (i > 0){
+            ik2 = 1.0 / (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
+        }
+
+        // add -grad p
+        // vx component
+        dVelField[0 * N + i] += imI * kvec[0 * N + i] * ik2 * divDeltaField;
+
+        // vy component
+        dVelField[1 * N + i] += imI * kvec[1 * N + i] * ik2 * divDeltaField;
+
+        // vz component
+        dVelField[2 * N + i] += imI * kvec[2 * N + i] * ik2 * divDeltaField;
+
+    }
+
+}
+
 /*
  * In the following kernels it is
  * assumed that:
@@ -236,6 +272,36 @@ __global__ void BoussinesqStrat( const data_type *VelField, const data_type *The
         dTheta[i] +=   BV_freq2 * VelField[strat_dir * N + i] ;
 
     }
+}
+
+
+// add du_y += param_ptr->shear * u_x
+// and dB_y -= param_ptr->shear * B_x (if MHD)
+// note the sign difference when the kernel is called in shear_rotation.cu
+
+__global__ void ShearingFlow( const data_type *complex_Vecx, data_type *complex_dVecy,  double shear, size_t N){
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // this is the imaginary unit
+    // data_type imI = data_type(0.0,1.0);
+
+    if (i < N) {
+        complex_dVecy[i] += shear * complex_Vecx[i] ;
+    }
+}
+
+// add du_x += 2.0 * param_ptr->omega * u_y
+// add du_y -= 2.0 * param_ptr->omega * u_x
+__global__ void CoriolisForce( const data_type *complex_Vecx, const data_type *complex_Vecy, data_type *complex_dVecx, data_type *complex_dVecy, double omega, size_t N) {
+
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // this is the imaginary unit
+    // data_type imI = data_type(0.0,1.0);
+
+    if (i < N) {
+        complex_dVecx[i] += 2.0 * omega * complex_Vecy[i] ;
+        complex_dVecy[i] -= 2.0 * omega * complex_Vecx[i] ;
+    }
+
 }
 
 
