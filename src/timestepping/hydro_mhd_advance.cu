@@ -40,26 +40,23 @@ void TimeStepping::HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr) {
 
     // now we do the supertimestepping?
     // if we want to do it later we need to transform fields to real explicitely
-// #if defined(SUPERTIMESTEPPING) && defined( ANISOTROPIC_DIFFUSION)
-//     rkl->compute_cycle_STS(fields, param, *this, phys);
-// #endif
+    if (param_ptr->supertimestepping and (current_step%2)==1) {
+
+        rkl->compute_cycle(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
+    }
+
 
     RungeKutta3(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
     
 
     // if we want to do supertimestepping now we need to transform fields to real explicitely
-
-    if (param_ptr->supertimestepping) {
+    if (param_ptr->supertimestepping and (current_step%2)==0) {
         // this functions copies the complex fields from d_all_fields into d_all_buffer_r and performs
         // an in-place r2c FFT to give the real fields. This buffer is reserved for the real fields!
         supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
 
-        if (!param_ptr->sts_algorithm.compare(std::string("sts"))) {
-            rkl->compute_cycle_STS(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
-        }
-        else if (!param_ptr->sts_algorithm.compare(std::string("rkl3"))) {
-            rkl->compute_cycle_RKL(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
-        }
+        rkl->compute_cycle(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
+
     }
 
     cudaEventRecord(supervisor_ptr->stop_2);

@@ -146,7 +146,8 @@ void Supervisor::displayConfiguration(){
     }
 
     if (param_ptr->supertimestepping) {
-        std::printf("Algorithm for supertimestepping: %s \n",param_ptr->sts_algorithm);
+        // std::printf("Algorithm for supertimestepping: %s \n",param_ptr->sts_algorithm);
+        std::cout << "Algorithm for supertimestepping: " << param_ptr->sts_algorithm << std::endl;
     }
 
     std::printf("t_initial = %.4e \n",param_ptr->t_initial);

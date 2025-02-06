@@ -99,6 +99,19 @@ RKLegendre::~RKLegendre(){
 
 }
 
+void RKLegendre::compute_cycle(data_type* complex_Fields, scalar_type* real_Buffer){
+
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
+    if (!param_ptr->sts_algorithm.compare(std::string("sts"))) {
+        compute_cycle_STS(complex_Fields, real_Buffer);
+    }
+    else if (!param_ptr->sts_algorithm.compare(std::string("rkl3"))) {
+        compute_cycle_RKL(complex_Fields, real_Buffer);
+    }
+
+}
+
 
 double STS_CorrectTimeStep(int n0, double dta, double STS_NU);
 double STS_FindRoot(double dt_exp, double dT, double STS_NU);
