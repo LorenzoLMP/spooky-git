@@ -141,7 +141,7 @@ def main():
 
         bx = np.reshape(data_sp['bx'],(nx,ny,nz))
         by = np.reshape(data_sp['by'],(nx,ny,nz))
-        bz = np.reshape(data_sp['bz'],(nx,ny,nz))
+        bz = np.reshape(data_sp['bz'],(nx,ny,nz))-B0z
         t =  data_sp['t_save'][0]
         data_sp.close()
 
@@ -151,11 +151,15 @@ def main():
 
         bx_analytical = shear_quantity(bx_0, t)*np.exp(sigma*t)
         by_analytical = shear_quantity(by_0, t)*np.exp(sigma*t)
-        bz_analytical = shear_quantity(bz_0, t)*np.exp(sigma*t)
+        bz_analytical = shear_quantity(bz_0-B0z, t)*np.exp(sigma*t)
 
         L1_err = np.sum(np.abs(vx-vx_analytical))
         L1_err += np.sum(np.abs(vy-vy_analytical))
         L1_err += np.sum(np.abs(vz-vz_analytical))
+
+        L1_err += np.sum(np.abs(bx-bx_analytical))
+        L1_err += np.sum(np.abs(by-by_analytical))
+        L1_err += np.sum(np.abs(bz-bz_analytical))
 
         L1_err /= (nx*ny*nz)
 

@@ -84,6 +84,9 @@ tol = 1e-15
 # vmax =  1.
 extent = [-lx/2,lx/2,-ly/2,ly/2]
 
+amplitude_mode = np.zeros((len(sp_data_list),))
+t_list = np.zeros((len(sp_data_list),))
+
 def shear_quantity(w, tremap):
     # the convention is that this function shears
     # the coords in the same direction of the
@@ -93,7 +96,7 @@ def shear_quantity(w, tremap):
     return w_sheared
 
 for i in range(len(sp_data_list)):
-# for i in range(1,2):
+# for i in range(0,1):
 # for i in range(3,4):
     data_sp = h5py.File(sp_savedir+'{:s}{:04d}.h5'.format(sp_savename,i), 'r')
     vx = np.reshape(data_sp['vx'],(nx,ny,nz))
@@ -111,6 +114,10 @@ for i in range(len(sp_data_list)):
 
     data_sp.close()
 
+    vx_hat = np.fft.rfftn(vx)
+    amplitude_mode[i] = 2.*np.abs(vx_hat[1,0,2])/(nx*ny*nz)
+    t_list[i] = t
+
     vx_analytical = shear_quantity(vx_0, t)*np.exp(sigma*t)
     vy_analytical = shear_quantity(vy_0, t)*np.exp(sigma*t)
     vz_analytical = shear_quantity(vz_0, t)*np.exp(sigma*t)
@@ -121,7 +128,7 @@ for i in range(len(sp_data_list)):
 
 
 
-    fig, ax = plt.subplots(3,2, sharex=True, sharey=True)
+    fig, ax = plt.subplots(3,2, figsize=(7,10), sharex=True, sharey=True)
 
     im00 = ax[0,0].imshow(vx_analytical[:,0,:].T, origin='lower' ,cmap='RdBu_r',extent=extent, interpolation='none')
     im01 = ax[0,1].imshow(vx[:,0,:].T, origin='lower', cmap='RdBu_r',extent=extent, interpolation='none')
@@ -135,22 +142,22 @@ for i in range(len(sp_data_list)):
     ax[0,0].set_title(r'analytical')
     ax[0,1].set_title(r'spooky')
 
-    cbar = fig.colorbar(im00, ax=ax[0,0], orientation='horizontal')
+    cbar = fig.colorbar(im00, ax=ax[0,0], orientation='horizontal', shrink=0.4)
     cbar.set_label(r'$v_x$')
 
-    cbar = fig.colorbar(im01, ax=ax[0,1], orientation='horizontal')
+    cbar = fig.colorbar(im01, ax=ax[0,1], orientation='horizontal', shrink=0.4)
     cbar.set_label(r'$v_x$')
 
-    cbar = fig.colorbar(im10, ax=ax[1,0], orientation='horizontal')
+    cbar = fig.colorbar(im10, ax=ax[1,0], orientation='horizontal', shrink=0.4)
     cbar.set_label(r'$v_y$')
 
-    cbar = fig.colorbar(im11, ax=ax[1,1], orientation='horizontal')
+    cbar = fig.colorbar(im11, ax=ax[1,1], orientation='horizontal', shrink=0.4)
     cbar.set_label(r'$v_y$')
 
-    cbar = fig.colorbar(im20, ax=ax[2,0], orientation='horizontal')
+    cbar = fig.colorbar(im20, ax=ax[2,0], orientation='horizontal', shrink=0.4)
     cbar.set_label(r'$v_z$')
 
-    cbar = fig.colorbar(im21, ax=ax[2,1], orientation='horizontal')
+    cbar = fig.colorbar(im21, ax=ax[2,1], orientation='horizontal', shrink=0.4)
     cbar.set_label(r'$v_z$')
     # ax[0].legend()
 
@@ -166,7 +173,14 @@ for i in range(len(sp_data_list)):
 
     fig.suptitle(r'MRI eigenmode: analytical vs spooky')
 
-    fig.tight_layout(pad=1.00, h_pad=None, w_pad=None, rect=None)
+    # fig.tight_layout(pad=1.00, h_pad=None, w_pad=None, rect=None)
+    fig.subplots_adjust(
+        left=0.1,
+        bottom=0.1,
+        right=0.9,
+        top=0.9,
+        wspace=0.05,
+        hspace=0.1)
 
     plt.savefig(sp_savedir+'Plots/'+'{:s}{:04d}.pdf'.format(sp_savename,i))
 
@@ -183,3 +197,16 @@ for i in range(len(sp_data_list)):
     #     print('i = %d \t L2 error = %.2e ... PASSED'%(i,L2_err))
     # else:
     #     print('i = %d \t L2 error = %.2e ... NOT PASSED'%(i,L2_err))
+
+tt = np.linspace(t_list[0], t_list[-1], 100)
+
+fig, ax = plt.subplots()
+
+ax.plot(t_list, amplitude_mode, 's')
+ax.plot(tt, a*np.exp(sigma*tt), color='k')
+
+ax.set_yscale('log')
+
+ax.set_xlabel('t')
+
+plt.show()
