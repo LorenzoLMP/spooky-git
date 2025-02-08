@@ -1,5 +1,6 @@
 #include "common.hpp"
 #include <memory>
+#include <vector>
 // #include "rkl.hpp"
 
 // use forward declarations in the header files to get around the circular dependencies
@@ -17,7 +18,7 @@ public:
     // Fields *fields;
     // Parameters *param;
     Supervisor *supervisor_ptr;
-    std::unique_ptr<RKLegendre> rkl;
+    std::unique_ptr<RKLegendre> rkl_ptr;
     // RKLegendre *rkl;
 
     int stage_step;

@@ -103,36 +103,54 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 		anisotropic_diffusion = 0;
 	}
 	if(!config_lookup_bool(&config, "modules.supertimestepping",&supertimestepping)) {
+		// supertimestepping = 1;
 		supertimestepping = 0;
+		// std::printf("With sts. \n");
 	}
-	if(config_lookup_string(&config, "modules.sts_algorithm",&temp_string)) {
-		std::printf("sts_algorithm: %s \n",temp_string);
-		sts_algorithm = std::string(temp_string);
-
-		setting = config_lookup(&config, "modules.sts_variables");
+	// else{
+ //
+	// 	// std::printf("no sts. \n");
+	// }
+	std::printf("supertimestepping = %d \n",supertimestepping);
+	if (supertimestepping) {
 		int sts_length;
+		if(config_lookup_string(&config, "modules.sts_algorithm",&temp_string)) {
+			std::printf("sts_algorithm: %s \n",temp_string);
+			sts_algorithm = std::string(temp_string);
 
-		if(setting == NULL) {
-			std::cout << "Warning: you did not provide any variable for sts! By default it will be applied to all." << std::endl;
-			sts_variables.resize(0);
-		}
-		else {
-			std::cout << "sts variables were provided" << std::endl;
-			sts_length = config_setting_length( setting );
-			std::printf("Number of sts variables = %d \n", sts_length);
-			// Allocate spooky output_vars
-			sts_variables.resize(sts_length);
-			std::cout << "The following sts variables quantities will be evolved: \t";
-			for(i = 0 ; i < sts_length ; i++) {
-				temp_string = config_setting_get_string_elem( setting, i);
-				std::cout << std::string(temp_string) << "\t";
-				sts_variables[i] = std::string(temp_string);
+			setting = config_lookup(&config, "modules.sts_variables");
+
+
+			if(setting == NULL) {
+				std::cout << "Warning: you did not provide any variable for sts! Therefore all parabolic terms will be evolved as normal." << std::endl;
+				sts_variables.resize(0);
+				supertimestepping = 0;
 			}
-			std::cout << std::endl;
+			else {
+				std::cout << "sts variables were provided" << std::endl;
+				sts_length = config_setting_length( setting );
+
+				if (sts_length > 0) {
+					std::printf("Number of sts variables = %d \n", sts_length);
+					sts_variables.resize(sts_length);
+					std::cout << "The following sts variables quantities will be evolved: \t";
+					for(i = 0 ; i < sts_length ; i++) {
+						temp_string = config_setting_get_string_elem( setting, i);
+						std::cout << std::string(temp_string) << "\t";
+						sts_variables[i] = std::string(temp_string);
+					}
+					std::cout << std::endl;
+				}
+				else {
+					std::cout << "Warning: you did not provide any variable for sts! Therefore all parabolic terms will be evolved as normal." << std::endl;
+					sts_variables.resize(0);
+					supertimestepping = 0;
+				}
+			}
 		}
 	}
-	else{
-		std::printf("no sts_algorithm chosen. \n");
+	else {
+		sts_variables.resize(0);
 	}
 	if(!config_lookup_bool(&config, "modules.shearing",&shearing)) {
 		shearing = 0;
