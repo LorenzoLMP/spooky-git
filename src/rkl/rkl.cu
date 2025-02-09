@@ -28,49 +28,86 @@ RKLegendre::RKLegendre(Parameters &p_in, Supervisor &sup_in) {
     cfl_rkl = p_in.cfl_par;
     rmax_par = p_in.safety_sts;
 
-    blocksPerGrid = ( vars.NUM_FIELDS * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    sts_algorithm = p_in.sts_algorithm;
+
+
+    std::vector<std::string> sts_variables = p_in.sts_variables;
+
+    num_sts_vars = sts_variables.size();
+    // sts_variables_index contains the indices
+    // of the variables that should be evolved
+    // with supertimestepping
+    sts_variables_index.resize(num_sts_vars);
+    // sts_variables_pos says whether that given variable
+    // should be ststepped (in which case is holds
+    // the value of the index in the sts_variables list)
+    // or not (in which case it is -1)
+    sts_variables_pos.resize(vars.NUM_FIELDS);
+    for (int j = 0; j < vars.NUM_FIELDS; j++) {
+        // the variable is not in the sts list
+        sts_variables_pos[j] = -1;
+        for (int i = 0; i < num_sts_vars; i++) {
+            if (!sts_variables[i].compare(vars.VAR_LIST[j])) {
+                // the variable is in the sts list
+                sts_variables_index[i] = j;
+                sts_variables_pos[j] = i;
+                break ;
+            }
+        }
+    }
+    std::printf("sts variables pos \n");
+    for (int j = 0; j < vars.NUM_FIELDS; j++) {
+        std::cout << sts_variables_pos[j] << std::endl;
+    }
+
+    std::printf("sts variables index \n");
+    for (int j = 0; j < num_sts_vars; j++) {
+        std::cout << sts_variables_index[j] << std::endl;
+    }
+
+    blocksPerGrid = ( num_sts_vars * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
     // this is the mega array that contains intermediate fields during multi-stage timestepping
     // std::printf("num fields ts: %d \n", vars.NUM_FIELDS);
-    if (!p_in.sts_algorithm.compare(std::string("sts"))) {
+    if (!sts_algorithm.compare(std::string("sts"))) {
 
-        sts_algorithm = "sts";
+        // sts_algorithm = "sts";
         ts = new double[STS_MAX_STEPS];
         for (int i = 0; i < STS_MAX_STEPS; i++){
             ts[i] = 0.0;
         }
 
-        std::printf("num rkl scratch arrays: %d \n",vars.NUM_FIELDS);
-        CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+        std::printf("num rkl scratch arrays: %d \n",num_sts_vars);
+        CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
 
-        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU,  data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
+        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU,  data_type(0.0,0.0), grid.NTOTAL_COMPLEX * num_sts_vars);
 
-        d_farray_dU  = new data_type*[vars.NUM_FIELDS];
+        d_farray_dU  = new data_type*[num_sts_vars];
 
-        for (int i = 0; i < vars.NUM_FIELDS; i++){
+        for (int i = 0; i < num_sts_vars; i++){
             d_farray_dU[i]   = d_all_dU + i*grid.NTOTAL_COMPLEX;
         }
 
     }
-    else if (!p_in.sts_algorithm.compare(std::string("rkl3"))) {
-        sts_algorithm = "rkl3";
-        std::printf("num rkl scratch arrays: %d \n",4*vars.NUM_FIELDS);
+    else if (!sts_algorithm.compare(std::string("rkl3"))) {
+        // sts_algorithm = "rkl3";
+        std::printf("num rkl scratch arrays: %d \n",4*num_sts_vars);
 
-        CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
-        CUDA_RT_CALL(cudaMalloc(&d_all_dU0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
-        CUDA_RT_CALL(cudaMalloc(&d_all_Uc0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
-        CUDA_RT_CALL(cudaMalloc(&d_all_Uc1, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+        CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        CUDA_RT_CALL(cudaMalloc(&d_all_dU0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        CUDA_RT_CALL(cudaMalloc(&d_all_Uc0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        CUDA_RT_CALL(cudaMalloc(&d_all_Uc1, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
 
-        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU,  data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
-        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU0, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
-        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_Uc0, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
-        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_Uc1, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
+        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU,  data_type(0.0,0.0), grid.NTOTAL_COMPLEX * num_sts_vars);
+        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU0, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * num_sts_vars);
+        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_Uc0, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * num_sts_vars);
+        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_Uc1, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * num_sts_vars);
 
-        d_farray_dU  = new data_type*[vars.NUM_FIELDS];
-        d_farray_dU0 = new data_type*[vars.NUM_FIELDS];
-        d_farray_Uc0 = new data_type*[vars.NUM_FIELDS];
-        d_farray_Uc1 = new data_type*[vars.NUM_FIELDS];
+        d_farray_dU  = new data_type*[num_sts_vars];
+        d_farray_dU0 = new data_type*[num_sts_vars];
+        d_farray_Uc0 = new data_type*[num_sts_vars];
+        d_farray_Uc1 = new data_type*[num_sts_vars];
 
-        for (int i = 0; i < vars.NUM_FIELDS; i++){
+        for (int i = 0; i < num_sts_vars; i++){
             d_farray_dU[i]   = d_all_dU + i*grid.NTOTAL_COMPLEX;
             d_farray_dU0[i]   = d_all_dU0 + i*grid.NTOTAL_COMPLEX;
             d_farray_Uc0[i]   = d_all_Uc0 + i*grid.NTOTAL_COMPLEX;
@@ -168,18 +205,18 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
         // anisotropic_conduction( rhs, fldi);
         // phys_ptr->AnisotropicConduction(fields, param, (data_type *) fields_ptr->d_farray[vars.TH], (data_type *) d_farray_dU[vars.TH]);
         // this is for all parabolic terms
-        phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, d_all_dU);
+        phys_ptr->ParabolicTermsSTS(complex_Fields, real_Buffer, d_all_dU);
 
 
+        // this is the index corresponding
+        // to the position in the VAR array of a given
+        // sts_var
+        int var_idx;
 
-        // only for temperature
-        // blocksPerGrid = (grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        // addReset<<<blocksPerGrid, threadsPerBlock>>>( fields_ptr->d_farray[vars.TH],  d_farray_dU[vars.TH],  fields_ptr->d_farray[vars.TH], 1.0, tau, grid.NTOTAL_COMPLEX);
-        // CUDA_RT_CALL( cudaDeviceSynchronize() );
-        // this is for all parabolic terms
         blocksPerGrid = (grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        for (nv = 0; nv < vars.NUM_FIELDS; nv++){
-            addReset<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields + nv * grid.NTOTAL_COMPLEX,  d_farray_dU[nv],  complex_Fields + nv * grid.NTOTAL_COMPLEX, 1.0, tau, grid.NTOTAL_COMPLEX);
+        for (nv = 0; nv < num_sts_vars; nv++){
+            var_idx = sts_variables_index[nv];
+            addReset<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields + var_idx * grid.NTOTAL_COMPLEX,  d_farray_dU[nv],  complex_Fields + var_idx * grid.NTOTAL_COMPLEX, 1.0, tau, grid.NTOTAL_COMPLEX);
         }
         CUDA_RT_CALL( cudaDeviceSynchronize() );
 
@@ -187,6 +224,7 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
     }
 
 }
+
 
 void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_Buffer){
 
@@ -238,27 +276,34 @@ void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_
 
     // initialize temp fields
     // MY_0 <- parabolicRHS(d_farray[vars.TH])
-    blocksPerGrid = ( vars.NUM_FIELDS * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-    VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>((data_type *)d_all_dU0, data_type(0.0,0.0), vars.NUM_FIELDS * grid.NTOTAL_COMPLEX);
+    blocksPerGrid = ( num_sts_vars * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>((data_type *)d_all_dU0, data_type(0.0,0.0), num_sts_vars * grid.NTOTAL_COMPLEX);
 
     // this is only for temperature
     // phys_ptr->AnisotropicConduction(fields, param, (data_type *) fields_ptr->d_farray[vars.TH], (data_type *) d_farray_dU0[vars.TH]);
 
     // this is for all parabolic terms
-    phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, d_all_dU0);
+    phys_ptr->ParabolicTermsSTS(complex_Fields, real_Buffer, d_all_dU0);
+    // phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, d_all_dU0);
 
-    for (nv = 0; nv < vars.NUM_FIELDS; nv++){
+    // this is the index corresponding
+    // to the position in the VAR array of a given
+    // sts_var
+    int var_idx;
 
-      // Y_jm1 <- d_farray[vars.TH]
-      blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    for (nv = 0; nv < num_sts_vars; nv++){
+        var_idx = sts_variables_index[nv];
 
-      ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(complex_Fields + nv * grid.NTOTAL_COMPLEX, d_farray_Uc0[nv], grid.NTOTAL_COMPLEX);
+        // Y_jm1 <- d_farray[vars.TH]
+        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
 
-      // Y_jm2 <- d_farray[vars.TH]
-      ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(complex_Fields + nv * grid.NTOTAL_COMPLEX, d_farray_Uc1[nv], grid.NTOTAL_COMPLEX);
+        ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(complex_Fields + var_idx * grid.NTOTAL_COMPLEX, d_farray_Uc0[nv], grid.NTOTAL_COMPLEX);
 
-      // Y_jm1 (d_farray[vars.TH]) <- Y_jm2 + mu_tilde_j*dt_hyp*MY_0
-      axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_farray_Uc1[nv],  d_farray_dU[nv],  complex_Fields + nv * grid.NTOTAL_COMPLEX, 1.0, mu_tilde_j*dt_hyp,  grid.NTOTAL_COMPLEX);
+        // Y_jm2 <- d_farray[vars.TH]
+        ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(complex_Fields + var_idx * grid.NTOTAL_COMPLEX, d_farray_Uc1[nv], grid.NTOTAL_COMPLEX);
+
+        // Y_jm1 (d_farray[vars.TH]) <- Y_jm2 + mu_tilde_j*dt_hyp*MY_0
+        axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_farray_Uc1[nv],  d_farray_dU[nv],  complex_Fields + var_idx * grid.NTOTAL_COMPLEX, 1.0, mu_tilde_j*dt_hyp,  grid.NTOTAL_COMPLEX);
     }
 
     /* s loop */
@@ -266,35 +311,38 @@ void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_
     // g_time = t0 + 0.25*tau*(s*s+s-2)*w1;
     for (s = 2; s <= s_RKL; s++) {
 
-      mu_j       = (2.*s -1.)/s * b_j/b_jm1;   /* Eq. [17] */
-      mu_tilde_j = w1*mu_j;
-      gamma_j    = -a_jm1*mu_tilde_j;
-      nu_j       = -(s -1.)*b_j/(s*b_jm2);
+        mu_j       = (2.*s -1.)/s * b_j/b_jm1;   /* Eq. [17] */
+        mu_tilde_j = w1*mu_j;
+        gamma_j    = -a_jm1*mu_tilde_j;
+        nu_j       = -(s -1.)*b_j/(s*b_jm2);
 
-      b_jm2 = b_jm1;    /* Eq. [16] */
-      b_jm1 = b_j;
-      a_jm1 = 1.0 - b_jm1;
-      b_j   = 0.5*(s*s+3.0*s)/(s*s+3.0*s+2);
+        b_jm2 = b_jm1;    /* Eq. [16] */
+        b_jm1 = b_j;
+        a_jm1 = 1.0 - b_jm1;
+        b_j   = 0.5*(s*s+3.0*s)/(s*s+3.0*s+2);
 
-      blocksPerGrid = ( vars.NUM_FIELDS * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-      VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>((data_type *)d_all_dU, data_type(0.0,0.0), vars.NUM_FIELDS * grid.NTOTAL_COMPLEX);
+        blocksPerGrid = ( num_sts_vars * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>((data_type *)d_all_dU, data_type(0.0,0.0), num_sts_vars * grid.NTOTAL_COMPLEX);
 
-      // phys_ptr->AnisotropicConduction(fields, param, (data_type *) fields_ptr->d_farray[vars.TH], (data_type *) d_farray_dU[vars.TH]);
+        // phys_ptr->AnisotropicConduction(fields, param, (data_type *) fields_ptr->d_farray[vars.TH], (data_type *) d_farray_dU[vars.TH]);
 
-      phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, d_all_dU);
+        phys_ptr->ParabolicTermsSTS(complex_Fields, real_Buffer, d_all_dU);
+        // phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, d_all_dU);
 
-      for (nv = 0; nv < vars.NUM_FIELDS; nv++){
-        // MY_j-1 <- parabolicRHS(d_farray[vars.TH])
+        for (nv = 0; nv < num_sts_vars; nv++){
+            var_idx = sts_variables_index[nv];
 
-        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        // real Y = mu_j*Uc(nv,k,j,i) + nu_j*Uc1(nv,k,j,i);
-        // Uc1(nv,k,j,i) = Uc(nv,k,j,i);
-        // Uc <- Y + (1.0 - mu_j - nu_j)*Uc0 + dt_hyp*mu_tilde_j*dU +  gamma_j*dt_hyp*dU0;
-        axpy5ComplexAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *) complex_Fields + nv * grid.NTOTAL_COMPLEX, (data_type *) d_farray_Uc1[nv], (data_type *) d_farray_Uc0[nv], (data_type *) d_farray_dU[nv], (data_type *) d_farray_dU0[nv], mu_j, nu_j, (1.0 - mu_j - nu_j), dt_hyp*mu_tilde_j,  gamma_j*dt_hyp, grid.NTOTAL_COMPLEX);
+            // MY_j-1 <- parabolicRHS(d_farray[vars.TH])
 
-        // increment time
-        time = timestep_ptr->current_time + 0.25*dt_hyp*(s*s+s-2)*w1;
-      }
+            blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+            // real Y = mu_j*Uc(nv,k,j,i) + nu_j*Uc1(nv,k,j,i);
+            // Uc1(nv,k,j,i) = Uc(nv,k,j,i);
+            // Uc <- Y + (1.0 - mu_j - nu_j)*Uc0 + dt_hyp*mu_tilde_j*dU +  gamma_j*dt_hyp*dU0;
+            axpy5ComplexAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *) complex_Fields + var_idx * grid.NTOTAL_COMPLEX, (data_type *) d_farray_Uc1[nv], (data_type *) d_farray_Uc0[nv], (data_type *) d_farray_dU[nv], (data_type *) d_farray_dU0[nv], mu_j, nu_j, (1.0 - mu_j - nu_j), dt_hyp*mu_tilde_j,  gamma_j*dt_hyp, grid.NTOTAL_COMPLEX);
+
+            // increment time
+            time = timestep_ptr->current_time + 0.25*dt_hyp*(s*s+s-2)*w1;
+        }
     }
 
 

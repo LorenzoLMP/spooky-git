@@ -22,6 +22,7 @@ public:
     void EntropyStratification(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
 
     void ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
+    void ParabolicTermsSTS(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
     void HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
 
 

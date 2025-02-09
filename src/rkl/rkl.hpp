@@ -18,6 +18,9 @@ public:
     Supervisor *supervisor_ptr;
 
     std::string sts_algorithm; 	// supertimestepping algorithm. Valid choices: "sts", "rkl3"
+    std::vector<int> sts_variables_index;
+    std::vector<int> sts_variables_pos;
+    int num_sts_vars;
     // int stage_step;
     // unsigned int current_step;
     // double current_dt;

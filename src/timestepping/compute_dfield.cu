@@ -98,10 +98,10 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
 
     } //end INCOMPRESSIBLE
 
-    if (not param_ptr->supertimestepping) {
-        // compute parabolic terms
-        phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, complex_dFields);
-    }
+    // if (not param_ptr->supertimestepping) {
+    // compute parabolic terms
+    phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, complex_dFields);
+    // }
 
 }
 

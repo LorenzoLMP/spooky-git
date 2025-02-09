@@ -17,7 +17,7 @@ public:
     // Fields *fields;
     // Parameters *param;
     Supervisor *supervisor_ptr;
-    std::unique_ptr<RKLegendre> rkl;
+    std::unique_ptr<RKLegendre> rkl_ptr;
     // RKLegendre *rkl;
 
     int stage_step;

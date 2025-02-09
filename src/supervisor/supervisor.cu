@@ -23,18 +23,16 @@ Supervisor::Supervisor(std::string input_dir) :
 
     param_ptr = std::shared_ptr<Parameters> (new Parameters(*this, input_dir));
 
-    if (not param_ptr->checkParameters()){
-        std::cout << "Error: your choice of physics modules is not consistent. Aborting now." << std::endl;
-        exit(0);
-    }
-    else {
     /*****
      *
      * Populate Variables/Grid struct
      *
      * ****/
-        param_ptr->popVariablesGrid();
+    param_ptr->popVariablesGrid();
 
+    if (not param_ptr->checkParameters()){
+        std::cout << "Error: your choice of physics modules is not consistent. Aborting now." << std::endl;
+        exit(0);
     }
 
     fields_ptr = std::shared_ptr<Fields> (new Fields(*this, *param_ptr));

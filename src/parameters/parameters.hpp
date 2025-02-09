@@ -1,6 +1,6 @@
 #include <iostream>
 // #include "spooky_outputs.hpp"
-// #include <vector>
+#include <vector>
 // #include <array>
 // #include <complex>
 #include "common.hpp"
@@ -39,6 +39,7 @@ class Parameters {
 	int anisotropic_diffusion; 	// anisotropic diffusion of heat along magnetic fields
 	int supertimestepping; 		// supertimestepping of parabolic terms
 	std::string sts_algorithm; 	// supertimestepping algorithm. Valid choices: "sts", "rkl3"
+	std::vector<std::string> sts_variables;
 	int shearing; 			// add background shearing
 	int rotating;			// add background rotation
 

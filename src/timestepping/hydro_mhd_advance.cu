@@ -42,7 +42,7 @@ void TimeStepping::HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr) {
     // if we want to do it later we need to transform fields to real explicitely
     if (param_ptr->supertimestepping and (current_step%2)==1) {
 
-        rkl->compute_cycle(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
+        rkl_ptr->compute_cycle(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
     }
 
 
@@ -55,7 +55,7 @@ void TimeStepping::HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr) {
         // an in-place r2c FFT to give the real fields. This buffer is reserved for the real fields!
         supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
 
-        rkl->compute_cycle(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
+        rkl_ptr->compute_cycle(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
 
     }
 
