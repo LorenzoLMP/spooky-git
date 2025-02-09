@@ -19,11 +19,6 @@ TimeStepping::TimeStepping(Supervisor &sup_in, Parameters &p_in) {
 
     supervisor_ptr = &sup_in;
     // rkl = new RKLegendre(vars.NUM_FIELDS, param, supervisor);
-<<<<<<< HEAD
-
-
-=======
->>>>>>> sts_seems_working
     // if (p_in.supertimestepping) {
     rkl_ptr = std::unique_ptr<RKLegendre> (new RKLegendre(p_in, sup_in));
     // }
