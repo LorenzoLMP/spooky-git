@@ -55,10 +55,17 @@ RKLegendre::RKLegendre(Parameters &p_in, Supervisor &sup_in) {
             }
         }
     }
+
+    std::printf("sts variables pos \n");
     for (int j = 0; j < vars.NUM_FIELDS; j++) {
         std::cout << sts_variables_pos[j] << std::endl;
     }
 
+
+    std::printf("sts variables index \n");
+    for (int j = 0; j < num_sts_vars; j++) {
+        std::cout << sts_variables_index[j] << std::endl;
+    }
 
 
     blocksPerGrid = ( num_sts_vars * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
@@ -221,6 +228,7 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
 
 }
 
+
 void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_Buffer){
 
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
@@ -279,6 +287,7 @@ void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_
 
     // this is for all parabolic terms
     phys_ptr->ParabolicTermsSTS(complex_Fields, real_Buffer, d_all_dU0);
+
 
     // this is the index corresponding
     // to the position in the VAR array of a given

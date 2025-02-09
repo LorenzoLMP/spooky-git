@@ -208,7 +208,6 @@ void Physics::ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer
 }
 
 
-
 void Physics::ParabolicTermsSTS(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields){
     /*
     *
@@ -246,7 +245,7 @@ void Physics::ParabolicTermsSTS(data_type* complex_Fields, scalar_type* real_Buf
 
             // if ((sts_variables_bool[vars.VEL + i] + STS)%2+1) {}
 
-            if (sts_variables_pos[vars.VEL + i] > 0) {
+            if (sts_variables_pos[vars.VEL + i] >= 0) {
                 // the variable is in the sts list
                 // and should be evolved during the
                 // STS step
@@ -263,7 +262,7 @@ void Physics::ParabolicTermsSTS(data_type* complex_Fields, scalar_type* real_Buf
 
         for (int i = 0; i < 3; i++) {
 
-            if (sts_variables_pos[vars.MAG + i] > 0) {
+            if (sts_variables_pos[vars.MAG + i] >= 0) {
                 // the variable is not in the sts list
                 // and should be evolved during the
                 // parabolic step
@@ -277,7 +276,8 @@ void Physics::ParabolicTermsSTS(data_type* complex_Fields, scalar_type* real_Buf
     }
 
     if (param_ptr->boussinesq or param_ptr->heat_equation) {
-        if (sts_variables_pos[vars.TH] > 0) {
+
+        if (sts_variables_pos[vars.TH] >= 0) {
             // the variable is not in the sts list
             // and should be evolved during the
             // parabolic step

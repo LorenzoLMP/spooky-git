@@ -107,10 +107,6 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 		supertimestepping = 0;
 		// std::printf("With sts. \n");
 	}
-	// else{
- //
-	// 	// std::printf("no sts. \n");
-	// }
 	std::printf("supertimestepping = %d \n",supertimestepping);
 	if (supertimestepping) {
 		int sts_length;
