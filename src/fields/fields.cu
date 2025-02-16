@@ -309,9 +309,9 @@ void Fields::allocate_and_move_to_gpu() {
 
     CUDA_RT_CALL(cudaMemcpy(d_all_fields, all_fields, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS, cudaMemcpyHostToDevice));
     // this shouldn't be necessary
-    CUDA_RT_CALL(cudaMemcpy(d_all_dfields, all_dfields, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS, cudaMemcpyHostToDevice));
-
-    CUDA_RT_CALL(cudaMemcpy(d_all_tmparray, all_dfields, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS, cudaMemcpyHostToDevice));
+    // CUDA_RT_CALL(cudaMemcpy(d_all_dfields, all_dfields, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS, cudaMemcpyHostToDevice));
+    //
+    // CUDA_RT_CALL(cudaMemcpy(d_all_tmparray, all_dfields, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS, cudaMemcpyHostToDevice));
 
 
     std::printf("vars.NUM_FIELDS: %d \n",vars.NUM_FIELDS);
