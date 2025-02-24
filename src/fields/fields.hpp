@@ -25,6 +25,9 @@ public:
     scalar_type *d_mask;
     scalar_type lx, ly, lz;
 
+    double deltak; // spacing in wavespace
+    int nbins; // number of bins for 1d spectra
+
     Wavevector(Supervisor &sup_in, Parameters &p_in);
     Supervisor *supervisor_ptr;
     // Wavevector();

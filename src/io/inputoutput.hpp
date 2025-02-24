@@ -20,6 +20,9 @@ public:
     double t_lastvar;  // for volume avg/ spectral qts.
     int num_save;
 
+    scalar_type *d_output_spectrum;
+
+
     void CheckOutput();
     void WriteDataFile();
     void ReadDataFile(int restart_num);

@@ -24,7 +24,7 @@ void InputOutput::WriteTimevarOutput() {
     NVTX3_FUNC_RANGE();
 
     if (param_ptr->debug > 0) {
-        std::printf("Writing data output... \n");
+        std::printf("Writing timevar output... \n");
     }
 
     int blocksPerGrid;
@@ -39,19 +39,8 @@ void InputOutput::WriteTimevarOutput() {
 
     std::ofstream outputfile;
     outputfile.open (fname, std::ios_base::app);
-    // outputfile << "Writing this to a file.\n";
 
-    // // assign fields to [vars.NUM_FIELDS] tmparray (memory block starts at d_all_tmparray)
-    // blocksPerGrid = ( vars.NUM_FIELDS * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-    // ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *)fields_ptr->d_all_fields, (data_type *)fields_ptr->d_all_tmparray, vars.NUM_FIELDS * grid.NTOTAL_COMPLEX);
-    //
     // // compute FFTs from complex to real fields
-    // // the first vars.NUM_FIELDS arrays in tmparray will
-    // // always contain the real fields for all subsequent operations
-    // for (int n = 0; n < vars.NUM_FIELDS; n++){
-    //     c2r_fft(fields_ptr->d_tmparray[n], fields_ptr->d_farray_buffer_r[n]);
-    // }
-
     supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
 
     // std::printf("length timevar array = %d \n",param_ptr->spookyOutVar.length);

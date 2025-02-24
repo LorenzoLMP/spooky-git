@@ -88,6 +88,18 @@ Wavevector::Wavevector(Supervisor &sup_in, Parameters &p_in) {
     }
 
     kmax  = pow(kxmax*kxmax+kymax*kymax+kzmax*kzmax,0.5);
+
+    double lmin = lx;
+    if (ly < lmin) {
+        lmin = ly;
+    }
+    if (lz < lmin) {
+        lmin = lz;
+    }
+
+    deltak = 2.0*M_PI / lmin;
+    nbins = (int) (kmax/deltak + 0.5);
+
 }
 
 void Wavevector::print_values() {
