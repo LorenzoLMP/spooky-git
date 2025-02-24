@@ -421,7 +421,7 @@ __global__ void UnshearComplexVec(data_type *vec, scalar_type *ky, double prefac
 
 }
 
-__global__ void Spectrum1d( const scalar_type *kvec, const data_type *v1, const data_type *v2, double *d_output_spectrum, int nbins, double deltak, size_t N) {
+__global__ void Spectrum1d( const scalar_type *kvec, const data_type *v1, const data_type *v2, double *d_output_spectrum, int nbins, double deltak, int NX, int NY, int NZ, size_t N) {
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // v1, v2 points to the first element of the 3D vector
 
@@ -445,7 +445,7 @@ __global__ void Spectrum1d( const scalar_type *kvec, const data_type *v1, const 
         kabs = sqrt(kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
         m = (int) (kabs/deltak + 0.5);
 
-        q0 = atomicAdd(*d_output_spectrum + m, power_at_freq);
+        q0 = atomicAdd(*d_output_spectrum + m, power_at_freq / (N*N) );
 
 
     }

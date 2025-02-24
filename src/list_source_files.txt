@@ -13,8 +13,9 @@ ${PROJECT_SOURCE_DIR}/src/fields/symmetries.cu
 ${PROJECT_SOURCE_DIR}/src/io/inputoutput.cu
 ${PROJECT_SOURCE_DIR}/src/io/hdf5_io.cu
 ${PROJECT_SOURCE_DIR}/src/io/check_output.cu
-${PROJECT_SOURCE_DIR}/src/io/output_timevar.cu
-${PROJECT_SOURCE_DIR}/src/io/spooky_outputs.cu
+${PROJECT_SOURCE_DIR}/src/io/spooky_output_timevar.cu
+${PROJECT_SOURCE_DIR}/src/io/spooky_output_functions.cu
+${PROJECT_SOURCE_DIR}/src/io/spooky_output_spectrum.cu
 ${PROJECT_SOURCE_DIR}/src/io/unshear_output.cu
 ##### parameters files #####
 ${PROJECT_SOURCE_DIR}/src/parameters/parameters.cu
@@ -36,5 +37,6 @@ ${PROJECT_SOURCE_DIR}/src/supervisor/supervisor.cu
 ${PROJECT_SOURCE_DIR}/src/rkl/rkl.cu
 ##### user functions ######
 ${PROJECT_SOURCE_DIR}/src/user/user_defined_cuda_kernels.cu
-${PROJECT_SOURCE_DIR}/src/user/user_outputs.cu
+${PROJECT_SOURCE_DIR}/src/user/user_output_functions.cu
+${PROJECT_SOURCE_DIR}/src/user/user_output_timevar.cu
 )

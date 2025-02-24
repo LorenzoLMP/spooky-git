@@ -43,14 +43,120 @@ void InputOutput::WriteSpectrumOutput() {
     outputfile.open (fname, std::ios_base::app);
 
 
-
     /**
-     * functions that compute spectrum
-     * and copies it to host output_spectrum
+     * First the energies
      *
      */
 
-    writeSpectrumHelper(outputfile, time_save, "Kx", output_spectrum, nbins);
+    if (param_ptr->incompressible) {
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.VX],
+                        fields_ptr->d_farray[vars.VX],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "Kx", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.VY],
+                        fields_ptr->d_farray[vars.VY],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "Ky", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.VZ],
+                        fields_ptr->d_farray[vars.VZ],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "Kz", output_spectrum, nbins);
+
+    }
+
+    if (param_ptr->mhd) {
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.BX],
+                        fields_ptr->d_farray[vars.BX],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "Mx", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.BY],
+                        fields_ptr->d_farray[vars.BY],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "My", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
+                        fields_ptr->d_farray[vars.BZ],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "Mz", output_spectrum, nbins);
+
+    }
+
+    if (param_ptr->boussinesq or param_ptr->heat_equation) {
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                        fields_ptr->d_farray[vars.TH],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "Eth", output_spectrum, nbins);
+
+    }
+
+    /**
+     * Then the Reynolds/Maxwell/Buoyancy spectra
+     *
+     */
+
+    if (param_ptr->incompressible) {
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.VX],
+                        fields_ptr->d_farray[vars.VY],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "vxvy", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.VY],
+                        fields_ptr->d_farray[vars.VZ],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "vyvz", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.VZ],
+                        fields_ptr->d_farray[vars.VX],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "vzvx", output_spectrum, nbins);
+
+    }
+
+    if (param_ptr->mhd) {
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.BX],
+                        fields_ptr->d_farray[vars.BY],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "bxby", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.BY],
+                        fields_ptr->d_farray[vars.BZ],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "bybz", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
+                        fields_ptr->d_farray[vars.BX],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "bzbx", output_spectrum, nbins);
+
+    }
+
+    if (param_ptr->boussinesq) {
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                        fields_ptr->d_farray[vars.VX],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "thvx", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                        fields_ptr->d_farray[vars.VY],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "thvy", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                        fields_ptr->d_farray[vars.VZ],
+                        output_spectrum);
+        writeSpectrumHelper(outputfile, time_save, "thvz", output_spectrum, nbins);
+
+    }
+
 
 
     outputfile.close();
@@ -89,9 +195,48 @@ void InputOutput::computeSpectrum1d(data_type* v1, data_type* v2,
 
 
     blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-    Spectrum1d<<<blocksPerGrid, threadsPerBlock>>>(kvec, v1, v2, d_output_spectrum, nbins, deltak, (size_t) grid.NTOTAL_COMPLEX);
+    Spectrum1d<<<blocksPerGrid, threadsPerBlock>>>(kvec, v1, v2, d_output_spectrum, nbins, deltak, grid.NX, grid.NY, grid.NZ, (size_t) grid.NTOTAL_COMPLEX);
 
     CUDA_RT_CALL(cudaMemcpy(output_spectrum, d_output_spectrum, sizeof(scalar_type) * nbins, cudaMemcpyDeviceToHost));
 
 
+}
+
+
+
+void InputOutput::WriteSpectrumOutputHeader() {
+
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
+    int nbins = supervisor_ptr->fields_ptr->wavevector.nbins;
+    double deltak = supervisor_ptr->fields_ptr->wavevector.deltak;
+
+    if (param_ptr->debug > 0) {
+        std::printf("Writing spectrum header... \n");
+    }
+
+    char data_output_name[16];
+    std::sprintf(data_output_name,"spectrum.spooky");
+    std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
+
+    std::ofstream outputfile;
+    outputfile.open (fname, std::ios_base::app);
+
+
+    outputfile << "## This file contains the 1d (shell-integrated) energy spectral densities of the following quantities: \n";
+    outputfile << "## \t";
+
+    // for(int i = 0 ; i < spookyOutSpectrum.size() ; i++) {
+    //     outputfile << spookyOutSpectrum[i]  << "\t";
+    // }
+
+    outputfile << "## The wavevector: \n";
+
+    for(int i = 0 ; i < nbins ; i++) {
+        outputfile << std::scientific << std::setprecision(8) << nbins*deltak << "\t";
+    }
+
+
+    outputfile << "\n";
+    outputfile.close();
 }

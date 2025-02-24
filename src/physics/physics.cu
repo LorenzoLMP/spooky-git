@@ -53,10 +53,7 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
 
         scalar_type* real_magField = real_Buffer + vars.MAG * 2 * grid.NTOTAL_COMPLEX ;
         data_type* complex_dMag = complex_dFields + vars.MAG * grid.NTOTAL_COMPLEX ;
-//         if (param_ptr->mhd) {
-//
-//
-//         }
+
 
         // we use Basdevant formulation [1983]
         // compute the elements of the traceless symmetric matrix

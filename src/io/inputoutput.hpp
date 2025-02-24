@@ -2,6 +2,7 @@
 #include "common.hpp"
 // use forward declarations in the header files to get around the circular dependencies
 // https://stackoverflow.com/questions/994253/two-classes-that-refer-to-each-other
+#include <vector>
 class Fields;
 class Parameters;
 class TimeStepping;
@@ -21,6 +22,13 @@ public:
     int num_save;
 
     scalar_type *d_output_spectrum;
+
+    // std::vector<std::str> spookyOutSpectrum = {"Kx", "Ky", "Kz"};
+
+    void WriteSpectrumOutput();
+    void computeSpectrum1d(data_type* v1, data_type* v2,
+                       double* output_spectrum);
+    void WriteSpectrumOutputHeader();
 
 
     void CheckOutput();
