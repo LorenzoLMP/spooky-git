@@ -83,7 +83,7 @@ which will run all the spooky tests and show the output.
 ## On local laptop (last update: 2025-01-05)
 
 ```
-cmake -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="-O3 -std=c++2a" ..
+cmake -DBUILD_TESTS=ON ..
 ```
 
 ## On Newton (last update: 2024-11-17)
