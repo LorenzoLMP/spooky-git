@@ -6,9 +6,9 @@ if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
 endif()
 
 
-if(NOT DEFINED CMAKE_CUDA_COMPILER)
-  set(CMAKE_CUDA_COMPILER /opt/nvidia/hpc_sdk/Linux_x86_64/2023/cuda/12.0/bin/nvcc)
-endif()
+# if(NOT DEFINED CMAKE_CUDA_COMPILER)
+#   set(CMAKE_CUDA_COMPILER /opt/nvidia/hpc_sdk/Linux_x86_64/2023/cuda/12.0/bin/nvcc)
+# endif()
 
 # if(NOT DEFINED CUDAToolkit_ROOT)
 #   set(CUDAToolkit_ROOT /opt/nvidia/hpc_sdk/Linux_x86_64/23.1/compilers/)
@@ -19,9 +19,9 @@ endif()
 #    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 # endif()
 
-if(NOT DEFINED CMAKE_CUDA_FLAGS)
-  set(CMAKE_CUDA_FLAGS "-ccbin /usr/bin/g++-12")
-endif()
+# if(NOT DEFINED CMAKE_CUDA_FLAGS)
+#   set(CMAKE_CUDA_FLAGS "-ccbin /usr/bin/g++-12")
+# endif()
 
 option(BUILD_TESTS "Build test programs" OFF)
 
