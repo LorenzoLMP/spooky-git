@@ -1,8 +1,11 @@
 
 cmake_minimum_required(VERSION 3.24)
 
+
+find_package(CUDAToolkit REQUIRED)
+
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-  set(CMAKE_CUDA_ARCHITECTURES 75)
+  set(CMAKE_CUDA_ARCHITECTURES 50 52 60 61 70 72 75 80 86 87 89 90 100 101 120)
 endif()
 
 
@@ -22,20 +25,29 @@ endif()
 # if(NOT DEFINED CMAKE_CUDA_FLAGS)
 #   set(CMAKE_CUDA_FLAGS "-ccbin /usr/bin/g++-12")
 # endif()
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
+
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --extended-lambda")
+
 
 option(BUILD_TESTS "Build test programs" OFF)
 
-if (NOT DEFINED CMAKE_CXX_FLAGS)
-  set(CMAKE_CXX_FLAGS "-O3 -std=c++20")
-endif()
+# if (NOT DEFINED CMAKE_CXX_FLAGS)
+#   set(CMAKE_CXX_FLAGS "-O3 -std=c++20")
+# endif()
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CUDA_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_CUDA_STANDARD 17)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+
 
 project(spooky-git VERSION 0.1 LANGUAGES CUDA CXX C)
+
 include(CMakePrintHelpers)
 include(FetchContent)
-find_package(CUDAToolkit REQUIRED)
+
 
 find_package(Python REQUIRED)
 

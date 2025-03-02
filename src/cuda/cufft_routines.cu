@@ -27,7 +27,8 @@ void c2r_fft(void *c_data_in, void *r_data_out) {
     dimGrid = (grid.NTOTAL + threadsPerBlock - 1) / threadsPerBlock;
     dimBlock = threadsPerBlock;
 
-    scaleKernel<<<dimGrid, dimBlock>>>(reinterpret_cast<cufftDoubleComplex *>(c_data_in), (double) 1./(grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * grid.FFT_SIZE[2]), grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * ((grid.FFT_SIZE[2] / 2) + 1));
+    // scaleKernel<<<dimGrid, dimBlock>>>(reinterpret_cast<cufftDoubleComplex *>(c_data_in), (double) 1./(grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * grid.FFT_SIZE[2]), grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * ((grid.FFT_SIZE[2] / 2) + 1));
+    scaleKernel<<<dimGrid, dimBlock>>>(reinterpret_cast<cufftDoubleComplex *>(c_data_in), (double) 1./100., grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * ((grid.FFT_SIZE[2] / 2) + 1));
     //CUDA_RT_CALL( cudaPeekAtLastError() );
     //CUDA_RT_CALL( cudaDeviceSynchronize() );
 

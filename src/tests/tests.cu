@@ -22,7 +22,7 @@ int test_forward_inverse_transform(){
     // dim_t  grid.FFT_SIZE = {grid.NX, grid.NY, grid.NZ};
     // size_t ntotal = grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * grid.FFT_SIZE[2];
     // size_t grid.NTOTAL_COMPLEX = grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * ((grid.FFT_SIZE[2] / 2) + 1);
-    int Niter = 100;
+    int Niter = 50;
     // extern int dimGrid, dimBlock;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);

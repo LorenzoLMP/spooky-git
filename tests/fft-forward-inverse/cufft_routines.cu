@@ -25,9 +25,12 @@ void c2r_fft(void *c_data_in, void *r_data_out) {
     dimGrid = (grid.NTOTAL + threadsPerBlock - 1) / threadsPerBlock;
     dimBlock = threadsPerBlock;
 
+    // std::printf("grid.FFT_SIZE[0] %d\n",grid.FFT_SIZE[0]);
+
+    // scaleKernel<<<dimGrid, dimBlock>>>((cufftDoubleComplex *) c_data_in, (double) 1./100., (size_t) grid.NTOTAL_COMPLEX);
     scaleKernel<<<dimGrid, dimBlock>>>(reinterpret_cast<cufftDoubleComplex *>(c_data_in), (double) 1./(grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * grid.FFT_SIZE[2]), grid.FFT_SIZE[0] * grid.FFT_SIZE[1] * ((grid.FFT_SIZE[2] / 2) + 1));
-    //CUDA_RT_CALL( cudaPeekAtLastError() );
-    //CUDA_RT_CALL( cudaDeviceSynchronize() );
+    CUDA_RT_CALL( cudaPeekAtLastError() );
+    // CUDA_RT_CALL( cudaDeviceSynchronize() );
 
     // Execute the plan_c2r
     CUFFT_CALL(cufftXtExec(plan_c2r, c_data_in, r_data_out, CUFFT_INVERSE));
