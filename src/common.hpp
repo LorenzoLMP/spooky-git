@@ -6,7 +6,7 @@
 #include <forward_list>
 #include <vector>
 #include <thrust/complex.h>
-
+#include <cuda_runtime.h>
 #include <nvtx3/nvtx3.hpp>
 
 using scalar_type = double;

@@ -425,6 +425,7 @@ __global__ void Spectrum1d( const scalar_type *kvec, const data_type *v1, const 
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     // v1, v2 points to the first element of the 3D vector
 
+    int3 idx3D;
     double q0;
     double power_at_freq;
     int m;
@@ -432,11 +433,12 @@ __global__ void Spectrum1d( const scalar_type *kvec, const data_type *v1, const 
     scalar_type kabs = 0.0;
     // this is the imaginary unit
     data_type imI = data_type(0.0,1.0);
+    double ntotal = NX*NY*NZ;
 
     if (i < N) {
 
         idx3D = ComputeIndices(i, NX, NY, NZ);
-        power_at_freq = (v1[i] * v2[i].conj()).real();
+        power_at_freq = ((v1[i]/ntotal) * conj(v2[i]/ntotal)).real();
 
         if (idx3D.z > 0) {
             power_at_freq *= 2.0;
@@ -445,7 +447,7 @@ __global__ void Spectrum1d( const scalar_type *kvec, const data_type *v1, const 
         kabs = sqrt(kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
         m = (int) (kabs/deltak + 0.5);
 
-        q0 = atomicAdd(*d_output_spectrum + m, power_at_freq / (N*N) );
+        q0 = atomicAdd(d_output_spectrum + m, power_at_freq );
 
 
     }

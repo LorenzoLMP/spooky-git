@@ -20,6 +20,7 @@ public:
     double t_lastsnap; // for snapshot
     double t_lastvar;  // for volume avg/ spectral qts.
     int num_save;
+    int nbins; // for 1d spectra
 
     scalar_type *d_output_spectrum;
 

@@ -15,7 +15,7 @@
 #include "timestepping.hpp"
 #include "supervisor.hpp"
 
-void writeSpectrumHelper(std::ofstream outputfile, double time_save, char name, double* output_spectrum, int nbins);
+void writeSpectrumHelper(std::string fname, double time_save, std::string name, double* output_spectrum, int nbins);
 
 void InputOutput::WriteSpectrumOutput() {
 
@@ -39,9 +39,6 @@ void InputOutput::WriteSpectrumOutput() {
     std::sprintf(data_output_name,"spectrum.spooky");
     std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
 
-    std::ofstream outputfile;
-    outputfile.open (fname, std::ios_base::app);
-
 
     /**
      * First the energies
@@ -53,17 +50,17 @@ void InputOutput::WriteSpectrumOutput() {
         computeSpectrum1d(fields_ptr->d_farray[vars.VX],
                         fields_ptr->d_farray[vars.VX],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "Kx", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "Kx", output_spectrum, nbins);
 
         computeSpectrum1d(fields_ptr->d_farray[vars.VY],
                         fields_ptr->d_farray[vars.VY],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "Ky", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "Ky", output_spectrum, nbins);
 
         computeSpectrum1d(fields_ptr->d_farray[vars.VZ],
                         fields_ptr->d_farray[vars.VZ],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "Kz", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "Kz", output_spectrum, nbins);
 
     }
 
@@ -72,17 +69,17 @@ void InputOutput::WriteSpectrumOutput() {
         computeSpectrum1d(fields_ptr->d_farray[vars.BX],
                         fields_ptr->d_farray[vars.BX],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "Mx", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "Mx", output_spectrum, nbins);
 
         computeSpectrum1d(fields_ptr->d_farray[vars.BY],
                         fields_ptr->d_farray[vars.BY],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "My", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "My", output_spectrum, nbins);
 
         computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
                         fields_ptr->d_farray[vars.BZ],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "Mz", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "Mz", output_spectrum, nbins);
 
     }
 
@@ -91,7 +88,7 @@ void InputOutput::WriteSpectrumOutput() {
         computeSpectrum1d(fields_ptr->d_farray[vars.TH],
                         fields_ptr->d_farray[vars.TH],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "Eth", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "Eth", output_spectrum, nbins);
 
     }
 
@@ -105,17 +102,17 @@ void InputOutput::WriteSpectrumOutput() {
         computeSpectrum1d(fields_ptr->d_farray[vars.VX],
                         fields_ptr->d_farray[vars.VY],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "vxvy", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "vxvy", output_spectrum, nbins);
 
         computeSpectrum1d(fields_ptr->d_farray[vars.VY],
                         fields_ptr->d_farray[vars.VZ],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "vyvz", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "vyvz", output_spectrum, nbins);
 
         computeSpectrum1d(fields_ptr->d_farray[vars.VZ],
                         fields_ptr->d_farray[vars.VX],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "vzvx", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "vzvx", output_spectrum, nbins);
 
     }
 
@@ -124,17 +121,17 @@ void InputOutput::WriteSpectrumOutput() {
         computeSpectrum1d(fields_ptr->d_farray[vars.BX],
                         fields_ptr->d_farray[vars.BY],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "bxby", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "bxby", output_spectrum, nbins);
 
         computeSpectrum1d(fields_ptr->d_farray[vars.BY],
                         fields_ptr->d_farray[vars.BZ],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "bybz", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "bybz", output_spectrum, nbins);
 
         computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
                         fields_ptr->d_farray[vars.BX],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "bzbx", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "bzbx", output_spectrum, nbins);
 
     }
 
@@ -143,28 +140,31 @@ void InputOutput::WriteSpectrumOutput() {
         computeSpectrum1d(fields_ptr->d_farray[vars.TH],
                         fields_ptr->d_farray[vars.VX],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "thvx", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "thvx", output_spectrum, nbins);
 
         computeSpectrum1d(fields_ptr->d_farray[vars.TH],
                         fields_ptr->d_farray[vars.VY],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "thvy", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "thvy", output_spectrum, nbins);
 
         computeSpectrum1d(fields_ptr->d_farray[vars.TH],
                         fields_ptr->d_farray[vars.VZ],
                         output_spectrum);
-        writeSpectrumHelper(outputfile, time_save, "thvz", output_spectrum, nbins);
+        writeSpectrumHelper(fname, time_save, "thvz", output_spectrum, nbins);
 
     }
 
 
 
-    outputfile.close();
+    
 
 }
 
 
-void writeSpectrumHelper(std::ofstream outputfile, double time_save, char name, double* output_spectrum, int nbins){
+void writeSpectrumHelper(std::string fname, double time_save, std::string name, double* output_spectrum, int nbins){
+
+    std::ofstream outputfile;
+    outputfile.open (fname, std::ios_base::app);
 
     outputfile << "t" << "\t";
     outputfile << std::scientific << std::setprecision(8) << time_save << "\t";
@@ -176,6 +176,8 @@ void writeSpectrumHelper(std::ofstream outputfile, double time_save, char name, 
     }
 
     outputfile << "\n";
+
+    outputfile.close();
 
 
 }
@@ -233,7 +235,7 @@ void InputOutput::WriteSpectrumOutputHeader() {
     outputfile << "## The wavevector: \n";
 
     for(int i = 0 ; i < nbins ; i++) {
-        outputfile << std::scientific << std::setprecision(8) << nbins*deltak << "\t";
+        outputfile << std::scientific << std::setprecision(8) << i*deltak << "\t";
     }
 
 

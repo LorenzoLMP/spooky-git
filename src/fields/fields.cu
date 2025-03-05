@@ -410,7 +410,7 @@ void Fields::compare_with_original(){
     // verify results
     double error{};
     double ref{};
-    double diff = 0.0;
+    // double diff = 0.0;
     // int idx;
     unsigned int idx;
 
@@ -430,7 +430,7 @@ void Fields::compare_with_original(){
                 for (int k = 0; k < grid.NZ; k++){
                     idx = k + (grid.NZ/2+1)*2 * ( j + i * grid.NY);
 
-                    diff = std::norm(farray_r[n][idx] - farray_bis_r[n][idx]);
+                    // diff = std::norm(farray_r[n][idx] - farray_bis_r[n][idx]);
                     // if (diff > 0.1 * std::norm(farray_r[n][idx])) {
                     //     std::printf("index = %d, v_old = %lf , v_new = %lf \n",i,farray_r[n][idx],farray_bis_r[n][idx]);
                     // }

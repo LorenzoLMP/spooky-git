@@ -6,7 +6,11 @@
 #include "parameters.hpp"
 #include "inputoutput.hpp"
 #include "timestepping.hpp"
-// #include "supervisor.hpp"
+#include "supervisor.hpp"
+// #include "cufft_routines.hpp"
+#include "cufft_utils.h"
+// #include "cublas_routines.hpp"
+// #include "cuda_kernels.hpp"
 
 InputOutput::InputOutput(Supervisor &sup_in) {
 
@@ -19,9 +23,9 @@ InputOutput::InputOutput(Supervisor &sup_in) {
     t_lastvar = 0.0;
     num_save = 0;
 
-    int nbins = supervisor_ptr->fields_ptr->wavevector.nbins;
+    nbins = supervisor_ptr->fields_ptr->wavevector.nbins;
 
-    CUDA_RT_CALL(cudaMalloc(&d_output_spectrum, (size_t) sizeof(scalar_type) * nbins);
+    CUDA_RT_CALL(cudaMalloc(&d_output_spectrum, (size_t) sizeof(scalar_type) * nbins));
 
 
 

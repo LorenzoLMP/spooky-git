@@ -28,6 +28,7 @@ void InputOutput::CheckOutput(){
 
         if (current_time == 0.0) {
             WriteTimevarOutputHeader();
+            WriteSpectrumOutputHeader();
             if (param_ptr->userOutVar.length > 0){
                 WriteUserTimevarOutputHeader();
             }
@@ -35,6 +36,7 @@ void InputOutput::CheckOutput(){
         if (current_time != 0.0) t_lastvar += param_ptr->toutput_time;
 
         WriteTimevarOutput();
+        WriteSpectrumOutput();
         if (param_ptr->userOutVar.length > 0){
             WriteUserTimevarOutput();
         }
