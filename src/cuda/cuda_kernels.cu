@@ -207,15 +207,12 @@ __global__ void MagneticShear(const scalar_type *kvec, const data_type *MagEmf, 
     data_type imI = data_type(0.0,1.0);
     if (i < N) {
         // delta B_x =  ( I k_y emf_z - I k_z emf_y )
-        // operations divided in real and complex part
         dMagField[0 * N + i] =  imI * mask[i] * ( kvec[1 * N + i] * MagEmf[2 * N + i] - kvec[2 * N + i] * MagEmf[    N + i] );
 
         // delta B_y =  ( I k_z emf_x - I k_x emf_z )
-        // operations divided in real and complex part
         dMagField[1 * N + i] =  imI * mask[i] * ( kvec[2 * N + i] * MagEmf[        i] - kvec[0 * N + i] * MagEmf[2 * N + i] );
 
         // delta B_z =  ( I k_x emf_y - I k_y emf_x )
-        // operations divided in real and complex part
         dMagField[2 * N + i] =  imI * mask[i] * ( kvec[0 * N + i] * MagEmf[1 * N + i] - kvec[1 * N + i] * MagEmf[        i] );
     }
 

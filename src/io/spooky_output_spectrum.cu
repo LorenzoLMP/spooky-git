@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "cufft_routines.hpp"
 #include "cuda_kernels_generic.hpp"
+#include "cuda_kernels.hpp"
 // #include "../libs/HighFive/include/highfive/highfive.hpp"
 // #include <highfive/highfive.hpp>
 #include "fields.hpp"
@@ -39,6 +40,14 @@ void InputOutput::WriteSpectrumOutput() {
     std::sprintf(data_output_name,"spectrum.spooky");
     std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
 
+    int blocksPerGrid;
+
+    // we already computed the c2r FFTs when the WriteTimevarOutput()
+    // was called, so the real fields are saved in the d_all_buffer_r
+    scalar_type* real_velField = fields_ptr->d_all_buffer_r + vars.VEL * 2 * grid.NTOTAL_COMPLEX ;
+    scalar_type* real_magField = fields_ptr->d_all_buffer_r + vars.MAG * 2 * grid.NTOTAL_COMPLEX ;
+    scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
+    scalar_type* mask = fields_ptr->wavevector.d_mask;
 
     /**
      * First the energies
@@ -151,6 +160,51 @@ void InputOutput::WriteSpectrumOutput() {
                         fields_ptr->d_farray[vars.VZ],
                         output_spectrum);
         writeSpectrumHelper(fname, time_save, "thvz", output_spectrum, nbins);
+
+    }
+
+    /**
+     * Then the emf spectra
+     *
+     */
+
+    if (param_ptr->mhd) {
+
+        // compute emf = u x B:
+        // emf_x = u_y B_z - u_z B_y , emf_y = u_z B_x - u_x B_z , emf_z = u_x B_y - u_y B_x
+        // the results are saved in the first 3 temp_arrays as [emf_x, emf_y, emf_z] (they are the x,y,z components of the emf)
+        // We can re-utilize tmparrays and store result in in the temp_arrays from [0, 1, 2]
+
+        data_type* emf = fields_ptr->d_all_tmparray;
+        data_type* curlemf = fields_ptr->d_all_tmparray;
+
+        blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+        MagneticEmf<<<blocksPerGrid, threadsPerBlock>>>(real_velField, real_magField, (scalar_type*) emf,  2 * grid.NTOTAL_COMPLEX);
+
+        // take fourier transforms of the 3 independent components of the antisymmetric shear matrix
+        for (int n = 0; n < 3; n++) {
+            r2c_fft((scalar_type*) emf + 2*n*grid.NTOTAL_COMPLEX, emf + n*grid.NTOTAL_COMPLEX, supervisor_ptr);
+        }
+
+        // compute curl of emf and assign to curlemf (we can re-utilize the temp arrays)
+        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+        MagneticShear<<<blocksPerGrid, threadsPerBlock>>>(kvec, emf, curlemf, mask, grid.NTOTAL_COMPLEX);
+
+        // now compute the spectrum for the 3 components
+        computeSpectrum1d(fields_ptr->d_farray[vars.BX],
+                        curlemf,
+                        output_spectrum);
+        writeSpectrumHelper(fname, time_save, "emfwork_x", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.BY],
+                        curlemf + grid.NTOTAL_COMPLEX,
+                        output_spectrum);
+        writeSpectrumHelper(fname, time_save, "emfwork_y", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
+                        curlemf + 2*grid.NTOTAL_COMPLEX,
+                        output_spectrum);
+        writeSpectrumHelper(fname, time_save, "emfwork_z", output_spectrum, nbins);
 
     }
 
