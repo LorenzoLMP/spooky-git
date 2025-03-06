@@ -15,15 +15,19 @@ public:
     // Fields *fields;
     // Parameters *param;
 
-    void AdvectTemperature(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
-    // void AnisotropicConduction(Fields &fields, Parameters &param);
-    void AnisotropicConduction(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dTheta);
+    void AdvectTemperature(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dTheta);
+    
+    void AnisotropicHeatFlux(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dTheta);
+    void AnisotropicDissipation(data_type* complex_Fields, scalar_type* real_Buffer, data_type* anisoDiss);
+    void AnisotropicInjection(data_type* complex_Fields, scalar_type* real_Buffer, data_type* anisoInjVec); 
 
     void EntropyStratification(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
 
     void ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
     void ParabolicTermsSTS(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
     void HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
+
+    void SourceTerms(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
 
 
     void BackgroundShear(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);

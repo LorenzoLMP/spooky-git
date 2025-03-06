@@ -183,24 +183,27 @@ scalar_type SpookyOutput::computeAnisoDissipation(data_type* complex_Fields, sca
 
     if (param_ptr->anisotropic_diffusion) {
 
-        scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
-        scalar_type* mask = fields_ptr->wavevector.d_mask;
+        // scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
+        // scalar_type* mask = fields_ptr->wavevector.d_mask;
 
         scalar_type* temperature = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.TH;
 
         // this is the destination temp array for the divergence of the heat flux
-        data_type* div_heat_flux = fields_ptr->d_tmparray[4];
+        data_type* aniso_dissipation = fields_ptr->d_tmparray[4];
         // set its elements to zero
-        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(div_heat_flux, data_type(0.0,0.0), grid.NTOTAL_COMPLEX);
+        // blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+        // VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(div_heat_flux, data_type(0.0,0.0), grid.NTOTAL_COMPLEX);
 
-        supervisor_ptr->phys_ptr->AnisotropicConduction(complex_Fields, real_Buffer, div_heat_flux);
+        // WARNING: I think this does the entire anisotropic heat flux
+        // including dissipation and injection
+        // Now it should just do the dissipation (but needs to be checked)
+        supervisor_ptr->phys_ptr->AnisotropicDissipation(complex_Fields, real_Buffer, aniso_dissipation);
 
         // transform back to real
-        c2r_fft(div_heat_flux, (scalar_type *) div_heat_flux);
+        c2r_fft(aniso_dissipation, (scalar_type *) aniso_dissipation);
 
         // compute 2field correlation between the divergence of bb grad T and T
-        dissipation = twoFieldCorrelation( (scalar_type *) div_heat_flux, temperature);
+        dissipation = twoFieldCorrelation( (scalar_type *) aniso_dissipation, temperature);
     }
 
     return dissipation;
@@ -220,37 +223,42 @@ scalar_type SpookyOutput::computeAnisoInjection(data_type* complex_Fields, scala
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
-    scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
-    scalar_type* mask = fields_ptr->wavevector.d_mask;
+    
+
+    // scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
+    // scalar_type* mask = fields_ptr->wavevector.d_mask;
 
     if (param_ptr->anisotropic_diffusion and param_ptr->boussinesq) {
 
-        scalar_type* bzb_vec = fields_ptr->d_tmparray_r[0];
-        data_type* divbzb_vec = fields_ptr->d_tmparray[0];
+        data_type* anisoInjVec = fields_ptr->d_tmparray[0];
 
-        scalar_type* temperature = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.TH;
+        supervisor_ptr->phys_ptr->AnisotropicInjection(complex_Fields, real_Buffer, anisoInjVec)
 
-        // Bx, By, Bz real fields are already in the 4-5-6 real_Buffer arrays
-        scalar_type* mag_vec = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.BX;
-        // compute vector b_z \vec b (depending on which direction is the stratification)
-        // and put it into the [num_fields - num_fields + 3] d_tmparray
-        blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        Computebbstrat<<<blocksPerGrid, threadsPerBlock>>>( mag_vec, bzb_vec, (size_t) 2 * grid.NTOTAL_COMPLEX, param_ptr->strat_direction);
+    //     scalar_type* bzb_vec = fields_ptr->d_tmparray_r[0];
 
-        // transform to complex space
-        for (int n = 0; n < 3; n++) {
-            r2c_fft(bzb_vec + 2*n*grid.NTOTAL_COMPLEX, ((data_type*) bzb_vec) + n*grid.NTOTAL_COMPLEX);
-        }
+    //     scalar_type* temperature = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.TH;
 
-        // compute divergence of this vector
-        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type*) bzb_vec, divbzb_vec, mask, grid.NTOTAL_COMPLEX, 0);
+    //     // Bx, By, Bz real fields are already in the 4-5-6 real_Buffer arrays
+    //     scalar_type* mag_vec = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.BX;
+    //     // compute vector b_z \vec b (depending on which direction is the stratification)
+    //     // and put it into the [num_fields - num_fields + 3] d_tmparray
+    //     blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    //     Computebbstrat<<<blocksPerGrid, threadsPerBlock>>>( mag_vec, bzb_vec, (size_t) 2 * grid.NTOTAL_COMPLEX, param_ptr->strat_direction);
+
+    //     // transform to complex space
+    //     for (int n = 0; n < 3; n++) {
+    //         r2c_fft(bzb_vec + 2*n*grid.NTOTAL_COMPLEX, ((data_type*) bzb_vec) + n*grid.NTOTAL_COMPLEX);
+    //     }
+
+    //     // compute divergence of this vector
+    //     blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    //     DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type*) bzb_vec, divbzb_vec, mask, grid.NTOTAL_COMPLEX, 0);
 
         // transform to real space
-        c2r_fft(divbzb_vec, (scalar_type *) divbzb_vec);
+        c2r_fft(anisoInjVec, (scalar_type *) anisoInjVec);
 
         // compute 2 field correlation between div (b_z \vec b) and theta
-        injection = twoFieldCorrelation( (scalar_type *) divbzb_vec, temperature);
+        injection = twoFieldCorrelation( (scalar_type *) anisoInjVec, temperature);
 
     }
 

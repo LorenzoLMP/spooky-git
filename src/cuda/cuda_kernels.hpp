@@ -24,7 +24,11 @@
 
 __global__ void TracelessShearMatrix( const scalar_type *VelField, scalar_type *ShearMatrix, size_t N);
 
+__global__ void ShearMatrix( const scalar_type *VelField, scalar_type *ShearMatrix, size_t N);
+
 __global__ void NonLinHydroAdv(const scalar_type *kvec, const data_type *ShearMatrix, data_type *dVelField, const scalar_type *mask, size_t N);
+
+__global__ void NonLinAdvection(const scalar_type *kvec, const data_type *ShearMatrix, data_type *VecOutput, const scalar_type *mask, size_t N);
 
 __global__ void GradPseudoPressure(const scalar_type *kvec, data_type *dVelField, size_t N);
 

@@ -54,6 +54,28 @@ __global__ void TracelessShearMatrix( const scalar_type *VelField, scalar_type *
     }
 }
 
+// compute the elements of the symmetric shear matrix S_ij = u_i u_j. It has 6 independent components
+// the results are saved in 6 temp arrays (the memory block ShearMatrix points already at the right location)
+__global__ void ShearMatrix( const scalar_type *VelField, scalar_type *ShearMatrix, size_t N) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+
+    if (i < N) {
+
+        // 0: S_xx = u_x^2 
+        ShearMatrix[ 0 * N + i] = VelField[ 0 * N + i] * VelField[ 0 * N + i] ;
+        // 1: S_xy = u_x u_y
+        ShearMatrix[ 1 * N + i] = VelField[ 0 * N + i] * VelField[ 1 * N + i] ;
+        // 2: S_xz = u_x u_z
+        ShearMatrix[ 2 * N + i] = VelField[ 0 * N + i] * VelField[ 2 * N + i] ;
+        // 3: S_yy = u_y^2 
+        ShearMatrix[ 3 * N + i] = VelField[ 1 * N + i] * VelField[ 1 * N + i] ;
+        // 4: S_yz = u_y u_z
+        ShearMatrix[ 4 * N + i] = VelField[ 1 * N + i] * VelField[ 2 * N + i] ;
+        // 5: S_zz = u_z u_z
+        ShearMatrix[ 5 * N + i] = VelField[ 2 * N + i] * VelField[ 2 * N + i] ;
+    }
+}
+
 
 
 // compute derivative of traceless shear matrix and assign to dfields
@@ -75,6 +97,31 @@ __global__ void NonLinHydroAdv(const scalar_type *kvec, const data_type *ShearMa
     }
 }
 
+// compute derivative of shear matrix and assign to dfields
+__global__ void NonLinAdvection(const scalar_type *kvec, const data_type *ShearMatrix, data_type *VecOutput, const scalar_type *mask, size_t N){
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+    // introduce temp variables to store the divergence
+    // in this way the VecOutput can overwrite the first 
+    // 3 components of ShearMatrix
+    data_type advec_x, advec_y, advec_z;
+
+    if (i < N) {
+        // advec_x = - ( I k_x S_xx + I k_y S_xy + I k_z S_xz)
+        advec_x = - imI * mask[i] * (  kvec[0 * N + i] * ShearMatrix[i] + kvec[1 * N + i] * ShearMatrix[N + i] + kvec[2 * N + i] * ShearMatrix[2 * N + i] );
+
+        // advec_y = - ( I k_x S_yx + I k_y S_yy + I k_z S_yz)
+        advec_y = - imI * mask[i] * (  kvec[0 * N + i] * ShearMatrix[N + i] + kvec[1 * N + i] * ShearMatrix[3 * N + i] + kvec[2 * N + i] * ShearMatrix[4 * N + i] );
+
+        // advec_z = - ( I k_x S_zx + I k_y S_zy + I k_z S_zz)
+        advec_z =  - imI * mask[i] * (  kvec[0 * N + i] * ShearMatrix[2 * N + i] + kvec[1 * N + i] * ShearMatrix[4 * N + i] + kvec[2 * N + i] * ShearMatrix[5 * N + i] );
+
+        VecOutput[0 * N + i] = advec_x;
+        VecOutput[1 * N + i] = advec_y;
+        VecOutput[2 * N + i] = advec_z;
+    }
+}
 
 
 // compute pseudo-pressure and subtract grad p_tilde from dfields
@@ -110,8 +157,6 @@ __global__ void GradPseudoPressure(const scalar_type *kvec, data_type *dVelField
 
 // compute pseudo-pressure and subtract grad p_tilde from dfields
 // with background shearing ON
-
-// need to finish this
 
 __global__ void GradPseudoPressureShearing(const scalar_type *kvec, data_type *dVelField, data_type *Velx, double shear, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;

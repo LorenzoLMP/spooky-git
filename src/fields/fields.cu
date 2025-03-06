@@ -39,6 +39,7 @@ Fields::Fields(Supervisor &sup_in, Parameters &p_in) : wavevector(sup_in, p_in) 
     std::printf("vars.NUM_FIELDS: %d \n",vars.NUM_FIELDS);
 
     num_tmp_array = 6; // need to check again why we need all these tmp arrays
+    // with incompressible/mhd we need 6 for the nonlinear advection spectra
     std::printf("num_tmp_array: %d \n",num_tmp_array);
 
     // current_dt = 0.0;

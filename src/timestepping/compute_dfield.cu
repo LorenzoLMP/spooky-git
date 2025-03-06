@@ -52,6 +52,8 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
         // compute hyperbolic terms
         phys_ptr->HyperbolicTerms(complex_Fields, real_Buffer, complex_dFields);
 
+        phys_ptr->SourceTerms(complex_Fields, real_Buffer, complex_dFields);
+
         if (param_ptr->stratification) {
             // add - th e_strat to velocity component in the strat direction
             // add N2 u_strat to temperature equation

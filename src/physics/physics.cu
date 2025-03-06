@@ -109,11 +109,53 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
         }
 
         if (param_ptr->boussinesq) {
+
+            data_type* complex_dTheta = complex_dFields + vars.TH * grid.NTOTAL_COMPLEX ;
+
             // does the advection of the temperature
-            AdvectTemperature(complex_Fields, real_Buffer, complex_dFields);
+            AdvectTemperature(complex_Fields, real_Buffer, complex_dTheta);
         }
 
     }
+}
+
+void Physics::SourceTerms(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields){
+    /*
+    *
+    * Here we do the source terms
+    *
+    */
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
+    if (param_ptr->debug > 1) {
+        std::printf("Now entering SourceTerms function \n");
+    }
+
+    if (param_ptr->stratification) {
+        // add - th e_strat to velocity component in the strat direction
+        // add N2 u_strat to temperature equation
+        // this is for normalization where theta is in units of g [L/T^2]
+        // other normalizations possible
+        data_type* complex_dTheta = complex_dFields + vars.TH * grid.NTOTAL_COMPLEX ;
+
+        EntropyStratification(complex_Fields, real_Buffer, complex_dTheta);
+    }
+
+    if (param_ptr->shearing) {
+        // add du_y += param_ptr->shear * u_x
+        // and dB_y += param_ptr->shear * B_x (if MHD)
+        BackgroundShear(complex_Fields, real_Buffer, complex_dFields);
+    }
+
+    if (param_ptr->rotating) {
+        // add du_x += 2.0 * param_ptr->omega * u_y
+        // add du_y -= 2.0 * param_ptr->omega * u_x
+        BackgroundRotation(complex_Fields, real_Buffer, complex_dFields);
+    }
+
+    
 }
 
 
@@ -186,7 +228,7 @@ void Physics::ParabolicTerms(data_type* complex_Fields, scalar_type* real_Buffer
             data_type* complex_dTheta = complex_dFields + vars.TH * grid.NTOTAL_COMPLEX ;
 
             if (param_ptr->anisotropic_diffusion) {
-                AnisotropicConduction(complex_Fields, real_Buffer, complex_dTheta);
+                AnisotropicHeatFlux(complex_Fields, real_Buffer, complex_dTheta);
             }
             else {
                 if (param_ptr->heat_equation) {
@@ -283,7 +325,7 @@ void Physics::ParabolicTermsSTS(data_type* complex_Fields, scalar_type* real_Buf
             data_type* complex_dTheta = complex_dFields + sts_variables_pos[vars.TH] * grid.NTOTAL_COMPLEX ;
 
             if (param_ptr->anisotropic_diffusion) {
-                AnisotropicConduction(complex_Fields, real_Buffer, complex_dTheta);
+                AnisotropicHeatFlux(complex_Fields, real_Buffer, complex_dTheta);
             }
             else {
                 if (param_ptr->heat_equation) {
