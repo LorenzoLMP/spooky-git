@@ -176,7 +176,7 @@ scalar_type SpookyOutput::computeAnisoDissipation(data_type* complex_Fields, sca
     // cublasStatus_t stat;
     // scalar_type norm = 0.0;
     scalar_type dissipation = 0.0;
-    int blocksPerGrid;
+    // int blocksPerGrid;
 
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
@@ -218,7 +218,7 @@ scalar_type SpookyOutput::computeAnisoInjection(data_type* complex_Fields, scala
      ***/
 
     scalar_type injection = 0.0;
-    int blocksPerGrid;
+    // int blocksPerGrid;
 
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
@@ -232,11 +232,11 @@ scalar_type SpookyOutput::computeAnisoInjection(data_type* complex_Fields, scala
 
         data_type* anisoInjVec = fields_ptr->d_tmparray[0];
 
-        supervisor_ptr->phys_ptr->AnisotropicInjection(complex_Fields, real_Buffer, anisoInjVec)
+        supervisor_ptr->phys_ptr->AnisotropicInjection(complex_Fields, real_Buffer, anisoInjVec);
 
     //     scalar_type* bzb_vec = fields_ptr->d_tmparray_r[0];
 
-    //     scalar_type* temperature = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.TH;
+        scalar_type* temperature = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.TH;
 
     //     // Bx, By, Bz real fields are already in the 4-5-6 real_Buffer arrays
     //     scalar_type* mag_vec = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.BX;

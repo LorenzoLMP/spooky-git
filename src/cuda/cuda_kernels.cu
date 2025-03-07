@@ -374,3 +374,17 @@ __global__ void ComputeAnisotropicHeatFlux( const scalar_type *B, const scalar_t
     }
 }
 
+__global__ void Computebbstrat( const scalar_type *B,  scalar_type *Z, size_t N, int strat_dir) {
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    scalar_type B2 = 0.0;
+
+    if (i < N) {
+        B2 = B[ 0 * N + i ] * B[ 0 * N + i ] + B[ 1 * N + i ] * B[ 1 * N + i ] + B[ 2 * N + i ] * B[ 2 * N + i ] ;
+        // Z_x = B_x B_stratdir / B^2
+        Z[ 0 * N + i ] = B[ 0 * N + i ] *  B[ strat_dir * N + i ]  / B2 ;
+        // Z_y = B_y B_stratdir / B^2
+        Z[ 1 * N + i ] = B[ 1 * N + i ] *  B[ strat_dir * N + i ]  / B2 ;
+        // Z_z = B_z B_stratdir / B^2
+        Z[ 2 * N + i ] = B[ 2 * N + i ] *  B[ strat_dir * N + i ]  / B2 ;
+    }
+}

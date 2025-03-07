@@ -137,13 +137,13 @@ def main():
 
         L1_err /= (nx*ny*nz)
 
-        print('t = {:10.4f} \t L1 error = {:0.2e}'.format(t,L1_err))
+        print('t = {:10.8f} \t L1 error = {:0.6e}'.format(t,L1_err))
 
     if (L1_err < tol):
-        print('t_final = %10.4f \t L1 error = %.2e ... PASSED'%(t,L1_err))
+        print('t_final = %10.8f \t L1 error = %.6e ... PASSED'%(t,L1_err))
         flag = 0 # pass
     else:
-        print('t_final = %10.4f \t L1 error = %.2e ... NOT PASSED'%(t,L1_err))
+        print('t_final = %10.8f \t L1 error = %.6e ... NOT PASSED'%(t,L1_err))
 
     return flag
 

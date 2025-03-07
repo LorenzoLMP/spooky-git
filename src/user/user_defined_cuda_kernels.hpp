@@ -12,5 +12,3 @@
 #include <thrust/iterator/zip_iterator.h>
 #include "common.hpp"
 
-
-__global__ void Computebbstrat( const scalar_type *B,  scalar_type *Z, size_t N, int strat_dir);

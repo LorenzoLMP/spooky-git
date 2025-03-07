@@ -67,3 +67,5 @@ __global__ void MaskVector(const data_type *vec, scalar_type *mask, data_type *v
 __global__ void UnshearComplexVec(data_type *vec, scalar_type *ky, double prefactor, size_t N);
 
 __global__ void Spectrum1d( const scalar_type *kvec, const data_type *v1, const data_type *v2, double *d_output_spectrum, int nbins, double deltak, int NX, int NY, int NZ, size_t N);
+
+__global__ void Helicity(const scalar_type *kvec, data_type *VecField, data_type *HelicityVec, size_t N);

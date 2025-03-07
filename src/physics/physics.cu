@@ -41,81 +41,64 @@ void Physics::HyperbolicTerms(data_type* complex_Fields, scalar_type* real_Buffe
         std::printf("Now entering HyperbolicTerms function \n");
     }
 
-    int blocksPerGrid;
+    // int blocksPerGrid;
 
-    scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
-    scalar_type* mask = fields_ptr->wavevector.d_mask;
+    // scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
+    // scalar_type* mask = fields_ptr->wavevector.d_mask;
+
+    // data_type* complex_dVel = complex_dFields + vars.VEL * grid.NTOTAL_COMPLEX ;
 
     if (param_ptr->incompressible) {
 
-        scalar_type* real_velField = real_Buffer + vars.VEL * 2 * grid.NTOTAL_COMPLEX ;
         data_type* complex_dVel = complex_dFields + vars.VEL * grid.NTOTAL_COMPLEX ;
 
-        scalar_type* real_magField = real_Buffer + vars.MAG * 2 * grid.NTOTAL_COMPLEX ;
+        BasdevantHydro(complex_Fields, real_Buffer, complex_dVel);
+
+    //     // we use Basdevant formulation [1983]
+    //     // compute the elements of the traceless symmetric matrix
+    //     // B_ij = u_i u_j - delta_ij Tr (u_i u_j) / 3.
+    //     // It has only 5 independent components B_xx, B_xy, B_xz, Byy, B_yz.
+    //     // (B_zz = - B_xx - B_yy)
+    //     // The results are saved in the temp_arrays from [0, 1, ..., 4]
+    //     data_type* shear_matrix = fields_ptr->d_all_tmparray;
+
+    //     blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+
+    //     if (param_ptr->mhd) {
+
+    //         TracelessShearMatrixMHD<<<blocksPerGrid, threadsPerBlock>>>(real_velField, real_magField, (scalar_type*) shear_matrix,  2 * grid.NTOTAL_COMPLEX);
+    //     }
+    //     else {
+    //         TracelessShearMatrix<<<blocksPerGrid, threadsPerBlock>>>(real_velField, (scalar_type*) shear_matrix,  2 * grid.NTOTAL_COMPLEX);
+    //     }
+
+
+    //     // take fft of 5 independent components of B_ij
+    //     for (int n = 0; n < 5; n++) {
+    //         r2c_fft((scalar_type*) shear_matrix + 2*n*grid.NTOTAL_COMPLEX, shear_matrix + n*grid.NTOTAL_COMPLEX, supervisor_ptr);
+    //     }
+
+    //     // compute derivative of traceless shear matrix and assign to dfields
+    //     // this kernel works also if MHD
+    //     blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    //     NonLinHydroAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, shear_matrix, complex_dVel, mask, grid.NTOTAL_COMPLEX);
+
+    }
+
+    if (param_ptr->mhd) {
+
         data_type* complex_dMag = complex_dFields + vars.MAG * grid.NTOTAL_COMPLEX ;
 
+        CurlEMF(complex_Fields, real_Buffer, complex_dMag);
 
-        // we use Basdevant formulation [1983]
-        // compute the elements of the traceless symmetric matrix
-        // B_ij = u_i u_j - delta_ij Tr (u_i u_j) / 3.
-        // It has only 5 independent components B_xx, B_xy, B_xz, Byy, B_yz.
-        // (B_zz = - B_xx - B_yy)
-        // The results are saved in the temp_arrays from [0, 1, ..., 4]
-        data_type* shear_matrix = fields_ptr->d_all_tmparray;
+    }
 
-        blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    if (param_ptr->boussinesq) {
 
-        if (param_ptr->mhd) {
+        data_type* complex_dTheta = complex_dFields + vars.TH * grid.NTOTAL_COMPLEX ;
 
-            TracelessShearMatrixMHD<<<blocksPerGrid, threadsPerBlock>>>(real_velField, real_magField, (scalar_type*) shear_matrix,  2 * grid.NTOTAL_COMPLEX);
-        }
-        else {
-            TracelessShearMatrix<<<blocksPerGrid, threadsPerBlock>>>(real_velField, (scalar_type*) shear_matrix,  2 * grid.NTOTAL_COMPLEX);
-        }
-
-
-        // take fft of 5 independent components of B_ij
-        for (int n = 0; n < 5; n++) {
-            r2c_fft((scalar_type*) shear_matrix + 2*n*grid.NTOTAL_COMPLEX, shear_matrix + n*grid.NTOTAL_COMPLEX, supervisor_ptr);
-        }
-
-        // compute derivative of traceless shear matrix and assign to dfields
-        // this kernel works also if MHD
-        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        NonLinHydroAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, shear_matrix, complex_dVel, mask, grid.NTOTAL_COMPLEX);
-
-        if (param_ptr->mhd) {
-
-            // compute emf = u x B:
-            // emf_x = u_y B_z - u_z B_y , emf_y = u_z B_x - u_x B_z , emf_z = u_x B_y - u_y B_x
-            // the results are saved in the first 3 temp_arrays as [emf_x, emf_y, emf_z] (they are the x,y,z components of the emf)
-            // We can re-utilize tmparrays and store result in in the temp_arrays from [0, 1, 2]
-
-            data_type* emf = fields_ptr->d_all_tmparray;
-
-            blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-            MagneticEmf<<<blocksPerGrid, threadsPerBlock>>>(real_velField, real_magField, (scalar_type*) emf,  2 * grid.NTOTAL_COMPLEX);
-
-            // take fourier transforms of the 3 independent components of the antisymmetric shear matrix
-            for (int n = 0; n < 3; n++) {
-                r2c_fft((scalar_type*) emf + 2*n*grid.NTOTAL_COMPLEX, emf + n*grid.NTOTAL_COMPLEX, supervisor_ptr);
-            }
-
-            // compute derivative of antisymmetric magnetic shear matrix and assign to dfields
-
-            blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-            MagneticShear<<<blocksPerGrid, threadsPerBlock>>>(kvec, emf, complex_dMag, mask, grid.NTOTAL_COMPLEX);
-
-        }
-
-        if (param_ptr->boussinesq) {
-
-            data_type* complex_dTheta = complex_dFields + vars.TH * grid.NTOTAL_COMPLEX ;
-
-            // does the advection of the temperature
-            AdvectTemperature(complex_Fields, real_Buffer, complex_dTheta);
-        }
-
+        // does the advection of the temperature
+        AdvectTemperature(complex_Fields, real_Buffer, complex_dTheta);
     }
 }
 
@@ -138,9 +121,9 @@ void Physics::SourceTerms(data_type* complex_Fields, scalar_type* real_Buffer, d
         // add N2 u_strat to temperature equation
         // this is for normalization where theta is in units of g [L/T^2]
         // other normalizations possible
-        data_type* complex_dTheta = complex_dFields + vars.TH * grid.NTOTAL_COMPLEX ;
+        // data_type* complex_dTheta = complex_dFields + vars.TH * grid.NTOTAL_COMPLEX ;
 
-        EntropyStratification(complex_Fields, real_Buffer, complex_dTheta);
+        EntropyStratification(complex_Fields, real_Buffer, complex_dFields);
     }
 
     if (param_ptr->shearing) {

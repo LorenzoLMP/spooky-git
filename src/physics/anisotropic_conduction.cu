@@ -67,8 +67,8 @@ void Physics::AnisotropicHeatFlux(data_type* complex_Fields, scalar_type* real_B
 // anisotropic dissipation (useful to compute diagnostics)
 
 
-// anisoInjVec must point to an allocated memory bank of size 3 * grid.NTOTAL_COMPLEX
-void Physics::AnisotropicInjection(data_type* complex_Fields, scalar_type* real_Buffer, data_type* anisoInjVec) {
+// anisoInj must point to an allocated memory bank of size grid.NTOTAL_COMPLEX
+void Physics::AnisotropicInjection(data_type* complex_Fields, scalar_type* real_Buffer, data_type* anisoInj) {
 
     int blocksPerGrid;
 
@@ -87,7 +87,7 @@ void Physics::AnisotropicInjection(data_type* complex_Fields, scalar_type* real_
         // data_type* divbzb_vec = fields_ptr->d_tmparray[0];
 
         
-        scalar_type* mag_vec = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.BX;
+        // scalar_type* mag_vec = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.BX;
         // compute vector b_z \vec b (depending on which direction is the stratification)
         // and put it into the [num_fields - num_fields + 3] d_tmparray
         blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
@@ -100,7 +100,7 @@ void Physics::AnisotropicInjection(data_type* complex_Fields, scalar_type* real_
 
         // compute divergence of this vector
         blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type*) bzb_vec, anisoInjVec, mask, grid.NTOTAL_COMPLEX, 0);
+        DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type*) bzb_vec, anisoInj, mask, grid.NTOTAL_COMPLEX, 0);
     }
 
 }
@@ -146,7 +146,9 @@ void Physics::AnisotropicDissipation(data_type* complex_Fields, scalar_type* rea
 
         // setting the 4th argument to 0.0 will zero out the 
         // anisotropic injection and leave only the dissipation
-        ComputeAnisotropicHeatFlux<<<blocksPerGrid, threadsPerBlock>>>( real_magField, Bgrad_theta, heat_flux, 0.0, (1./param_ptr->reynolds_ani), 2 * grid.NTOTAL_COMPLEX, param_ptr->strat_direction);
+        // setting the 5th argument to 1.0 will factor out the 
+        // thermal diffusivity chi
+        ComputeAnisotropicHeatFlux<<<blocksPerGrid, threadsPerBlock>>>( real_magField, Bgrad_theta, heat_flux, 0.0, 1.0, 2 * grid.NTOTAL_COMPLEX, param_ptr->strat_direction);
 
         // take fourier transforms of the heat flux
         for (int n = 0 ; n < 3; n++) {

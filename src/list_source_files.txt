@@ -27,6 +27,8 @@ ${PROJECT_SOURCE_DIR}/src/timestepping/compute_dt.cu
 ${PROJECT_SOURCE_DIR}/src/timestepping/shearing_remapping.cu
 ##### physics files ######
 ${PROJECT_SOURCE_DIR}/src/physics/physics.cu
+${PROJECT_SOURCE_DIR}/src/physics/hydro.cu
+${PROJECT_SOURCE_DIR}/src/physics/mhd.cu
 ${PROJECT_SOURCE_DIR}/src/physics/boussinesq.cu
 ${PROJECT_SOURCE_DIR}/src/physics/anisotropic_conduction.cu
 ${PROJECT_SOURCE_DIR}/src/physics/shear_rotation.cu

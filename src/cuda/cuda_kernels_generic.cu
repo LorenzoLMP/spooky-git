@@ -426,7 +426,7 @@ __global__ void Spectrum1d( const scalar_type *kvec, const data_type *v1, const 
     // v1, v2 points to the first element of the 3D vector
 
     int3 idx3D;
-    double q0;
+    // double q0;
     double power_at_freq;
     int m;
     // = (vhat[i,j,k] * vhat[i,j,k].conjugate() ).real
@@ -447,8 +447,43 @@ __global__ void Spectrum1d( const scalar_type *kvec, const data_type *v1, const 
         kabs = sqrt(kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
         m = (int) (kabs/deltak + 0.5);
 
-        q0 = atomicAdd(d_output_spectrum + m, power_at_freq );
+        atomicAdd(d_output_spectrum + m, power_at_freq );
 
 
     }
+}
+
+// compute helicity of vector (e.g. magnetic field)
+__global__ void Helicity(const scalar_type *kvec, data_type *VecField, data_type *HelicityVec, size_t N){
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    
+    scalar_type ik2 = 1.0;
+    // this is the imaginary unit
+    data_type imI = data_type(0.0,1.0);
+    data_type curl_x, curl_y, curl_z;
+
+    if (i < N) {
+        // first compute curl of vector
+        curl_x = - imI * ( kvec[1 * N + i] * VecField[2 * N + i] - kvec[2 * N + i] * VecField[1 * N + i]);
+
+        curl_y = - imI * ( kvec[2 * N + i] * VecField[0 * N + i] - kvec[0 * N + i] * VecField[2 * N + i]);
+
+        curl_z = - imI * ( kvec[0 * N + i] * VecField[1 * N + i] - kvec[1 * N + i] * VecField[0 * N + i]);
+
+        // compute 1/k2
+        if (i > 0){
+            ik2 = 1.0 / (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
+        }
+
+        // hel_x component
+        HelicityVec[0 * N + i] = - ik2 * curl_x;
+
+        // hel_y component
+        HelicityVec[1 * N + i] = - ik2 * curl_y;
+
+        // hel_z component
+        HelicityVec[2 * N + i] = - ik2 * curl_z;
+
+    }
+
 }

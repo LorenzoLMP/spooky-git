@@ -15,11 +15,15 @@ public:
     // Fields *fields;
     // Parameters *param;
 
+    void BasdevantHydro(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dVel);
+
+    void CurlEMF(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dMag);
+
     void AdvectTemperature(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dTheta);
     
     void AnisotropicHeatFlux(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dTheta);
     void AnisotropicDissipation(data_type* complex_Fields, scalar_type* real_Buffer, data_type* anisoDiss);
-    void AnisotropicInjection(data_type* complex_Fields, scalar_type* real_Buffer, data_type* anisoInjVec); 
+    void AnisotropicInjection(data_type* complex_Fields, scalar_type* real_Buffer, data_type* anisoInj); 
 
     void EntropyStratification(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
 
@@ -33,6 +37,8 @@ public:
     void BackgroundShear(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
 
     void BackgroundRotation(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
+
+    void NonLinearAdvection(scalar_type* real_vecField, data_type* advectionVec);
 
     // int stage_step;
     // unsigned int current_step;

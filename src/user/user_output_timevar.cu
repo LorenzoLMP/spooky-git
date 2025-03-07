@@ -29,7 +29,7 @@ void InputOutput::WriteUserTimevarOutput() {
     std::printf("Writing user data output... \n");
 #endif
 
-    int blocksPerGrid;
+    // int blocksPerGrid;
     double t0        = param_ptr->t_initial;
     double time_save = timestep_ptr->current_time;
     double tend     = param_ptr->t_final;

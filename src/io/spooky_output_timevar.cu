@@ -27,7 +27,7 @@ void InputOutput::WriteTimevarOutput() {
         std::printf("Writing timevar output... \n");
     }
 
-    int blocksPerGrid;
+    // int blocksPerGrid;
     double t0        = param_ptr->t_initial;
     double time_save = timestep_ptr->current_time;
     double tend     = param_ptr->t_final;
@@ -143,11 +143,10 @@ void InputOutput::WriteTimevarOutput() {
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("dissgradT"))) {
                 // thermal dissipation (isotropic or anisotropic)
-                // #if defined(ANISOTROPIC_DIFFUSION) && defined(MHD)
                 if (param_ptr->anisotropic_diffusion and param_ptr->mhd) {
                 // the minus sign is for consistency with snoopy
                     output_var = - param_ptr->spookyOutVar.computeAnisoDissipation(fields_ptr->d_all_fields,
-                                                                            fields_ptr->d_all_buffer_r);
+                                            fields_ptr->d_all_buffer_r);
                 }
                 else {
                     output_var = param_ptr->spookyOutVar.computeDissipation(fields_ptr->d_farray[vars.TH]);
@@ -157,10 +156,9 @@ void InputOutput::WriteTimevarOutput() {
         if (param_ptr->anisotropic_diffusion) {
 
             if(!param_ptr->spookyOutVar.name[i].compare(std::string("fluxbbgradT"))) {
-                // thermal dissipation (isotropic or anisotropic)
-                // for now it's only anisotropic
+                // injection by anisotropic conduction
                 output_var = param_ptr->spookyOutVar.computeAnisoInjection(fields_ptr->d_all_fields,
-                                                                            fields_ptr->d_all_buffer_r);
+                fields_ptr->d_all_buffer_r);
             }
         }
         if (param_ptr->boussinesq) {

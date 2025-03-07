@@ -77,10 +77,10 @@ void Fields::initSpatialStructure(){
 	// initial conditions on host data
 	///////////////////////////////////////
 
-	double sigma  = 0.9341413811120219;
-	double Pe     = param_ptr->reynolds_ani;
- 	double Reeta  = param_ptr->reynolds_m;
-    	double kparallel  = (2.0*M_PI/param_ptr->lx)*12.0;
+	// double sigma  = 0.9341413811120219;
+	// double Pe     = param_ptr->reynolds_ani;
+ 	// double Reeta  = param_ptr->reynolds_m;
+    double kparallel  = (2.0*M_PI/param_ptr->lx)*12.0;
 	double B0 = 1e-4;
 
 	for (int i = 0; i < 2*grid.NTOTAL_COMPLEX; i++){

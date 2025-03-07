@@ -60,7 +60,7 @@ void Physics::EntropyStratification(data_type* complex_Fields, scalar_type* real
         data_type* complex_dVel = complex_dFields + vars.VEL * grid.NTOTAL_COMPLEX ;
 
         data_type* complex_Theta = complex_Fields + vars.TH * grid.NTOTAL_COMPLEX ;
-        // data_type* complex_dTheta = complex_dFields + vars.TH * grid.NTOTAL_COMPLEX ;
+        data_type* complex_dTheta = complex_dFields + vars.TH * grid.NTOTAL_COMPLEX ;
 
 
         blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;

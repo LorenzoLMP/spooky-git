@@ -43,7 +43,7 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	config_t	config;		// Initialize the structure
 	config_setting_t * setting;	// a setting structure
 	int tmp_v;
-	int i, n;
+	int i;
 	std::string config_fullpath(input_dir);
 	config_fullpath.append("/");
 	config_fullpath.append(std::string(SPOOKY_CONFIG_FILENAME));

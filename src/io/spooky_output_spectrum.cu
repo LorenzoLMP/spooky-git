@@ -15,6 +15,7 @@
 #include "inputoutput.hpp"
 #include "timestepping.hpp"
 #include "supervisor.hpp"
+#include "physics.hpp"
 
 void writeSpectrumHelper(std::string fname, double time_save, std::string name, double* output_spectrum, int nbins);
 
@@ -155,15 +156,9 @@ void InputOutput::WriteSpectrumOutput() {
     }
 
 
-    int blocksPerGrid;
-
-    // we already computed the c2r FFTs when the WriteTimevarOutput()
-    // was called, so the real fields are saved in the d_all_buffer_r
-    scalar_type* real_velField = fields_ptr->d_all_buffer_r + vars.VEL * 2 * grid.NTOTAL_COMPLEX ;
-    scalar_type* real_magField = fields_ptr->d_all_buffer_r + vars.MAG * 2 * grid.NTOTAL_COMPLEX ;
-    scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
-    scalar_type* mask = fields_ptr->wavevector.d_mask;
-
+    // // we already computed the c2r FFTs when the WriteTimevarOutput()
+    // // was called, so the real fields are saved in the d_all_buffer_r
+    
     /**
      * Now the nonlinear advection term (u \cdot \nabla) u
      *
@@ -171,26 +166,12 @@ void InputOutput::WriteSpectrumOutput() {
 
     if (param_ptr->incompressible) {
 
-        // compute the elements of the shear symmetric matrix
-        // S_ij = u_i u_j 
-        // It has 6 independent components.
-        // The results are saved in the temp_arrays from [0, 1, ..., 5]
-        data_type* shear_matrix = fields_ptr->d_all_tmparray;
+        scalar_type* real_velField = fields_ptr->d_all_buffer_r + vars.VEL * 2 * grid.NTOTAL_COMPLEX ;
+
         data_type* divshear = fields_ptr->d_all_tmparray;
 
-        blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        ShearMatrix<<<blocksPerGrid, threadsPerBlock>>>(real_velField, (scalar_type*) shear_matrix,  2 * grid.NTOTAL_COMPLEX);
-
-        // take fft of 6 independent components of S_ij
-        for (int n = 0; n < 6; n++) {
-            r2c_fft((scalar_type*) shear_matrix + 2*n*grid.NTOTAL_COMPLEX, shear_matrix + n*grid.NTOTAL_COMPLEX, supervisor_ptr);
-        }
-
-        // compute derivative of shear matrix and assign it to divshear
-        // (in fact we can reuse the first 3 temp_arrays)
-        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        NonLinAdvection<<<blocksPerGrid, threadsPerBlock>>>(kvec, shear_matrix, divshear, mask, grid.NTOTAL_COMPLEX);
-
+        supervisor_ptr->phys_ptr->NonLinearAdvection(real_velField, divshear);
+        
         // now compute the nonlinear advection spectrum with the 3 components of divshear
         computeSpectrum1d(fields_ptr->d_farray[vars.VX],
                         divshear,
@@ -216,25 +197,9 @@ void InputOutput::WriteSpectrumOutput() {
 
     if (param_ptr->mhd) {
 
-        // compute emf = u x B:
-        // emf_x = u_y B_z - u_z B_y , emf_y = u_z B_x - u_x B_z , emf_z = u_x B_y - u_y B_x
-        // the results are saved in the first 3 temp_arrays as [emf_x, emf_y, emf_z] (they are the x,y,z components of the emf)
-        // We can re-utilize tmparrays and store result in in the temp_arrays from [0, 1, 2]
-
-        data_type* emf = fields_ptr->d_all_tmparray;
         data_type* curlemf = fields_ptr->d_all_tmparray;
+        supervisor_ptr->phys_ptr->CurlEMF(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, curlemf);
 
-        blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        MagneticEmf<<<blocksPerGrid, threadsPerBlock>>>(real_velField, real_magField, (scalar_type*) emf,  2 * grid.NTOTAL_COMPLEX);
-
-        // take fourier transforms of the 3 independent components of the antisymmetric shear matrix
-        for (int n = 0; n < 3; n++) {
-            r2c_fft((scalar_type*) emf + 2*n*grid.NTOTAL_COMPLEX, emf + n*grid.NTOTAL_COMPLEX, supervisor_ptr);
-        }
-
-        // compute curl of emf and assign to curlemf (we can re-utilize the temp arrays)
-        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        MagneticShear<<<blocksPerGrid, threadsPerBlock>>>(kvec, emf, curlemf, mask, grid.NTOTAL_COMPLEX);
 
         // now compute the spectrum for the 3 components
         computeSpectrum1d(fields_ptr->d_farray[vars.BX],
@@ -261,25 +226,11 @@ void InputOutput::WriteSpectrumOutput() {
 
     if (param_ptr->mhd) {
 
-        // compute the elements of the shear symmetric matrix
-        // S_ij = B_i B_j 
-        // It has 6 independent components.
-        // The results are saved in the temp_arrays from [0, 1, ..., 5]
-        data_type* shear_matrix = fields_ptr->d_all_tmparray;
+        scalar_type* real_magField = fields_ptr->d_all_buffer_r + vars.MAG * 2 * grid.NTOTAL_COMPLEX ;
+
         data_type* divshear = fields_ptr->d_all_tmparray;
 
-        blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        ShearMatrix<<<blocksPerGrid, threadsPerBlock>>>(real_magField, (scalar_type*) shear_matrix,  2 * grid.NTOTAL_COMPLEX);
-
-        // take fft of 6 independent components of S_ij
-        for (int n = 0; n < 6; n++) {
-            r2c_fft((scalar_type*) shear_matrix + 2*n*grid.NTOTAL_COMPLEX, shear_matrix + n*grid.NTOTAL_COMPLEX, supervisor_ptr);
-        }
-
-        // compute derivative of shear matrix and assign it to divshear
-        // (in fact we can reuse the first 3 temp_arrays)
-        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        NonLinAdvection<<<blocksPerGrid, threadsPerBlock>>>(kvec, shear_matrix, divshear, mask, grid.NTOTAL_COMPLEX);
+        supervisor_ptr->phys_ptr->NonLinearAdvection(real_magField, divshear);
 
         // now compute the Lorentz spectrum with the 3 components of divshear
         computeSpectrum1d(fields_ptr->d_farray[vars.VX],
@@ -305,27 +256,11 @@ void InputOutput::WriteSpectrumOutput() {
      *
      */
 
-    scalar_type* real_Theta = fields_ptr->d_all_buffer_r + vars.TH * 2 * grid.NTOTAL_COMPLEX ; 
-
     if (param_ptr->boussinesq) {
 
-        data_type* en_flux = fields_ptr->d_all_tmparray;
         data_type* thermal_adv = fields_ptr->d_all_tmparray;
 
-        // first compute energy flux vector [ u_x theta, u_y theta, u_z theta]
-        // we can re-utilize tmparrays store result in in the temp_arrays from [0, 1, 2]
-        blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        EnergyFluxVector<<<blocksPerGrid, threadsPerBlock>>>(real_velField, real_Theta, (scalar_type *) en_flux,  2 * grid.NTOTAL_COMPLEX);
-
-        // take fourier transforms of the 3 energy flux vector components
-        for (int n = 0; n < 3; n++) {
-            r2c_fft(en_flux + 2*n*grid.NTOTAL_COMPLEX,  en_flux + n*grid.NTOTAL_COMPLEX, supervisor_ptr);
-        }
-
-        // compute derivative of energy flux vector and assign to thermal_adv
-        // we can reuse the tmp_array
-        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-        NonLinBoussinesqAdv<<<blocksPerGrid, threadsPerBlock>>>(kvec, en_flux, thermal_adv, mask, grid.NTOTAL_COMPLEX);
+        supervisor_ptr->phys_ptr->AdvectTemperature(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, thermal_adv);
 
         // now compute the thermal nonlinear adv spectrum with thermal_adv
         computeSpectrum1d(fields_ptr->d_farray[vars.TH],
@@ -335,13 +270,56 @@ void InputOutput::WriteSpectrumOutput() {
 
     }
 
+
+    /**
+     * These are the helicity spectra
+     * 
+     */
+
+    if (param_ptr->mhd) {
+
+        data_type* complex_dMag = fields_ptr->d_all_fields + vars.MAG * grid.NTOTAL_COMPLEX ;
+        data_type* mag_helicity = fields_ptr->d_all_tmparray;
+
+        int blocksPerGrid;
+        scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
+
+        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+
+        Helicity<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dMag, mag_helicity, grid.NTOTAL_COMPLEX);
+
+        // now compute the Helicity spectra with the 3 components of mag_helicity
+        computeSpectrum1d(fields_ptr->d_farray[vars.BX],
+                        mag_helicity,
+                        output_spectrum);
+        writeSpectrumHelper(fname, time_save, "helicity_x", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.BY],
+                        mag_helicity + grid.NTOTAL_COMPLEX,
+                        output_spectrum);
+        writeSpectrumHelper(fname, time_save, "helicity_y", output_spectrum, nbins);
+
+        computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
+                        mag_helicity + 2*grid.NTOTAL_COMPLEX,
+                        output_spectrum);
+        writeSpectrumHelper(fname, time_save, "helicity_z", output_spectrum, nbins);
+        
+    }
+
+
+
+    /**
+     * These are the anisotropic conduction terms
+     * 
+     */
+
+    // first the dissipation
     if (param_ptr->anisotropic_diffusion) {
 
         // this is the destination temp array for the anisotropic
         // dissipation
         data_type* aniso_dissipation = fields_ptr->d_tmparray[4];
         
-
         supervisor_ptr->phys_ptr->AnisotropicDissipation(fields_ptr->d_all_fields, 
                                                         fields_ptr->d_all_buffer_r, 
                                                         aniso_dissipation);
@@ -351,7 +329,23 @@ void InputOutput::WriteSpectrumOutput() {
                         output_spectrum);
         writeSpectrumHelper(fname, time_save, "th_aniso_diss", output_spectrum, nbins);
 
+    }
 
+    // then the anisotropic injection
+    if (param_ptr->anisotropic_diffusion) {
+
+        // this is the destination temp array for the anisotropic
+        // injection
+        data_type* aniso_injection = fields_ptr->d_tmparray[4];
+        
+        supervisor_ptr->phys_ptr->AnisotropicInjection(fields_ptr->d_all_fields, 
+                                                        fields_ptr->d_all_buffer_r, 
+                                                        aniso_injection);
+        
+        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                        aniso_injection,
+                        output_spectrum);
+        writeSpectrumHelper(fname, time_save, "th_aniso_inj", output_spectrum, nbins);
 
     }
 

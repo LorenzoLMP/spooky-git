@@ -54,25 +54,7 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
 
         phys_ptr->SourceTerms(complex_Fields, real_Buffer, complex_dFields);
 
-        if (param_ptr->stratification) {
-            // add - th e_strat to velocity component in the strat direction
-            // add N2 u_strat to temperature equation
-            // this is for normalization where theta is in units of g [L/T^2]
-            // other normalizations possible
-            phys_ptr->EntropyStratification(complex_Fields, real_Buffer, complex_dFields);
-        }
-
-        if (param_ptr->shearing) {
-            // add du_y += param_ptr->shear * u_x
-            // and dB_y += param_ptr->shear * B_x (if MHD)
-            phys_ptr->BackgroundShear(complex_Fields, real_Buffer, complex_dFields);
-        }
-
-        if (param_ptr->rotating) {
-            // add du_x += 2.0 * param_ptr->omega * u_y
-            // add du_y -= 2.0 * param_ptr->omega * u_x
-            phys_ptr->BackgroundRotation(complex_Fields, real_Buffer, complex_dFields);
-        }
+        
 
         /*
         *
