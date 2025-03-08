@@ -40,6 +40,8 @@ public:
 
     void NonLinearAdvection(scalar_type* real_vecField, data_type* advectionVec);
 
+    void MagneticHelicity(data_type* complex_vecField, data_type* magHelicity);
+
     // int stage_step;
     // unsigned int current_step;
     // double current_dt;

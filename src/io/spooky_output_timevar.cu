@@ -90,9 +90,11 @@ void InputOutput::WriteTimevarOutput() {
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("w2"))) {
                 // enstrophy
-                output_var = param_ptr->spookyOutVar.computeEnstrophy(fields_ptr->d_farray[vars.VX],
-                                                                    fields_ptr->d_farray[vars.VY],
-                                                                    fields_ptr->d_farray[vars.VZ]);
+                output_var = param_ptr->spookyOutVar.computeEnstrophy(fields_ptr->d_farray[vars.VEL]);
+            }
+            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("hv"))) {
+                // compute kinetic helicity
+                output_var = param_ptr->spookyOutVar.computeHelicity(fields_ptr->d_farray[vars.VEL], fields_ptr->d_farray_buffer_r[vars.VEL]);
             }
         }
         if (param_ptr->mhd) {
@@ -130,10 +132,37 @@ void InputOutput::WriteTimevarOutput() {
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("j2"))) {
                 // compute total current rms
                 // we can reuse the computeEnstrophy function
-                output_var = param_ptr->spookyOutVar.computeEnstrophy(fields_ptr->d_farray[vars.BX],
-                                                                    fields_ptr->d_farray[vars.BY],
-                                                                    fields_ptr->d_farray[vars.BZ]);
+                output_var = param_ptr->spookyOutVar.computeEnstrophy(fields_ptr->d_farray[vars.MAG]);
             }
+
+            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("hm"))) {
+                // compute magnetic helicity
+                output_var = param_ptr->spookyOutVar.computeHelicity(fields_ptr->d_farray[vars.MAG], fields_ptr->d_farray_buffer_r[vars.MAG]);
+            }
+
+            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("hc"))) {
+                // compute cross helicity u \cdot B
+                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.VX], fields_ptr->d_farray_buffer_r[vars.BX]);
+                output_var += param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.VY], fields_ptr->d_farray_buffer_r[vars.BY]);
+                output_var += param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.VZ], fields_ptr->d_farray_buffer_r[vars.BZ]);
+            }
+
+            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("thetaB"))) {
+                // average b_z
+                output_var = param_ptr->spookyOutVar.averagebz(fields_ptr->d_farray_buffer_r[vars.MAG]);
+            }
+
+            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("bz2"))) {
+                // average b_z^2
+                output_var = param_ptr->spookyOutVar.averagebz2(fields_ptr->d_farray_buffer_r[vars.MAG]);
+            }
+
+            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("phiB"))) {
+                // average angle in the horizontal Bx, By plane
+                output_var = param_ptr->spookyOutVar.averagephiB(fields_ptr->d_farray_buffer_r[vars.MAG]);
+            }
+
+
         }
         if (param_ptr->boussinesq or param_ptr->heat_equation) {
 
@@ -151,6 +180,10 @@ void InputOutput::WriteTimevarOutput() {
                 else {
                     output_var = param_ptr->spookyOutVar.computeDissipation(fields_ptr->d_farray[vars.TH]);
                 }
+            }
+            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("pv"))) {
+                // potential vorticity
+                output_var = param_ptr->spookyOutVar.potentialVorticity(fields_ptr->d_farray[vars.VEL], fields_ptr->d_farray[vars.TH]);
             }
         }
         if (param_ptr->anisotropic_diffusion) {

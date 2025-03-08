@@ -14,5 +14,7 @@ class UserOutput : public SpookyOutput { // The class
         UserOutput(Supervisor &sup_in);
         // ~UserOutput();
         scalar_type customFunction( data_type *vcomplex );
+        scalar_type computekpartheta(data_type* complex_Fields,
+                                    scalar_type* real_Buffer);
 };
 

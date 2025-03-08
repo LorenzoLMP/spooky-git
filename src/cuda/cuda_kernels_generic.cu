@@ -166,7 +166,6 @@ __global__ void addReset( const data_type *X, data_type *Y, data_type *Z, scalar
     }
 }
 
-
 /*
  * In the following kernels it is always
  * assumed that:

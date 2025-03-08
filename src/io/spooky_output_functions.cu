@@ -54,9 +54,7 @@ scalar_type SpookyOutput::computeEnergy( data_type *vcomplex ) {
     return energy;
 }
 
-scalar_type SpookyOutput::computeEnstrophy(data_type *vx,
-                                           data_type *vy,
-                                           data_type *vz) {
+scalar_type SpookyOutput::computeEnstrophy(data_type *complex_vecField) {
     /***
      * This function uses complex inputs to compute the "enstrophy" of a vector field
      * To do so, we first compute the curl of the field, and then sum the "energies" of the
@@ -77,7 +75,7 @@ scalar_type SpookyOutput::computeEnstrophy(data_type *vx,
 
 
     int blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-    Curl<<<blocksPerGrid, threadsPerBlock>>>(kvec, vx, curl, (size_t) grid.NTOTAL_COMPLEX);
+    Curl<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_vecField, curl, (size_t) grid.NTOTAL_COMPLEX);
 
 
     enstrophy = computeEnergy((data_type *)curl) + computeEnergy((data_type *)curl + grid.NTOTAL_COMPLEX) + computeEnergy((data_type *)curl + 2*grid.NTOTAL_COMPLEX) ;
@@ -85,6 +83,77 @@ scalar_type SpookyOutput::computeEnstrophy(data_type *vx,
     // if (stat != CUBLAS_STATUS_SUCCESS) std::printf("energy failed\n");
 
     return enstrophy;
+}
+
+scalar_type SpookyOutput::computeHelicity(data_type *complex_magField, scalar_type *real_magField) {
+    /***
+     * This function uses complex inputs to compute the magnetic helicity field
+     * Can also work for kinetic helicity.
+     * 
+     ***/
+
+    // cublasStatus_t stat;
+    // scalar_type norm = 0.0;
+    scalar_type helicity = 0.0;
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    // std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
+    scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
+    // scalar_type* mask = fields_ptr->wavevector.d_mask;
+
+    data_type* mag_helicity = fields_ptr->d_all_tmparray;
+
+    supervisor_ptr->phys_ptr->MagneticHelicity(complex_magField, mag_helicity);
+
+    // transform back to real
+    for (int n = 0; n < 3; n++) {
+        c2r_fft(mag_helicity + n*grid.NTOTAL_COMPLEX, (scalar_type *) mag_helicity + 2*n*grid.NTOTAL_COMPLEX);
+    }
+
+    // compute scalar product  
+    for (int n = 0; n < 3; n++) {
+        helicity += twoFieldCorrelation( (scalar_type *) mag_helicity + 2*n*grid.NTOTAL_COMPLEX, real_magField + 2*n*grid.NTOTAL_COMPLEX);
+    }
+
+    return helicity;
+}
+
+scalar_type SpookyOutput::potentialVorticity(data_type *complex_velField, data_type *complex_Theta) {
+    /***
+     * This function uses complex inputs to compute the potential vorticity
+     * 
+     ***/
+
+    scalar_type pv = 0.0;
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    // std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
+    scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
+    // scalar_type* mask = fields_ptr->wavevector.d_mask;
+
+    data_type* curl_vel = fields_ptr->d_all_tmparray;
+
+    int blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    Curl<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_velField, curl_vel, grid.NTOTAL_COMPLEX);
+
+    data_type* grad_theta = fields_ptr->d_tmparray[3];
+    Gradient<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Theta, grad_theta, grid.NTOTAL_COMPLEX);
+
+
+    // transform back to real
+    for (int n = 0; n < 3; n++) {
+        c2r_fft(curl_vel + n*grid.NTOTAL_COMPLEX, (scalar_type *) curl_vel + 2*n*grid.NTOTAL_COMPLEX);
+        c2r_fft(grad_theta + n*grid.NTOTAL_COMPLEX, (scalar_type *) grad_theta + 2*n*grid.NTOTAL_COMPLEX);
+    }
+
+    // compute scalar product  
+    for (int n = 0; n < 3; n++) {
+        pv += twoFieldCorrelation( (scalar_type *) curl_vel + 2*n*grid.NTOTAL_COMPLEX, (scalar_type *) grad_theta  + 2*n*grid.NTOTAL_COMPLEX);
+    }
+
+    return pv;
 }
 
 scalar_type SpookyOutput::computeDissipation(data_type *scalar_complex) {
@@ -165,6 +234,26 @@ scalar_type SpookyOutput::twoFieldCorrelation( scalar_type *v1,
     return correlation;
 }
 
+
+scalar_type SpookyOutput::oneFieldAverage( scalar_type *v1) {
+    // we use the following trick: we re-utilize the twoFieldCorrelation
+    // function with one of the inputs being made of ones.
+    // to avoid overwriting the input we choose the second unit vector
+    // to be next in memory. Only thing is to make sure we are not going
+    // beyond the allocated temp arrays (6 of them)
+
+    scalar_type average = 0.0;
+    scalar_type* unit_vec = v1 + 2 * grid.NTOTAL_COMPLEX ;
+
+    int blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    VecInit<<<blocksPerGrid, threadsPerBlock>>>(unit_vec, 1.0, 2 * grid.NTOTAL_COMPLEX);
+
+    average = twoFieldCorrelation( v1, unit_vec);
+
+    return average;
+
+}
+
 scalar_type SpookyOutput::computeAnisoDissipation(data_type* complex_Fields, scalar_type* real_Buffer) {
     /***
      * This function uses complex inputs to compute the anisotropic "dissipation" with
@@ -223,10 +312,6 @@ scalar_type SpookyOutput::computeAnisoInjection(data_type* complex_Fields, scala
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
-    
-
-    // scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
-    // scalar_type* mask = fields_ptr->wavevector.d_mask;
 
     if (param_ptr->anisotropic_diffusion and param_ptr->boussinesq) {
 
@@ -238,22 +323,6 @@ scalar_type SpookyOutput::computeAnisoInjection(data_type* complex_Fields, scala
 
         scalar_type* temperature = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.TH;
 
-    //     // Bx, By, Bz real fields are already in the 4-5-6 real_Buffer arrays
-    //     scalar_type* mag_vec = real_Buffer + 2 * grid.NTOTAL_COMPLEX * vars.BX;
-    //     // compute vector b_z \vec b (depending on which direction is the stratification)
-    //     // and put it into the [num_fields - num_fields + 3] d_tmparray
-    //     blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-    //     Computebbstrat<<<blocksPerGrid, threadsPerBlock>>>( mag_vec, bzb_vec, (size_t) 2 * grid.NTOTAL_COMPLEX, param_ptr->strat_direction);
-
-    //     // transform to complex space
-    //     for (int n = 0; n < 3; n++) {
-    //         r2c_fft(bzb_vec + 2*n*grid.NTOTAL_COMPLEX, ((data_type*) bzb_vec) + n*grid.NTOTAL_COMPLEX);
-    //     }
-
-    //     // compute divergence of this vector
-    //     blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-    //     DivergenceMask<<<blocksPerGrid, threadsPerBlock>>>(kvec, (data_type*) bzb_vec, divbzb_vec, mask, grid.NTOTAL_COMPLEX, 0);
-
         // transform to real space
         c2r_fft(anisoInjVec, (scalar_type *) anisoInjVec);
 
@@ -264,4 +333,66 @@ scalar_type SpookyOutput::computeAnisoInjection(data_type* complex_Fields, scala
 
     return injection;
 
+}
+
+scalar_type SpookyOutput::averagebz(scalar_type* real_magField) {
+
+    scalar_type average_bz = 0.0;
+    // int blocksPerGrid;
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    // std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
+    scalar_type* bvec = fields_ptr->d_tmparray_r[0];
+    scalar_type* bz = fields_ptr->d_tmparray_r[2];
+
+    int blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    bUnitvector<<<blocksPerGrid, threadsPerBlock>>>(real_magField, bvec, 2 * grid.NTOTAL_COMPLEX);
+
+    // we can overwrite bz
+    scalar_type* abs_bz = fields_ptr->d_tmparray_r[2];
+    DoubleAbsolute<<<blocksPerGrid, threadsPerBlock>>>(bz , abs_bz,  2 * grid.NTOTAL_COMPLEX);
+
+    average_bz = oneFieldAverage(abs_bz);
+
+    return average_bz;
+}
+
+
+scalar_type SpookyOutput::averagebz2(scalar_type* real_magField) {
+
+    scalar_type average_bz2 = 0.0;
+    // int blocksPerGrid;
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    // std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
+    scalar_type* bvec = fields_ptr->d_tmparray_r[0];
+    scalar_type* bz = fields_ptr->d_tmparray_r[2];
+
+    int blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    bUnitvector<<<blocksPerGrid, threadsPerBlock>>>(real_magField, bvec, 2 * grid.NTOTAL_COMPLEX);
+
+    average_bz2 = twoFieldCorrelation(bz,bz);
+
+    return average_bz2;
+}
+
+scalar_type SpookyOutput::averagephiB(scalar_type* real_magField) {
+
+    scalar_type average_phiB = 0.0;
+    // int blocksPerGrid;
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    // std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
+    scalar_type* phi = fields_ptr->d_tmparray_r[0];
+
+
+    int blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    AngleHorizPlane<<<blocksPerGrid, threadsPerBlock>>>(real_magField, phi, 2 * grid.NTOTAL_COMPLEX);
+
+    average_phiB = oneFieldAverage(phi);
+
+    return average_phiB;
 }

@@ -60,3 +60,17 @@ void Physics::CurlEMF(data_type* complex_Fields, scalar_type* real_Buffer, data_
     }
 
 }
+
+// this is a convenience function for outputs, might be moved
+void Physics::MagneticHelicity(data_type* complex_vecField, data_type* magHelicity) {
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
+    int blocksPerGrid;
+    scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
+
+    blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+
+    Helicity<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_vecField, magHelicity, grid.NTOTAL_COMPLEX);
+}

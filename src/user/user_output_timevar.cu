@@ -49,6 +49,15 @@ void InputOutput::WriteUserTimevarOutput() {
     if (param_ptr->userOutVar.length > 0){
         for (int i = 0; i < param_ptr->userOutVar.length; i++){
 
+            if (param_ptr->anisotropic_diffusion) {
+
+                if(!param_ptr->userOutVar.name[i].compare(std::string("kpartheta"))) {
+                    // parallel temperature length
+                    output_var = param_ptr->userOutVar.computekpartheta(fields_ptr->d_all_fields,
+                    fields_ptr->d_all_buffer_r);
+                }
+            }
+
             if(!param_ptr->userOutVar.name[i].compare(std::string("uservar1"))) {
                 output_var = param_ptr->userOutVar.customFunction(fields_ptr->d_farray[0]);
             }

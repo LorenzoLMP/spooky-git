@@ -281,12 +281,7 @@ void InputOutput::WriteSpectrumOutput() {
         data_type* complex_dMag = fields_ptr->d_all_fields + vars.MAG * grid.NTOTAL_COMPLEX ;
         data_type* mag_helicity = fields_ptr->d_all_tmparray;
 
-        int blocksPerGrid;
-        scalar_type* kvec = fields_ptr->wavevector.d_all_kvec;
-
-        blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-
-        Helicity<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_dMag, mag_helicity, grid.NTOTAL_COMPLEX);
+        supervisor_ptr->phys_ptr->MagneticHelicity(complex_dMag, mag_helicity);
 
         // now compute the Helicity spectra with the 3 components of mag_helicity
         computeSpectrum1d(fields_ptr->d_farray[vars.BX],

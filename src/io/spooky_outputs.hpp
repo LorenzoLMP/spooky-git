@@ -21,14 +21,18 @@ class SpookyOutput { // The class
         ~SpookyOutput();
         scalar_type computeEnergy(data_type *vcomplex);
         scalar_type twoFieldCorrelation( scalar_type *v1, scalar_type *v2);
-        scalar_type computeEnstrophy(data_type *vx,
-                                    data_type *vy,
-                                    data_type *vz);
+        scalar_type oneFieldAverage( scalar_type *v1);
+        scalar_type computeEnstrophy(data_type *complex_vecField);
+        scalar_type computeHelicity(data_type *complex_magField, scalar_type *real_magField);
         scalar_type computeDissipation(data_type *scalar_complex);
         scalar_type computeAnisoInjection(data_type* complex_Fields,
                                           scalar_type* real_Buffer);
         scalar_type computeAnisoDissipation(data_type* complex_Fields,
                                             scalar_type* real_Buffer);
+        scalar_type averagephiB(scalar_type* real_magField);
+        scalar_type averagebz2(scalar_type* real_magField);
+        scalar_type averagebz(scalar_type* real_magField);
+        scalar_type potentialVorticity(data_type *complex_velField, data_type *complex_Theta);
 
 };
 
