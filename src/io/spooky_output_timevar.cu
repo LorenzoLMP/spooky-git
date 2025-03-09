@@ -80,9 +80,9 @@ void InputOutput::WriteTimevarOutput() {
                 // reynolds stresses
                 output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.VX], fields_ptr->d_farray_buffer_r[vars.VY]);
             }
-            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("vyvz"))) {
+            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("vxvz"))) {
                 // reynolds stresses
-                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.VY], fields_ptr->d_farray_buffer_r[vars.VZ]);
+                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.VX], fields_ptr->d_farray_buffer_r[vars.VZ]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("vyvz"))) {
                 // reynolds stresses
@@ -121,9 +121,9 @@ void InputOutput::WriteTimevarOutput() {
                 // maxwell stresses
                 output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.BX], fields_ptr->d_farray_buffer_r[vars.BY]);
             }
-            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("bybz"))) {
+            else if(!param_ptr->spookyOutVar.name[i].compare(std::string("bxbz"))) {
                 // maxwell stresses
-                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.BY], fields_ptr->d_farray_buffer_r[vars.BZ]);
+                output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.BX], fields_ptr->d_farray_buffer_r[vars.BZ]);
             }
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("bybz"))) {
                 // maxwell stresses
@@ -202,6 +202,7 @@ void InputOutput::WriteTimevarOutput() {
             else if(!param_ptr->spookyOutVar.name[i].compare(std::string("thvz"))) {
                 // convective flux
                 output_var = param_ptr->spookyOutVar.twoFieldCorrelation(fields_ptr->d_farray_buffer_r[vars.TH], fields_ptr->d_farray_buffer_r[vars.VZ]);
+                
             }
         }
 

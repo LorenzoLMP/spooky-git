@@ -325,7 +325,7 @@ void Fields::allocate_and_move_to_gpu() {
         d_dfarray_r[i] = (scalar_type *) d_dfarray[i];
 
         // this is the farray buffer array for real fields
-        d_farray_buffer_r[i] = (scalar_type *) ( d_all_buffer_r + i*grid.NTOTAL_COMPLEX );
+        d_farray_buffer_r[i] = (scalar_type *) d_all_buffer_r + 2*i*grid.NTOTAL_COMPLEX ;
     }
 
     for (int i = 0 ; i < num_tmp_array ; i++) {
