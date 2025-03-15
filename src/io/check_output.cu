@@ -1,6 +1,6 @@
 #include "common.hpp"
 // #include "fields.hpp"
-// #include "cufft_routines.hpp"
+#include "cufft_routines.hpp"
 // #include "../libs/HighFive/include/highfive/highfive.hpp"
 // #include <highfive/highfive.hpp>
 #include "inputoutput.hpp"
@@ -60,8 +60,8 @@ void InputOutput::CheckOutput(){
                           current_time);
         }
         else {
-            supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields,
-                                               fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
+            Complex2RealFields(fields_ptr->d_all_fields,
+                            fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
         }
         std::printf("Starting copy back to host\n");
         // change following so that one can pass pointer

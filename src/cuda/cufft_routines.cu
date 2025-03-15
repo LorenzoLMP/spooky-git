@@ -99,3 +99,27 @@ void finish_cufft() {
     CUFFT_CALL(cufftDestroy(plan_r2c));
     CUFFT_CALL(cufftDestroy(plan_c2r));
 };
+
+
+void Complex2RealFields(data_type* ComplexField_in, int num_fields){
+
+    // version with in-place transform
+    // compute FFTs from complex to real fields
+    for (int n = 0; n < num_fields; n++){
+        c2r_fft(ComplexField_in + n * grid.NTOTAL_COMPLEX,  ((scalar_type*) ComplexField_in) + n * 2*grid.NTOTAL_COMPLEX);
+    }
+
+}
+
+void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields){
+
+    // assign fields to [num_fields] tmparray (memory block starts at d_all_tmparray)
+    int blocksPerGrid = ( num_fields * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
+    ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(ComplexField_in, (data_type*) RealField_out, num_fields * grid.NTOTAL_COMPLEX);
+
+    // compute FFTs from complex to real fields
+    for (int n = 0; n < num_fields; n++){
+        c2r_fft((data_type*) RealField_out + n * grid.NTOTAL_COMPLEX,  RealField_out + n * 2*grid.NTOTAL_COMPLEX);
+    }
+
+}

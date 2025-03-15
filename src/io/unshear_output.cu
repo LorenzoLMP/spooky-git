@@ -39,7 +39,7 @@ void InputOutput::UnshearOutput(data_type *AllComplexFields, scalar_type *AllFie
         UnshearField(AllFieldsTmp + n*grid.NTOTAL_COMPLEX, current_time);
     }
 
-    supervisor_ptr->Complex2RealFields(AllFieldsTmp, vars.NUM_FIELDS);
+    Complex2RealFields(AllFieldsTmp, vars.NUM_FIELDS);
 
 }
 

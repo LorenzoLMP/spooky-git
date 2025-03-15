@@ -157,6 +157,8 @@ void Supervisor::displayConfiguration(){
     std::printf("Saving snapshot every  dt = %.2e \n",param_ptr->toutput_flow);
     std::printf("Saving timevar every  dt = %.2e \n",param_ptr->toutput_time);
     std::printf("Displaying stats every num steps = %d \n",stats_frequency);
+    std::printf("Maximum wallclock elapsed time (in hours): %.4e \n", param_ptr->max_walltime_elapsed);
+
 }
 
 void Supervisor::executeMainLoop(){
@@ -167,7 +169,9 @@ void Supervisor::executeMainLoop(){
         std::printf("t_remap = %.4e \n",timestep_ptr->tremap);
     }
 
-    while (timestep_ptr->current_time < param_ptr->t_final) {
+    // TimeSpentInMainLoop is in seconds while
+    // max_walltime_elapsed is in hours
+    while (timestep_ptr->current_time < param_ptr->t_final and TimeSpentInMainLoop < param_ptr->max_walltime_elapsed*3600) {
 
         // advance the equations (field(n+1) = field(n) + dfield*dt)
         // timestep_ptr->RungeKutta3();
@@ -184,6 +188,10 @@ void Supervisor::executeMainLoop(){
         if (stats_frequency > 0){
             if ( timestep_ptr->current_step % stats_frequency == 0)
             print_partial_stats();
+        }
+
+        if (TimeSpentInMainLoop >= param_ptr->max_walltime_elapsed*3600){
+            std::printf("The maximum wallclock elapsed time was reached. Stopping now. You can later resume from the last snapshot available. \n");
         }
 
 

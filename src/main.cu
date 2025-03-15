@@ -45,6 +45,11 @@ int main(int argc, char *argv[]) {
     .scan<'i', int>()
     .default_value(int(-1));
 
+    program.add_argument("-t", "--time")
+    .help("override the maximum wallclock elapsed time (format '-t HH MM SS' where HH, MM, SS are 3 integers for hours, seconds and minutes): ")
+    .nargs(3)
+    .scan<'i', int>()
+    .default_value(std::vector<int>{0, 0, 10});
 
     try {
     program.parse_args(argc, argv);
@@ -100,10 +105,16 @@ int main(int argc, char *argv[]) {
         std::cout << "restarting from file: " << restart_num << std::endl;
         spooky.param_ptr->restart = 1;
     }
-
     if (program.is_used("--stats")){
         spooky.stats_frequency = program.get<int>("--stats");
         std::cout << "printing stats every " << spooky.stats_frequency << " steps " << std::endl;
+    }
+    if (program.is_used("--time")){
+        std::vector<int> max_walltime_elapsed = program.get<std::vector<int>>("--time");
+        double max_hours = double(max_walltime_elapsed[0]) + double(max_walltime_elapsed[1])/60 + double(max_walltime_elapsed[2])/3600;
+        std::cout << "overriding wallclock max elapsed time: " << max_walltime_elapsed[0] << " hours " << max_walltime_elapsed[1] << " minutes " << max_walltime_elapsed[2] << " seconds " << std::endl;
+        std::cout << "... in hours: " << max_hours << std::endl;
+        spooky.param_ptr->max_walltime_elapsed = 0.95*max_hours;
     }
 
     spooky.Restart(restart_num);

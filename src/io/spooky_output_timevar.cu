@@ -41,7 +41,7 @@ void InputOutput::WriteTimevarOutput() {
     outputfile.open (fname, std::ios_base::app);
 
     // // compute FFTs from complex to real fields
-    supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
+    Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
 
     // std::printf("length timevar array = %d \n",param_ptr->spookyOutVar.length_timevar);
     // begin loop through the output variables

@@ -95,7 +95,7 @@ class Parameters {
 	double safety_source;	/**< Safety factor for SHEAR, Coriolis and Boussinesq terms (should be ~0.2 for accuracy) */
 	double t_initial;		/**< Initial time of the simulation */
 	double t_final;			/**< Simulation will stop if it reaches this time */
-	double max_t_elapsed;	/**< Maximum elapsed time (in hours). Will stop after this elapsed time */
+	double max_walltime_elapsed;	/**< Maximum wall-clock elapsed time (in hours). Will stop after this elapsed time */
 	int    interface_check;	/**< Number of loops between two checks for a user input. On slow filesystems, increase this number */
 	int    interface_output_file;	/**< Set this option to force code outputs to a file instead of the screen */
 	int    force_symmetries;	/**< set to enforce spectral symmetries and mean flow to zero. Useful when N^2 or kappa^2 < 0. (see enforce_symm() )*/

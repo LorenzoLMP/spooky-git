@@ -280,8 +280,8 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	if(!config_lookup_float(&config, "code.t_final",&t_final)) {
 		t_final = 1.0;
 	}
-	if(!config_lookup_float(&config, "code.max_t_elapsed",&max_t_elapsed)) {
-		max_t_elapsed = 1e30;
+	if(!config_lookup_float(&config, "code.max_walltime_elapsed",&max_walltime_elapsed)) {
+		max_walltime_elapsed = 42;
 	}
 	if(!config_lookup_int(&config, "code.interface_check",&tmp_v)) {
 		interface_check = 5;
