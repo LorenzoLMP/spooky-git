@@ -160,4 +160,13 @@ div_bzunitb = np.fft.irfftn(div_bzunitb_hat*mask)
 inj_aniso = np.sum(th_0*div_bzunitb)/(nx*ny*nz)
 
 
+grad_th_x = np.fft.irfftn(1j*rKX * np.fft.rfftn(th_0))
+grad_th_y = np.fft.irfftn(1j*rKY * np.fft.rfftn(th_0))
+grad_th_z = np.fft.irfftn(1j*rKZ * np.fft.rfftn(th_0))
 
+bgradtheta = (bx_0 * grad_th_x + by_0 * grad_th_y + bz_0 * grad_th_z)/B_0
+
+theta_2 = np.sum(th_0*th_0)/(nx*ny*nz)
+bgradtheta_2 = np.sum(bgradtheta*bgradtheta)/(nx*ny*nz)
+
+kpartheta_avg = bgradtheta_2/theta_2

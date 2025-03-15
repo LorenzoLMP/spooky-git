@@ -38,9 +38,10 @@ public:
 
     void BackgroundRotation(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
 
+    void MagneticHelicity(data_type* complex_vecField, data_type* magHelicity);
     void NonLinearAdvection(scalar_type* real_vecField, data_type* advectionVec);
 
-    void MagneticHelicity(data_type* complex_vecField, data_type* magHelicity);
+    
 
     // int stage_step;
     // unsigned int current_step;

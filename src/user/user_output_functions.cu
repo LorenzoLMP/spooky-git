@@ -55,7 +55,7 @@ scalar_type UserOutput::computekpartheta(data_type* complex_Fields,
     scalar_type* bgrad_theta = fields_ptr->d_tmparray_r[3];
 
     blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-    ComputeBGradTheta<<<blocksPerGrid, threadsPerBlock>>>(real_magField, (scalar_type *) grad_theta, bgrad_theta, 2 * grid.NTOTAL_COMPLEX);
+    ComputebGradTheta<<<blocksPerGrid, threadsPerBlock>>>(real_magField, (scalar_type *) grad_theta, bgrad_theta, 2 * grid.NTOTAL_COMPLEX);
 
     scalar_type theta_2 = 2.*computeEnergy(complex_Theta);
 

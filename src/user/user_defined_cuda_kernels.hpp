@@ -16,4 +16,4 @@ __global__ void bUnitvector(const scalar_type *Xvec, scalar_type* unitVec, size_
 
 __global__ void AngleHorizPlane(const scalar_type *Xvec, scalar_type* angle, size_t N);
 
-// __global__ void bGradTheta(const scalar_type *B, scalar_type* angle, size_t N);
+__global__ void ComputebGradTheta( const scalar_type *B, const scalar_type *GradTheta, scalar_type *Z, size_t N);

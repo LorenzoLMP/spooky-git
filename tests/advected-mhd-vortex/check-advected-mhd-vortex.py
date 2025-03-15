@@ -24,9 +24,9 @@ u0 = 0.05
 
 sigma = 200.
 
-x = -0.5 + lx * (np.arange(nx)) / nx
-y = -0.5 + ly * (np.arange(ny)) / ny
-z = -0.5 + lz * (np.arange(nz)) / nz
+x = -lx/2 + lx * (np.arange(nx)) / nx
+y = -ly/2 + ly * (np.arange(ny)) / ny
+z = -lz/2 + lz * (np.arange(nz)) / nz
 
 X, Y, Z = np.meshgrid(x,y,z,indexing='ij')
 

@@ -41,306 +41,358 @@ void InputOutput::WriteSpectrumOutput() {
     std::sprintf(data_output_name,"spectrum.spooky");
     std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
 
-    /**
-     * First the energies
-     *
-     */
+    for (int i = 0; i < param_ptr->spookyOutVar.length_spectra; i++){
 
-    if (param_ptr->incompressible) {
+        // reset the output spectrum
+        for (int n = 0; n < nbins; n++) {
+            output_spectrum[n] = -1.0;
+        }
+        /**
+        * First the energies
+        *
+        */
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.VX],
-                        fields_ptr->d_farray[vars.VX],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "Kx", output_spectrum, nbins);
+        if (param_ptr->incompressible) {
+            
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("Kx"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VX],
+                                fields_ptr->d_farray[vars.VX],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "Kx", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("Ky"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VY],
+                                fields_ptr->d_farray[vars.VY],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "Ky", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("Kz"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VZ],
+                                fields_ptr->d_farray[vars.VZ],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "Kz", output_spectrum, nbins);
+            }
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.VY],
-                        fields_ptr->d_farray[vars.VY],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "Ky", output_spectrum, nbins);
+        }
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.VZ],
-                        fields_ptr->d_farray[vars.VZ],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "Kz", output_spectrum, nbins);
+        if (param_ptr->mhd) {
 
-    }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("Mx"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BX],
+                                fields_ptr->d_farray[vars.BX],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "Mx", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("My"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BY],
+                                fields_ptr->d_farray[vars.BY],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "My", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("Mz"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
+                                fields_ptr->d_farray[vars.BZ],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "Mz", output_spectrum, nbins);
+            }
 
-    if (param_ptr->mhd) {
+        }
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.BX],
-                        fields_ptr->d_farray[vars.BX],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "Mx", output_spectrum, nbins);
+        if (param_ptr->boussinesq or param_ptr->heat_equation) {
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.BY],
-                        fields_ptr->d_farray[vars.BY],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "My", output_spectrum, nbins);
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("Eth"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                                fields_ptr->d_farray[vars.TH],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "Eth", output_spectrum, nbins);
+            }
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
-                        fields_ptr->d_farray[vars.BZ],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "Mz", output_spectrum, nbins);
+        }
 
-    }
+        /**
+        * Then the Reynolds/Maxwell/Buoyancy spectra
+        *
+        */
 
-    if (param_ptr->boussinesq or param_ptr->heat_equation) {
+        if (param_ptr->incompressible) {
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
-                        fields_ptr->d_farray[vars.TH],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "Eth", output_spectrum, nbins);
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("vxvy"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VX],
+                                fields_ptr->d_farray[vars.VY],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "vxvy", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("vyvz"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VY],
+                                fields_ptr->d_farray[vars.VZ],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "vyvz", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("vxvz"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VX],
+                                fields_ptr->d_farray[vars.VZ],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "vxvz", output_spectrum, nbins);
+            }
 
-    }
+        }
 
-    /**
-     * Then the Reynolds/Maxwell/Buoyancy spectra
-     *
-     */
+        if (param_ptr->mhd) {
 
-    if (param_ptr->incompressible) {
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("bxby"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BX],
+                                fields_ptr->d_farray[vars.BY],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "bxby", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("bybz"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BY],
+                                fields_ptr->d_farray[vars.BZ],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "bybz", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("bxbz"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BX],
+                                fields_ptr->d_farray[vars.BY],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "bxbz", output_spectrum, nbins);
+            }
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.VX],
-                        fields_ptr->d_farray[vars.VY],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "vxvy", output_spectrum, nbins);
+        }
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.VY],
-                        fields_ptr->d_farray[vars.VZ],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "vyvz", output_spectrum, nbins);
+        if (param_ptr->boussinesq) {
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.VZ],
-                        fields_ptr->d_farray[vars.VX],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "vzvx", output_spectrum, nbins);
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("thvx"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                                fields_ptr->d_farray[vars.VX],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "thvx", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("thvy"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                                fields_ptr->d_farray[vars.VY],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "thvy", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("thvz"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                                fields_ptr->d_farray[vars.VZ],
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "thvz", output_spectrum, nbins);
+            }
 
-    }
-
-    if (param_ptr->mhd) {
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.BX],
-                        fields_ptr->d_farray[vars.BY],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "bxby", output_spectrum, nbins);
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.BY],
-                        fields_ptr->d_farray[vars.BZ],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "bybz", output_spectrum, nbins);
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
-                        fields_ptr->d_farray[vars.BX],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "bzbx", output_spectrum, nbins);
-
-    }
-
-    if (param_ptr->boussinesq) {
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
-                        fields_ptr->d_farray[vars.VX],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "thvx", output_spectrum, nbins);
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
-                        fields_ptr->d_farray[vars.VY],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "thvy", output_spectrum, nbins);
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
-                        fields_ptr->d_farray[vars.VZ],
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "thvz", output_spectrum, nbins);
-
-    }
+        }
 
 
-    // // we already computed the c2r FFTs when the WriteTimevarOutput()
-    // // was called, so the real fields are saved in the d_all_buffer_r
-    
-    /**
-     * Now the nonlinear advection term (u \cdot \nabla) u
-     *
-     */
-
-    if (param_ptr->incompressible) {
-
-        scalar_type* real_velField = fields_ptr->d_all_buffer_r + vars.VEL * 2 * grid.NTOTAL_COMPLEX ;
-
-        data_type* divshear = fields_ptr->d_all_tmparray;
-
-        supervisor_ptr->phys_ptr->NonLinearAdvection(real_velField, divshear);
+        // // we already computed the c2r FFTs when the WriteTimevarOutput()
+        // // was called, so the real fields are saved in the d_all_buffer_r
         
-        // now compute the nonlinear advection spectrum with the 3 components of divshear
-        computeSpectrum1d(fields_ptr->d_farray[vars.VX],
-                        divshear,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "advec_x", output_spectrum, nbins);
+        /**
+        * Now the nonlinear advection term (u \cdot \nabla) u
+        *
+        */
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.VY],
-                        divshear + grid.NTOTAL_COMPLEX,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "advec_y", output_spectrum, nbins);
+        if (param_ptr->incompressible) {
 
-        computeSpectrum1d(fields_ptr->d_farray[vars.VZ],
-                        divshear + 2*grid.NTOTAL_COMPLEX,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "advec_z", output_spectrum, nbins);
+            scalar_type* real_velField = fields_ptr->d_all_buffer_r + vars.VEL * 2 * grid.NTOTAL_COMPLEX ;
 
-    }
+            data_type* divshear = fields_ptr->d_all_tmparray;
 
-    /**
-     * Then the emf spectra
-     *
-     */
+            supervisor_ptr->phys_ptr->NonLinearAdvection(real_velField, divshear);
+            
+            // now compute the nonlinear advection spectrum with the 3 components of divshear
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("advec_x"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VX],
+                                divshear,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "advec_x", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("advec_y"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VY],
+                                divshear + grid.NTOTAL_COMPLEX,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "advec_y", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("advec_z"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VZ],
+                                divshear + 2*grid.NTOTAL_COMPLEX,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "advec_z", output_spectrum, nbins);
+            }
 
-    if (param_ptr->mhd) {
+        }
 
-        data_type* curlemf = fields_ptr->d_all_tmparray;
-        supervisor_ptr->phys_ptr->CurlEMF(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, curlemf);
+        /**
+        * Then the emf spectra
+        *
+        */
 
+        if (param_ptr->mhd) {
 
-        // now compute the spectrum for the 3 components
-        computeSpectrum1d(fields_ptr->d_farray[vars.BX],
-                        curlemf,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "emfpower_x", output_spectrum, nbins);
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.BY],
-                        curlemf + grid.NTOTAL_COMPLEX,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "emfpower_y", output_spectrum, nbins);
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
-                        curlemf + 2*grid.NTOTAL_COMPLEX,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "emfpower_z", output_spectrum, nbins);
-
-    }
-
-    /**
-     * Then the Lorentz transfer spectra
-     *
-     */
-
-    if (param_ptr->mhd) {
-
-        scalar_type* real_magField = fields_ptr->d_all_buffer_r + vars.MAG * 2 * grid.NTOTAL_COMPLEX ;
-
-        data_type* divshear = fields_ptr->d_all_tmparray;
-
-        supervisor_ptr->phys_ptr->NonLinearAdvection(real_magField, divshear);
-
-        // now compute the Lorentz spectrum with the 3 components of divshear
-        computeSpectrum1d(fields_ptr->d_farray[vars.VX],
-                        divshear,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "lorentz_x", output_spectrum, nbins);
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.VY],
-                        divshear + grid.NTOTAL_COMPLEX,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "lorentz_y", output_spectrum, nbins);
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.VZ],
-                        divshear + 2*grid.NTOTAL_COMPLEX,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "lorentz_z", output_spectrum, nbins);
+            data_type* curlemf = fields_ptr->d_all_tmparray;
+            supervisor_ptr->phys_ptr->CurlEMF(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, curlemf);
 
 
-    }
+            // now compute the spectrum for the 3 components
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("emfpower_x"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BX],
+                                curlemf,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "emfpower_x", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("emfpower_y"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BY],
+                                curlemf + grid.NTOTAL_COMPLEX,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "emfpower_y", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("emfpower_z"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
+                                curlemf + 2*grid.NTOTAL_COMPLEX,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "emfpower_z", output_spectrum, nbins);
+            }
 
-    /**
-     * Then the nonlinear thermal advection 
-     *
-     */
+        }
 
-    if (param_ptr->boussinesq) {
+        /**
+        * Then the Lorentz transfer spectra
+        *
+        */
 
-        data_type* thermal_adv = fields_ptr->d_all_tmparray;
+        if (param_ptr->mhd) {
 
-        supervisor_ptr->phys_ptr->AdvectTemperature(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, thermal_adv);
+            scalar_type* real_magField = fields_ptr->d_all_buffer_r + vars.MAG * 2 * grid.NTOTAL_COMPLEX ;
 
-        // now compute the thermal nonlinear adv spectrum with thermal_adv
-        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
-                        thermal_adv,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "th_advec", output_spectrum, nbins);
+            data_type* divshear = fields_ptr->d_all_tmparray;
 
-    }
+            supervisor_ptr->phys_ptr->NonLinearAdvection(real_magField, divshear);
 
-
-    /**
-     * These are the helicity spectra
-     * 
-     */
-
-    if (param_ptr->mhd) {
-
-        data_type* complex_dMag = fields_ptr->d_all_fields + vars.MAG * grid.NTOTAL_COMPLEX ;
-        data_type* mag_helicity = fields_ptr->d_all_tmparray;
-
-        supervisor_ptr->phys_ptr->MagneticHelicity(complex_dMag, mag_helicity);
-
-        // now compute the Helicity spectra with the 3 components of mag_helicity
-        computeSpectrum1d(fields_ptr->d_farray[vars.BX],
-                        mag_helicity,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "helicity_x", output_spectrum, nbins);
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.BY],
-                        mag_helicity + grid.NTOTAL_COMPLEX,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "helicity_y", output_spectrum, nbins);
-
-        computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
-                        mag_helicity + 2*grid.NTOTAL_COMPLEX,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "helicity_z", output_spectrum, nbins);
-        
-    }
+            // now compute the Lorentz spectrum with the 3 components of divshear
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("lorentz_x"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VX],
+                                divshear,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "lorentz_x", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("lorentz_y"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VY],
+                                divshear + grid.NTOTAL_COMPLEX,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "lorentz_y", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("lorentz_z"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.VZ],
+                                divshear + 2*grid.NTOTAL_COMPLEX,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "lorentz_z", output_spectrum, nbins);
+            }
 
 
+        }
 
-    /**
-     * These are the anisotropic conduction terms
-     * 
-     */
+        /**
+        * Then the nonlinear thermal advection 
+        *
+        */
 
-    // first the dissipation
-    if (param_ptr->anisotropic_diffusion) {
+        if (param_ptr->boussinesq) {
 
-        // this is the destination temp array for the anisotropic
-        // dissipation
-        data_type* aniso_dissipation = fields_ptr->d_tmparray[4];
-        
-        supervisor_ptr->phys_ptr->AnisotropicDissipation(fields_ptr->d_all_fields, 
-                                                        fields_ptr->d_all_buffer_r, 
-                                                        aniso_dissipation);
-        
-        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
-                        aniso_dissipation,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "th_aniso_diss", output_spectrum, nbins);
+            data_type* thermal_adv = fields_ptr->d_all_tmparray;
 
-    }
+            supervisor_ptr->phys_ptr->AdvectTemperature(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, thermal_adv);
 
-    // then the anisotropic injection
-    if (param_ptr->anisotropic_diffusion) {
+            // now compute the thermal nonlinear adv spectrum with thermal_adv
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("th_advec"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                                thermal_adv,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "th_advec", output_spectrum, nbins);
+            }
 
-        // this is the destination temp array for the anisotropic
-        // injection
-        data_type* aniso_injection = fields_ptr->d_tmparray[4];
-        
-        supervisor_ptr->phys_ptr->AnisotropicInjection(fields_ptr->d_all_fields, 
-                                                        fields_ptr->d_all_buffer_r, 
-                                                        aniso_injection);
-        
-        computeSpectrum1d(fields_ptr->d_farray[vars.TH],
-                        aniso_injection,
-                        output_spectrum);
-        writeSpectrumHelper(fname, time_save, "th_aniso_inj", output_spectrum, nbins);
+        }
+
+
+        /**
+        * These are the helicity spectra
+        * 
+        */
+
+        if (param_ptr->mhd) {
+
+            data_type* complex_dMag = fields_ptr->d_all_fields + vars.MAG * grid.NTOTAL_COMPLEX ;
+            data_type* mag_helicity = fields_ptr->d_all_tmparray;
+
+            supervisor_ptr->phys_ptr->MagneticHelicity(complex_dMag, mag_helicity);
+
+            // now compute the Helicity spectra with the 3 components of mag_helicity
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("helicity_x"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BX],
+                                mag_helicity,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "helicity_x", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("helicity_y"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BY],
+                                mag_helicity + grid.NTOTAL_COMPLEX,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "helicity_y", output_spectrum, nbins);
+            }
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("helicity_z"))) {
+                computeSpectrum1d(fields_ptr->d_farray[vars.BZ],
+                                mag_helicity + 2*grid.NTOTAL_COMPLEX,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "helicity_z", output_spectrum, nbins);
+            }
+            
+        }
+
+
+
+        /**
+        * These are the anisotropic conduction terms
+        * 
+        */
+
+        // first the dissipation
+        if (param_ptr->anisotropic_diffusion) {
+
+            // this is the destination temp array for the anisotropic
+            // dissipation
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("th_aniso_diss"))) {
+                data_type* aniso_dissipation = fields_ptr->d_tmparray[4];
+                
+                supervisor_ptr->phys_ptr->AnisotropicDissipation(fields_ptr->d_all_fields, 
+                                                                fields_ptr->d_all_buffer_r, 
+                                                                aniso_dissipation);
+                
+                computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                                aniso_dissipation,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "th_aniso_diss", output_spectrum, nbins);
+            }
+
+        }
+
+        // then the anisotropic injection
+        if (param_ptr->anisotropic_diffusion) {
+
+            // this is the destination temp array for the anisotropic
+            // injection
+            if(!param_ptr->spookyOutVar.name_spectra[i].compare(std::string("th_aniso_inj"))) {
+                data_type* aniso_injection = fields_ptr->d_tmparray[4];
+                
+                supervisor_ptr->phys_ptr->AnisotropicInjection(fields_ptr->d_all_fields, 
+                                                                fields_ptr->d_all_buffer_r, 
+                                                                aniso_injection);
+                
+                computeSpectrum1d(fields_ptr->d_farray[vars.TH],
+                                aniso_injection,
+                                output_spectrum);
+                writeSpectrumHelper(fname, time_save, "th_aniso_inj", output_spectrum, nbins);
+            }
+
+        }
 
     }
 
@@ -414,18 +466,17 @@ void InputOutput::WriteSpectrumOutputHeader() {
 
     outputfile << "## This file contains the 1d (shell-integrated) energy spectral densities of the following quantities: \n";
     outputfile << "## \t";
+    for(int i = 0 ; i < param_ptr->spookyOutVar.length_spectra ; i++) {
+        outputfile << param_ptr->spookyOutVar.name_spectra[i]  << "\t";
+    }
+    outputfile << "\n";
 
-    // for(int i = 0 ; i < spookyOutSpectrum.size() ; i++) {
-    //     outputfile << spookyOutSpectrum[i]  << "\t";
-    // }
 
-    outputfile << "## The wavevector: \n";
-
+    outputfile << "wavevector \t";
     for(int i = 0 ; i < nbins ; i++) {
         outputfile << std::scientific << std::setprecision(8) << i*deltak << "\t";
     }
-
-
     outputfile << "\n";
+
     outputfile.close();
 }

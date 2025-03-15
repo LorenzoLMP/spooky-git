@@ -12,11 +12,15 @@ class Supervisor;
 class SpookyOutput { // The class
     public:
         Supervisor *supervisor_ptr;
-        int length; // Number of spooky variables
-        // void* name; // Names of variables (need to be allocated properly)
-        std::vector<std::string> name;
+
+        int length_timevar; // Number of spooky timevariables
+        std::vector<std::string> name_timevar;
+
+        int length_spectra; // Number of spooky spectra
+        std::vector<std::string> name_spectra;
+
         Fields *field;
-        // SpookyOutput(Fields *field_in);
+    
         SpookyOutput(Supervisor &sup_in);
         ~SpookyOutput();
         scalar_type computeEnergy(data_type *vcomplex);
@@ -34,6 +38,10 @@ class SpookyOutput { // The class
         scalar_type averagebz(scalar_type* real_magField);
         scalar_type potentialVorticity(data_type *complex_velField, data_type *complex_Theta);
 
+        
+
 };
+
+
 
 #endif

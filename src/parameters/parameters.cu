@@ -10,7 +10,6 @@
 // #include "spooky_outputs.hpp"
 
 #define SPOOKY_CONFIG_FILENAME		"spooky.cfg"
-// #define CONFIG_FILENAME		"./spooky.cfg"
 
 
 // SpookyOutput::SpookyOutput() {
@@ -341,55 +340,63 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	// find which parameters are requested in the timevar file
 	// these are the default spooky quantities
 	setting = config_lookup(&config, "output.timevar_vars");
-	spookyOutVar.length = config_setting_length( setting );
-	std::printf("length timevar array = %d \n", spookyOutVar.length);
-	// Allocate spooky output_vars
-	spookyOutVar.name.resize(spookyOutVar.length);
-	std::cout << "The following quantities will be computed: \t";
-	for(i = 0 ; i < spookyOutVar.length ; i++) {
-		temp_string = config_setting_get_string_elem( setting, i);
-		std::cout << std::string(temp_string) << "\t";
-		spookyOutVar.name[i] = std::string(temp_string);
+	if(setting == NULL) {
+		std::cout << "Warning: you did not provide any variable to compute!" << std::endl;
+		spookyOutVar.length_timevar = 0;
 	}
-	std::cout << std::endl;
+	else {
+		spookyOutVar.length_timevar = config_setting_length( setting );
+		std::printf("length timevar array = %d \n", spookyOutVar.length_timevar);
+		// Allocate spooky output_vars
+		spookyOutVar.name_timevar.resize(spookyOutVar.length_timevar);
+		std::cout << "The following quantities will be computed: \t";
+		for(i = 0 ; i < spookyOutVar.length_timevar ; i++) {
+			temp_string = config_setting_get_string_elem( setting, i);
+			std::cout << std::string(temp_string) << "\t";
+			spookyOutVar.name_timevar[i] = std::string(temp_string);
+		}
+		std::cout << std::endl;
+	}
 
+	
+	// find which parameters are requested in the spectra file
+	setting = config_lookup(&config, "output.spectra_vars");
+	if(setting == NULL) {
+		std::cout << "Warning: you did not provide any spectra to compute!" << std::endl;
+		spookyOutVar.length_spectra = 0;
+	}
+	else { 
+		spookyOutVar.length_spectra = config_setting_length( setting );
+		std::printf("length spectra array = %d \n", spookyOutVar.length_spectra);
+		// Allocate spooky output_vars
+		spookyOutVar.name_spectra.resize(spookyOutVar.length_spectra);
+		std::cout << "The following quantities will be computed: \t";
+		for(i = 0 ; i < spookyOutVar.length_spectra ; i++) {
+			temp_string = config_setting_get_string_elem( setting, i);
+			std::cout << std::string(temp_string) << "\t";
+			spookyOutVar.name_spectra[i] = std::string(temp_string);
+		}
+		std::cout << std::endl;
+	}
+	
 
 	// now for the user-defined quantities
-
-	// if (!config_lookup_string(&config, "output.user_timevar_vars",&temp_output)){
-	// 	std::cout << "Warning: you did not provide any variable in user outputs!" << std::endl;
-	// }
-	// else {
-	// 	setting = config_lookup(&config, "output.user_timevar_vars");
-	// 	userOutVar.length = config_setting_length( setting );
-	// 	std::printf("length user timevar array = %d \n", userOutVar.length);
-	// 	// Allocate user output_vars
-	// 	userOutVar.name.resize(userOutVar.length);
-	// 	std::cout << "The following user quantities will be computed: \t";
-	// 	for(i = 0 ; i < userOutVar.length ; i++) {
-	// 		temp_string = config_setting_get_string_elem( setting, i);
-	// 		std::cout << std::string(temp_string) << "\t";
-	// 		userOutVar.name[i] = std::string(temp_string);
-	// 	}
-	// 	std::cout << std::endl;
-	// }
-
 	setting = config_lookup(&config, "output.user_timevar_vars");
 	if(setting == NULL) {
 		std::cout << "Warning: you did not provide any variable in user outputs!" << std::endl;
-		userOutVar.length = 0;
+		userOutVar.length_timevar = 0;
 	}
 	else {
 		std::cout << "User outputs were provided" << std::endl;
-		userOutVar.length = config_setting_length( setting );
-		std::printf("length of the user timevar array = %d \n", userOutVar.length);
+		userOutVar.length_timevar = config_setting_length( setting );
+		std::printf("length of the user timevar array = %d \n", userOutVar.length_timevar);
 		// Allocate user output_vars
-		userOutVar.name.resize(userOutVar.length);
+		userOutVar.name_timevar.resize(userOutVar.length_timevar);
 		std::cout << "The following user quantities will be computed: \t";
-		for(i = 0 ; i < userOutVar.length ; i++) {
+		for(i = 0 ; i < userOutVar.length_timevar ; i++) {
 			temp_string = config_setting_get_string_elem( setting, i);
 			std::cout << std::string(temp_string) << "\t";
-			userOutVar.name[i] = std::string(temp_string);
+			userOutVar.name_timevar[i] = std::string(temp_string);
 		}
 		std::cout << std::endl;
 	}

@@ -36,7 +36,7 @@ void InputOutput::WriteUserTimevarOutput() {
     double output_var = 0.0;
 
     char data_output_name[16];
-    std::sprintf(data_output_name,"timevar-user.spooky");
+    std::sprintf(data_output_name,"user-timevar.spooky");
     std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
 
     std::ofstream outputfile;
@@ -46,30 +46,30 @@ void InputOutput::WriteUserTimevarOutput() {
     // the first fields_ptr->num_fields arrays in tmparray will
     // always contain the real fields for all subsequent operations
 
-    if (param_ptr->userOutVar.length > 0){
-        for (int i = 0; i < param_ptr->userOutVar.length; i++){
+    // if (param_ptr->userOutVar.length_timevar > 0){
+    for (int i = 0; i < param_ptr->userOutVar.length_timevar; i++){
 
-            if (param_ptr->anisotropic_diffusion) {
+        output_var = -1.0;
+        
+        if (param_ptr->anisotropic_diffusion) {
 
-                if(!param_ptr->userOutVar.name[i].compare(std::string("kpartheta"))) {
-                    // parallel temperature length
-                    output_var = param_ptr->userOutVar.computekpartheta(fields_ptr->d_all_fields,
-                    fields_ptr->d_all_buffer_r);
-                }
+            if(!param_ptr->userOutVar.name_timevar[i].compare(std::string("kpartheta"))) {
+                // parallel temperature length
+                output_var = param_ptr->userOutVar.computekpartheta(fields_ptr->d_all_fields,
+                fields_ptr->d_all_buffer_r);
             }
-
-            if(!param_ptr->userOutVar.name[i].compare(std::string("uservar1"))) {
-                output_var = param_ptr->userOutVar.customFunction(fields_ptr->d_farray[0]);
-            }
-            else if(!param_ptr->userOutVar.name[i].compare(std::string("uservar2"))) {
-                output_var = 0.0;
-            }
-            else {
-                output_var = -1.0;
-            }
-            outputfile << std::scientific << std::setprecision(8) << output_var << "\t";
         }
+
+        if(!param_ptr->userOutVar.name_timevar[i].compare(std::string("uservar1"))) {
+            output_var = param_ptr->userOutVar.customFunction(fields_ptr->d_farray[0]);
+        }
+        else if(!param_ptr->userOutVar.name_timevar[i].compare(std::string("uservar2"))) {
+            output_var = 0.0;
+        }
+        
+        outputfile << std::scientific << std::setprecision(8) << output_var << "\t";
     }
+    // }
 
     outputfile << "\n";
     outputfile.close();
@@ -85,7 +85,7 @@ void InputOutput::WriteUserTimevarOutputHeader() {
      std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
     char data_output_name[16];
-    std::sprintf(data_output_name,"timevar-user.spooky");
+    std::sprintf(data_output_name,"user-timevar.spooky");
     std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
 
     std::ofstream outputfile;
@@ -95,15 +95,11 @@ void InputOutput::WriteUserTimevarOutputHeader() {
     outputfile << "## This file contains the time evolution of the following quantities: \n";
     outputfile << "## \t";
 
-    // for(int i = 0 ; i < param_ptr->spookyOutVar.length ; i++) {
-    //     outputfile << param_ptr->spookyOutVar.name[i]  << "\t";
-    // }
-
-    if (param_ptr->userOutVar.length > 0){
-        for (int i = 0; i < param_ptr->userOutVar.length; i++){
-            outputfile << param_ptr->userOutVar.name[i]  << "\t";
-        }
+    // if (param_ptr->userOutVar.length_timevar > 0){
+    for (int i = 0; i < param_ptr->userOutVar.length_timevar; i++){
+        outputfile << param_ptr->userOutVar.name_timevar[i]  << "\t";
     }
+    // }
 
     outputfile << "\n";
     outputfile.close();
