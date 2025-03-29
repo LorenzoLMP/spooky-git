@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 
     spooky.fields_ptr->CheckSymmetries();
 
-    spooky.initialDataDump();
+    spooky.initialDataDump(restart_num);
 
     spooky.executeMainLoop();
 

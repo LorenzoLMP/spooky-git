@@ -64,7 +64,7 @@ public:
     void print_final_stats();
     void displayConfiguration();
     void executeMainLoop();
-    void initialDataDump();
+    void initialDataDump(int restart_num);
     void Restart(int restart_num);
 
     void Complex2RealFields(data_type* ComplexField_in, int num_fields);

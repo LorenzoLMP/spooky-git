@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import h5py
 import glob
 
-sp_savedir = "./data/"
+sp_savedir = "../../build/tests/taylor-green-vortex/data/"
 sp_savename = 'snap'
 
 sp_data_list = glob.glob(sp_savedir+'*.h5')
@@ -43,27 +43,29 @@ tol = 1e-15
 # vx_0[0:10,0,0]*np.exp(-2.0*nu*t*(2.0*np.pi)**2)
 # vy_0[0:10,10,0]*np.exp(-2.0*nu*5*(2.0*np.pi)**2)
 
-# for i in range(len(sp_data_list)):
-for i in range(1,2):
+for i in range(len(sp_data_list)):
+# for i in range(0,1):
 # for i in range(3,4):
     data_sp = h5py.File(sp_savedir+'{:s}{:04d}.h5'.format(sp_savename,i), 'r')
     vx = np.reshape(data_sp['vx'],(nx,ny,nz))
     vy = np.reshape(data_sp['vy'],(nx,ny,nz))
     vz = np.reshape(data_sp['vz'],(nx,ny,nz))
-    print(vy[0,0:5,0:5])
-    print(vz[0,0:5,0:5])
+    # print(vy[0,0:5,0:5])
+    # print(vz[0,0:5,0:5])
     t =  data_sp['t_save'][0]
-    data_sp.close()
+    # data_sp.close()
 
     vx_analytical = vx_0 * np.exp(-2.0*nu*t*(2.0*np.pi)**2)
     vy_analytical = vy_0 * np.exp(-2.0*nu*t*(2.0*np.pi)**2)
     vz_analytical = vz_0 * np.exp(-2.0*nu*t*(2.0*np.pi)**2)
 
-    L2_err = np.sum(np.power(vx-vx_analytical,2.0))
-    L2_err += np.sum(np.power(vy-vy_analytical,2.0))
-    L2_err += np.sum(np.power(vz-vz_analytical,2.0))
+    L1_err = np.sum(np.abs(vx-vx_analytical))
+    L1_err += np.sum(np.abs(vy-vy_analytical))
+    L1_err += np.sum(np.abs(vz-vz_analytical))
 
-    print('t = {:10.4f} \t L2 error = {:0.2e}'.format(t,L2_err))
+    L1_err /= (nx*ny*nz)
+
+    print('t = {:10.4f} \t L1 error = {:0.2e}'.format(t,L1_err))
 
     # if (L2_err < tol):
     #     print('i = %d \t L2 error = %.2e ... PASSED'%(i,L2_err))

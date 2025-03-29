@@ -141,8 +141,9 @@ void InputOutput::ReadDataFile(int restart_num) {
 
     // find the most recent data file
     int most_recent_snap = fileCounter(param_ptr->output_dir + std::string("/data/"));
+    std::printf("most recent snap: %d \n", most_recent_snap);
 
-    if (most_recent_snap > 0) { // some data files exist!
+    if (most_recent_snap >= 0) { // some data files exist!
         if (restart_num > most_recent_snap){
             std::printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
             std::printf("!!!! Error: restart file not found, restarting from last available data file...\n");

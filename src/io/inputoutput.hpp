@@ -33,6 +33,8 @@ public:
 
 
     void CheckOutput();
+    void CheckTimeSeries();
+    void CheckSnapshot();
     void WriteDataFile();
     void ReadDataFile(int restart_num);
 

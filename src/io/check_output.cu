@@ -12,6 +12,15 @@
 #include "timestepping.hpp"
 
 void InputOutput::CheckOutput(){
+ 
+    CheckTimeSeries();
+        
+    CheckSnapshot();
+    
+
+}
+
+void InputOutput::CheckTimeSeries() {
 
     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
@@ -42,7 +51,18 @@ void InputOutput::CheckOutput(){
         }
 
         supervisor_ptr->TimeIOTimevar += supervisor_ptr->timevar_timer.elapsed();
+
     }
+
+}
+
+void InputOutput::CheckSnapshot() {
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+    std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
+
+    double current_time = timestep_ptr->current_time;
 
     if( (current_time-t_lastsnap + 1e-8)>=param_ptr->toutput_flow || current_time == 0.0 ) {
 

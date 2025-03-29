@@ -198,17 +198,27 @@ void Supervisor::executeMainLoop(){
     }
 }
 
-void Supervisor::initialDataDump(){
+void Supervisor::initialDataDump(int restart_num){
 
     if (param_ptr->restart == 0){
 
         std::printf("Initial data dump...\n");
         try {
-        inout_ptr->CheckOutput();
+            inout_ptr->CheckOutput();
         }
         catch (const std::exception& err) {
-        std::cerr << err.what() << std::endl;
-        std::exit(1);
+            std::cerr << err.what() << std::endl;
+            std::exit(1);
+        }
+    }
+    else if (restart_num == 0){
+        std::printf("Restarting from snap 0. Saving initial timevar and spectra (+headers) \n");
+        try {
+            inout_ptr->CheckTimeSeries();
+        }
+        catch (const std::exception& err) {
+            std::cerr << err.what() << std::endl;
+            std::exit(1);
         }
     }
 }
