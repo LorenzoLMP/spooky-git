@@ -83,7 +83,7 @@ void Fields::initSpatialStructure(){
 	// #ifdef HEAT_EQ
 		// farray_r[vars.TH][i] = 1.0 +  0.5 * (tanh((x[i] + 0.375) / a) - tanh((x[i] + 0.125) / a)) + 0.5 * (tanh((x[i] - 0.125) / a) - tanh((x[i] - 0.375) / a));
 		// gaussian profile
-	farray_r[vars.TH][i] = exp(-x[i]*x[i]/(2.*sigma*sigma));
+	farray_r[vars.TH][i] = 1./(sqrt(2.*M_PI*sigma*sigma))*exp(-x[i]*x[i]/(2.*sigma*sigma));
 	// #endif
 
 	}

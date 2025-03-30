@@ -19,11 +19,13 @@ void startup();
 
 Variables vars;
 Grid grid;
+Parser parser;
+
 int threadsPerBlock{512};
 
 int main(int argc, char *argv[]) {
 
-    int restart_num = -1;
+    // int restart_num = -1;
     // int stats_frequency = -1;
 
     argparse::ArgumentParser program("spooky");
@@ -33,12 +35,13 @@ int main(int argc, char *argv[]) {
     .default_value(std::string("./"));
 
     program.add_argument("--output-dir")
+    .required()
     .help("output directory for data files");
 
     program.add_argument("-r", "--restart")
     .help("restart from data file")
     .scan<'i', int>();
-    // .default_value(int(-1));
+    .default_value(int(-1));
 
     program.add_argument("--stats")
     .help("whether to print stats: -1 (none), n > 0 (every n steps)")
@@ -60,12 +63,46 @@ int main(int argc, char *argv[]) {
     std::exit(1);
     }
 
-    std::string input_dir = program.get<std::string>("--input-dir");
-    std::cout << "Input directory: " << input_dir << std::endl;
-
+    
 
 
     startup();
+
+    
+    // ----------------------------------------------------------------------------------------
+    //! Parse runtime flags and override default params
+
+    // default parameters 
+    parser.input_dir = program.get<std::string>("--input-dir");
+    std::cout << "Input directory: " << parser.input_dir << std::endl;
+
+    parser.restart_num = program.get<int>("--restart");
+
+    if (program.is_used("--output-dir")){
+        parser.output_dir = program.get<std::string>("--output-dir");
+        std::cout << "output directory will be overriden: " << parser.output_dir << std::endl;
+        spooky.param_ptr->output_dir = parser.output_dir;
+    }
+    if (program.is_used("--restart")){
+        // std::cout << "restarting from file: "  << std::endl;
+        parser.restart_num = program.get<int>("--restart");
+        std::cout << "restarting from file: " << parser.restart_num << std::endl;
+        spooky.param_ptr->restart = 1;
+    }
+    if (program.is_used("--stats")){
+        parser.stats_frequency = program.get<int>("--stats");
+        spooky.stats_frequency = program.get<int>("--stats");
+        std::cout << "printing stats every " << spooky.stats_frequency << " steps " << std::endl;
+    }
+    if (program.is_used("--time")){
+        std::vector<int> max_walltime_elapsed = program.get<std::vector<int>>("--time");
+        parser.max_hours = double(max_walltime_elapsed[0]) + double(max_walltime_elapsed[1])/60 + double(max_walltime_elapsed[2])/3600;
+        std::cout << "overriding wallclock max elapsed time: " << max_walltime_elapsed[0] << " hours " << max_walltime_elapsed[1] << " minutes " << max_walltime_elapsed[2] << " seconds " << std::endl;
+        std::cout << "... in hours: " << parser.max_hours << std::endl;
+        spooky.param_ptr->max_walltime_elapsed = 0.95*parser.max_hours;
+    }
+
+
 
     //----------------------------------------------------------------------------------------
     //! Initialize objects
@@ -91,32 +128,7 @@ int main(int argc, char *argv[]) {
     std::printf("Finished reading in params and initializing objects.\n");
 
 
-    //----------------------------------------------------------------------------------------
-    //! Parse runtime flags and override default params
-
-    if (program.is_used("--output-dir")){
-        std::string output_dir = program.get<std::string>("--output-dir");
-        std::cout << "output directory will be overriden: " << output_dir << std::endl;
-        spooky.param_ptr->output_dir = output_dir;
-    }
-    if (program.is_used("--restart")){
-        // std::cout << "restarting from file: "  << std::endl;
-        restart_num = program.get<int>("--restart");
-        std::cout << "restarting from file: " << restart_num << std::endl;
-        spooky.param_ptr->restart = 1;
-    }
-    if (program.is_used("--stats")){
-        spooky.stats_frequency = program.get<int>("--stats");
-        std::cout << "printing stats every " << spooky.stats_frequency << " steps " << std::endl;
-    }
-    if (program.is_used("--time")){
-        std::vector<int> max_walltime_elapsed = program.get<std::vector<int>>("--time");
-        double max_hours = double(max_walltime_elapsed[0]) + double(max_walltime_elapsed[1])/60 + double(max_walltime_elapsed[2])/3600;
-        std::cout << "overriding wallclock max elapsed time: " << max_walltime_elapsed[0] << " hours " << max_walltime_elapsed[1] << " minutes " << max_walltime_elapsed[2] << " seconds " << std::endl;
-        std::cout << "... in hours: " << max_hours << std::endl;
-        spooky.param_ptr->max_walltime_elapsed = 0.95*max_hours;
-    }
-
+    //
     spooky.Restart(restart_num);
 
     spooky.displayConfiguration();

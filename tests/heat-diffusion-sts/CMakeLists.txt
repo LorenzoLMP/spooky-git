@@ -12,12 +12,24 @@ ${PROJECT_SOURCE_DIR}/src/rkl/
 ${PROJECT_SOURCE_DIR}/src/user/
 )
 
+include_directories(${CMAKE_CURRENT_LIST_DIR}/)
+include(list_source_files.txt)
 
 ### do not modify
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/data/)
+
+#add_executable(test_heat-diffusion-sts
+#initflow.cu)
+#target_link_libraries(test_heat-diffusion-sts spooky-lib)
+
 add_executable(test_heat-diffusion-sts
-initflow.cu)
-target_link_libraries(test_heat-diffusion-sts spooky-lib)
+compute_dt.cu
+initflow.cu
+${spooky_src})
+
+target_link_libraries(test_heat-diffusion-sts CUDA::cufft CUDA::cublas CUDA::cudart hdf5-lib config)
+target_link_libraries(test_heat-diffusion-sts HighFive)
+target_link_libraries(test_heat-diffusion-sts argparse)
 
 
 ### these can be modified

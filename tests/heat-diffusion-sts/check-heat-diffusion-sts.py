@@ -8,30 +8,41 @@ import glob
 import sys
 # test script expects the executable as argument
 
-nx = 256
+nx = 512
 ny = 1
 nz = 2
 
-lx = 1.0
+lx = 4.0
 ly = 1.0
 lz = 1.0
 
-nu_th = 100.
+nu_th = 1./1.
 sigma = 0.1
 
 
-x = -0.5 + lx * (np.arange(nx)) / nx
-y = -0.5 + ly * (np.arange(ny)) / ny
-z = -0.5 + lz * (np.arange(nz)) / nz
+x = -0.5*lx + lx * (np.arange(nx)) / nx
+y = -0.5*ly + ly * (np.arange(ny)) / ny
+z = -0.5*lz + lz * (np.arange(nz)) / nz
 
 X, Y, Z = np.meshgrid(x,y,z,indexing='ij')
 
-def T_analytical_func(X,Y,Z,t):
-    fac = (1. + 2 * nu_th * t / sigma**2)
-    T =   1./np.sqrt(fac)*np.exp(- X**2/(2*sigma**2*fac))
+kx = 2.0*np.pi*np.fft.fftfreq(nx, d=lx/nx)
+ky = 2.0*np.pi*np.fft.fftfreq(ny, d=ly/ny)
+kz = 2.0*np.pi*np.fft.rfftfreq(nz, d=lz/nz)
+
+KX, KY, KZ = np.meshgrid(kx, ky, kz, indexing='ij')
+
+K2 = KX**2 + KY**2 + KZ**2
+
+T_0 = 1./(np.sqrt(2.*np.pi*sigma**2))*np.exp(-0.5*(X**2)/(sigma**2))
+
+T_0_hat = np.fft.rfftn(T_0)
+
+def T_analytical_func(t):
+    T =  np.fft.irfftn(T_0_hat*np.exp(-nu_th*KX**2*t))
     return T
 
-T_0 = T_analytical_func(X,Y,Z,0.0)
+
 
 tol = 1e-7
 flag = 1 # fail
@@ -94,7 +105,7 @@ def main():
 
     data_sp.close()
 
-    T_analytical = T_analytical_func(X,Y,Z,t)
+    T_analytical = T_analytical_func(t)
 
     L1_err = np.sum(np.abs(T-T_analytical))/(nx*ny*nz)
 

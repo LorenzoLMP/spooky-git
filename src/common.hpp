@@ -42,4 +42,14 @@ struct Grid {
 
 extern struct Grid grid;
 
+
+struct Parser {
+    int nx, ny, nz;
+    int stats_frequency;
+    double max_hours;
+    int restart_num;
+    std::string input_dir;
+    std::string output_dir;
+};
+
 #endif
