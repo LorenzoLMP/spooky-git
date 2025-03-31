@@ -44,12 +44,19 @@ extern struct Grid grid;
 
 
 struct Parser {
-    int nx, ny, nz;
+    int nx = -1;
+    int ny = -1;
+    int nz = -1;
+    
     int stats_frequency;
-    double max_hours;
-    int restart_num;
+    double max_hours = -1.;
+    int restart_num = -1;
+
     std::string input_dir;
     std::string output_dir;
+    bool output_dir_override = false;
 };
+
+extern struct Parser parser;
 
 #endif

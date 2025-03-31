@@ -22,7 +22,7 @@ class InputOutput;
 
 class Supervisor {
 public:
-    Supervisor(std::string input_dir);
+    Supervisor();
 
     std::shared_ptr<Parameters> param_ptr;
     std::shared_ptr<Fields> fields_ptr;
@@ -64,8 +64,8 @@ public:
     void print_final_stats();
     void displayConfiguration();
     void executeMainLoop();
-    void initialDataDump(int restart_num);
-    void Restart(int restart_num);
+    void initialDataDump();
+    void Restart();
 
     void Complex2RealFields(data_type* ComplexField_in, int num_fields);
     void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);

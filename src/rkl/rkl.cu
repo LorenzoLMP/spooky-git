@@ -188,20 +188,20 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
         n = (int)N;
 
         if (param_ptr->debug > 0) {
-            std::printf("STS::::: number of STS subcycles: %d \n",n);
+            std::printf("STS::::: STS subcycle num: %d \n",n);
         }
 
         if (n > 1){
             dt_par_corr = STS_CorrectTimeStep(n, dt_hyp, STS_NU);
             if (param_ptr->debug > 1) {
-                std::printf("STS::::: dt_par_corr: %4.e \n",dt_par_corr);
+                std::printf("STS::::: dt_par_corr: %.4e \n",dt_par_corr);
             }
             STS_ComputeSubSteps(dt_par_corr, ts, n, STS_NU);
         }
         if (n == 1) ts[0] = dt_hyp;
         tau = ts[n-m-1];
         if (param_ptr->debug > 0) {
-            std::printf("STS::::: tau: %4.e \n",tau);
+            std::printf("STS::::: tau: %.4e \n",tau);
         }
 
 

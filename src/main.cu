@@ -25,9 +25,6 @@ int threadsPerBlock{512};
 
 int main(int argc, char *argv[]) {
 
-    // int restart_num = -1;
-    // int stats_frequency = -1;
-
     argparse::ArgumentParser program("spooky");
 
     program.add_argument("--input-dir")
@@ -35,12 +32,12 @@ int main(int argc, char *argv[]) {
     .default_value(std::string("./"));
 
     program.add_argument("--output-dir")
-    .required()
+    // .required()
     .help("output directory for data files");
 
     program.add_argument("-r", "--restart")
     .help("restart from data file")
-    .scan<'i', int>();
+    .scan<'i', int>()
     .default_value(int(-1));
 
     program.add_argument("--stats")
@@ -53,6 +50,12 @@ int main(int argc, char *argv[]) {
     .nargs(3)
     .scan<'i', int>()
     .default_value(std::vector<int>{0, 0, 10});
+
+    program.add_argument("-n", "--ngrid")
+    .help("override the number of grid points (format '-n nx ny nz' where nx, ny, nz are 3 integers for the number of cells in the x, y, and z direction): ")
+    .nargs(3)
+    .scan<'i', int>()
+    .default_value(std::vector<int>{32, 32, 32});
 
     try {
     program.parse_args(argc, argv);
@@ -72,34 +75,48 @@ int main(int argc, char *argv[]) {
     // ----------------------------------------------------------------------------------------
     //! Parse runtime flags and override default params
 
-    // default parameters 
     parser.input_dir = program.get<std::string>("--input-dir");
     std::cout << "Input directory: " << parser.input_dir << std::endl;
 
-    parser.restart_num = program.get<int>("--restart");
-
     if (program.is_used("--output-dir")){
+        // this will override the output dir
+        // in the spooky.cfg file 
         parser.output_dir = program.get<std::string>("--output-dir");
+        parser.output_dir_override = true;
         std::cout << "output directory will be overriden: " << parser.output_dir << std::endl;
-        spooky.param_ptr->output_dir = parser.output_dir;
     }
-    if (program.is_used("--restart")){
-        // std::cout << "restarting from file: "  << std::endl;
-        parser.restart_num = program.get<int>("--restart");
+
+    parser.restart_num = program.get<int>("--restart");
+    if (parser.restart_num > -1) {
         std::cout << "restarting from file: " << parser.restart_num << std::endl;
-        spooky.param_ptr->restart = 1;
     }
-    if (program.is_used("--stats")){
-        parser.stats_frequency = program.get<int>("--stats");
-        spooky.stats_frequency = program.get<int>("--stats");
-        std::cout << "printing stats every " << spooky.stats_frequency << " steps " << std::endl;
+    
+    parser.stats_frequency = program.get<int>("--stats");
+    if (parser.stats_frequency > -1){
+        std::cout << "printing stats every " << parser.stats_frequency << " steps " << std::endl;
     }
+    
     if (program.is_used("--time")){
+        // this will override the max walltime elapsed 
+        // in the spooky.cfg file 
         std::vector<int> max_walltime_elapsed = program.get<std::vector<int>>("--time");
         parser.max_hours = double(max_walltime_elapsed[0]) + double(max_walltime_elapsed[1])/60 + double(max_walltime_elapsed[2])/3600;
+
         std::cout << "overriding wallclock max elapsed time: " << max_walltime_elapsed[0] << " hours " << max_walltime_elapsed[1] << " minutes " << max_walltime_elapsed[2] << " seconds " << std::endl;
         std::cout << "... in hours: " << parser.max_hours << std::endl;
-        spooky.param_ptr->max_walltime_elapsed = 0.95*parser.max_hours;
+        std::cout << "(we take 95pc of that and terminate earlier)" << std::endl;
+        parser.max_hours *= 0.95;
+    }
+
+    if (program.is_used("--ngrid")){
+        // this will override the max walltime elapsed 
+        // in the spooky.cfg file 
+        std::vector<int> ngrid = program.get<std::vector<int>>("--ngrid");
+        parser.nx = ngrid[0];
+        parser.ny = ngrid[1];
+        parser.nz = ngrid[2];
+
+        std::printf("overriding ngrid: (nx, ny, nz) = (%d, %d, %d) \n", parser.nx, parser.ny, parser.nz);
     }
 
 
@@ -109,14 +126,7 @@ int main(int argc, char *argv[]) {
 
     std::printf("-----------Initializing objects...\n");
 
-    Supervisor spooky(input_dir);
-    // Supervisor spooky(stats_frequency);
-    //
-    // Parameters param(input_dir);
-    // Fields fields(param, vars.NUM_FIELDS);
-    // Physics phys(spooky);
-    // TimeStepping timestep(vars.NUM_FIELDS, param, spooky);
-    // InputOutput inout(spooky);
+    Supervisor spooky;
 
     std::printf("grid size: %d %d %d  \n",int(grid.FFT_SIZE[0]),int(grid.FFT_SIZE[1]),int(grid.FFT_SIZE[2]));
 
@@ -128,8 +138,7 @@ int main(int argc, char *argv[]) {
     std::printf("Finished reading in params and initializing objects.\n");
 
 
-    //
-    spooky.Restart(restart_num);
+    spooky.Restart();
 
     spooky.displayConfiguration();
 
@@ -144,22 +153,20 @@ int main(int argc, char *argv[]) {
 
     spooky.fields_ptr->CheckSymmetries();
 
-    spooky.initialDataDump(restart_num);
+    spooky.initialDataDump();
+
+    //----------------------------------------------------------------------------------------
+    //! Main Loop
 
     spooky.executeMainLoop();
 
     spooky.print_final_stats();
 
-    // std::printf("Starting copy back to host\n");
-    // spooky.fields_ptr->copy_back_to_host();
-    
+    //----------------------------------------------------------------------------------------
+    //! Finalize
 
     spooky.fields_ptr->clean_gpu();
     std::printf("Finished fields gpu cleanup\n");
-
-    // if (spooky.param_ptr->debug > 1) {
-    //     spooky.fields_ptr->print_host_values();
-    // }
 
     std::printf("Finishing cufft\n");
     finish_cufft();

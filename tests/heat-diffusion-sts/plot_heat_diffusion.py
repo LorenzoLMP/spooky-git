@@ -9,7 +9,7 @@ sp_savename = 'snap'
 sp_data_list = glob.glob(sp_savedir+'*.h5')
 
 nx = 128
-ny = 1
+ny = 2
 nz = 2
 
 lx = 4.0

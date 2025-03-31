@@ -151,7 +151,7 @@ class Parameters {
 
 
 	// Parameters(Fields *fields_in, std::string input_dir);
-	Parameters(Supervisor& sup_in, std::string input_dir);
+	Parameters(Supervisor& sup_in);
     ~Parameters();
 
 	int checkParameters();

@@ -34,7 +34,7 @@ Parameters::~Parameters() {
 // void Parameters::add
 
 // void Parameters::read_Parameters(std::string input_dir) {
-Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar(sup_in), userOutVar(sup_in) {
+Parameters::Parameters(Supervisor& sup_in) : spookyOutVar(sup_in), userOutVar(sup_in) {
 // void Parameters::read_Parameters() {
 	// field = fields_in;
 	supervisor_ptr = &sup_in;
@@ -43,7 +43,7 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	config_setting_t * setting;	// a setting structure
 	int tmp_v;
 	int i;
-	std::string config_fullpath(input_dir);
+	std::string config_fullpath(parser.input_dir);
 	config_fullpath.append("/");
 	config_fullpath.append(std::string(SPOOKY_CONFIG_FILENAME));
 
@@ -174,11 +174,25 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	if(!config_lookup_int(&config, "physics.gridsize.[0]",&nx)) {
 		nx = 32;
 	}
+	// override from command line
+	if (parser.nx > 0) {
+		nx = parser.nx;
+	}
+
 	if(!config_lookup_int(&config, "physics.gridsize.[1]",&ny)) {
 		ny = 32;
 	}
+	// override from command line
+	if (parser.ny > 0) {
+		ny = parser.ny;
+	}
+	
 	if(!config_lookup_int(&config, "physics.gridsize.[2]",&nz)) {
 		nz = 32;
+	}
+	// override from command line
+	if (parser.nz > 0) {
+		nz = parser.nz;
 	}
 
 	if(!config_lookup_float(&config, "physics.reynolds",&reynolds)) {
@@ -282,6 +296,9 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	}
 	if(!config_lookup_float(&config, "code.max_walltime_elapsed",&max_walltime_elapsed)) {
 		max_walltime_elapsed = 42;
+		if (parser.max_hours > 0.0) {
+			max_walltime_elapsed = parser.max_hours;
+		}
 	}
 	if(!config_lookup_int(&config, "code.interface_check",&tmp_v)) {
 		interface_check = 5;
@@ -306,6 +323,10 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 	}
 	if(!config_lookup_bool(&config, "code.restart",&restart)) {
 		restart = 0;
+		// override from command line
+		if (parser.restart_num > -1) {
+			restart = 1;
+		}
 	}
 
 	/*******************
@@ -334,7 +355,9 @@ Parameters::Parameters(Supervisor& sup_in, std::string input_dir) : spookyOutVar
 		// char temp_dest[256];
 		// strcpy(output_dir, temp_output);
 		output_dir = std::string(temp_output);
-		// output_dir = "./";
+		if (parser.output_dir_override) {
+			output_dir = parser.output_dir;
+		}
 	}
 
 	// find which parameters are requested in the timevar file

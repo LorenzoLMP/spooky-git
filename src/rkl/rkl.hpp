@@ -29,7 +29,7 @@ public:
     double dt, cfl_rkl, rmax_par;
     const int STS_MAX_STEPS = 1024;
     double *ts;
-    double STS_NU = 0.01;
+    double STS_NU = 0.001;
 
     int stage;
     int blocksPerGrid;

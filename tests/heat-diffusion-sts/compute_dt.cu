@@ -41,13 +41,12 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
 
         gamma_par = ((kxmax )*( kxmax )+kymax*kymax+kzmax*kzmax) * param_ptr->nu_th;
         dt_par = param_ptr->cfl_par / gamma_par;
+        // usual dt
         current_dt = dt_par;
 
-        // #if defined(SUPERTIMESTEPPING) && defined(TEST)
-        //     // replicate Vaidya 2017
-        //     dt_hyp = 0.00703125 * (param_ptr->lx/grid.NX);
-        //     current_dt = dt_hyp;
-        // #endif
+        // replicate Vaidya 2017
+        // dt_hyp = 0.00703125 * (param_ptr->lx/grid.NX);
+        // current_dt = 0.00703125 * (param_ptr->lx/grid.NX);
     }
 
     if (param_ptr->incompressible) {
@@ -268,16 +267,16 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
     if ( current_time + current_dt > param_ptr->t_final) {
         current_dt = param_ptr->t_final - current_time;
     }
-    else if ( current_time + current_dt - inout_ptr->t_lastsnap > param_ptr->toutput_flow) {
-        current_dt = param_ptr->toutput_flow - current_time + inout_ptr->t_lastsnap;
-    }
-    // when using sts dt_par may also have to
-    // be shrunk accordingly
-    if (param_ptr->supertimestepping) {
-        if ( current_dt < dt_par ) {
-            dt_par = current_dt;
-        }
-    }
+    // else if ( current_time + current_dt - inout_ptr->t_lastsnap > param_ptr->toutput_flow) {
+    //     current_dt = param_ptr->toutput_flow - current_time + inout_ptr->t_lastsnap;
+    // }
+    // // when using sts dt_par may also have to
+    // // be shrunk accordingly
+    // if (param_ptr->supertimestepping) {
+    //     if ( current_dt < dt_par ) {
+    //         dt_par = current_dt;
+    //     }
+    // }
 
 
     if (param_ptr->debug > 0) {

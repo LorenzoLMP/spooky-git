@@ -16,12 +16,12 @@
 #include "cufft_utils.h"
 
 
-Supervisor::Supervisor(std::string input_dir) :
+Supervisor::Supervisor() :
         total_timer() ,
         timevar_timer(),
         datadump_timer() {
 
-    param_ptr = std::shared_ptr<Parameters> (new Parameters(*this, input_dir));
+    param_ptr = std::shared_ptr<Parameters> (new Parameters(*this));
 
     /*****
      *
@@ -41,8 +41,8 @@ Supervisor::Supervisor(std::string input_dir) :
     timestep_ptr = std::shared_ptr<TimeStepping> (new TimeStepping(*this, *param_ptr));
     inout_ptr = std::shared_ptr<InputOutput> (new InputOutput(*this));
 
-
-    stats_frequency = -1;
+    stats_frequency = parser.stats_frequency;
+    // stats_frequency = -1;
     time_delta = 0.0;
     NumFFTs = 0; // in mainloop
     // NumFFTs[1] = 0; // in IO
@@ -198,7 +198,7 @@ void Supervisor::executeMainLoop(){
     }
 }
 
-void Supervisor::initialDataDump(int restart_num){
+void Supervisor::initialDataDump(){
 
     if (param_ptr->restart == 0){
 
@@ -211,7 +211,7 @@ void Supervisor::initialDataDump(int restart_num){
             std::exit(1);
         }
     }
-    else if (restart_num == 0){
+    else if (parser.restart_num == 0){
         std::printf("Restarting from snap 0. Saving initial timevar and spectra (+headers) \n");
         try {
             inout_ptr->CheckTimeSeries();
@@ -224,9 +224,9 @@ void Supervisor::initialDataDump(int restart_num){
 }
 
 
-void Supervisor::Restart(int restart_num){
+void Supervisor::Restart(){
     if (param_ptr->restart == 1){
-        inout_ptr->ReadDataFile(restart_num);
+        inout_ptr->ReadDataFile(parser.restart_num);
     }
 }
 
