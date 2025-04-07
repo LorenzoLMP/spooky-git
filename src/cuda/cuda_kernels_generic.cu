@@ -143,17 +143,31 @@ __global__ void axpyComplex( const data_type *X, data_type *Y, data_type *Z, sca
     }
 }
 
-__global__ void axpy5ComplexAssign( data_type *A, data_type *B, data_type *C, data_type *D, data_type *E, scalar_type a, scalar_type b, scalar_type c, scalar_type d, scalar_type e, size_t N) {
-    // real Y = mu_j*Uc(nv,k,j,i) + nu_j*Uc1(nv,k,j,i);
-    // Uc1(nv,k,j,i) = Uc(nv,k,j,i);
+__global__ void rkl1_stage( data_type *Uc, data_type *Uc1, data_type *dU, scalar_type mu_j, scalar_type nu_j, scalar_type dt_hyp_mu_tilde_j, size_t N) {
+    // Y <- mu_j*Uc + nu_j*Uc1;
+    // Uc1 <- Uc;
+    // Uc <- Y +  dt_hyp*mu_tilde_j*dU ;
+    size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    data_type Y = data_type(0.0,0.0);
+
+    if (i < N) {
+        Y = mu_j*Uc[i] + nu_j*Uc1[i];
+        Uc1[i] = Uc[i];
+        Uc[i] = Y + dt_hyp_mu_tilde_j*dU[i];
+    }
+}
+
+__global__ void rkl2_stage( data_type *Uc, data_type *Uc1, data_type *Uc0, data_type *dU, data_type *dU0, scalar_type mu_j, scalar_type nu_j, scalar_type dt_hyp_mu_tilde_j, scalar_type gamma_j_dt_hyp, size_t N) {
+    // Y <- mu_j*Uc + nu_j*Uc1;
+    // Uc1 <- Uc;
     // Uc <- Y + (1.0 - mu_j - nu_j)*Uc0 + dt_hyp*mu_tilde_j*dU +  gamma_j*dt_hyp*dU0;
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     data_type Y = data_type(0.0,0.0);
 
     if (i < N) {
-        Y = a*A[i] + b*B[i];
-        B[i] = A[i];
-        A[i] = Y + c*C[i] + d*D[i] + e*E[i];
+        Y = mu_j*Uc[i] + nu_j*Uc1[i];
+        Uc1[i] = Uc[i];
+        Uc[i] = Y + (1.0 - mu_j - nu_j)*Uc0[i] + dt_hyp_mu_tilde_j*dU[i] + gamma_j_dt_hyp*dU0[i];
     }
 }
 

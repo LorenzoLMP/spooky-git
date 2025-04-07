@@ -17,7 +17,7 @@ public:
     // Parameters *param;
     Supervisor *supervisor_ptr;
 
-    std::string sts_algorithm; 	// supertimestepping algorithm. Valid choices: "sts", "rkl3"
+    std::string sts_algorithm; 	// supertimestepping algorithm. Valid choices: "sts", "rkl2"
     std::vector<int> sts_variables_index;
     std::vector<int> sts_variables_pos;
     int num_sts_vars;
@@ -41,7 +41,8 @@ public:
     // void compute_dfield();
     void compute_cycle(data_type* complex_Fields, scalar_type* real_Buffer);
     void compute_cycle_STS(data_type* complex_Fields, scalar_type* real_Buffer);
-    void compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_Buffer);
+    void compute_cycle_RKL1(data_type* complex_Fields, scalar_type* real_Buffer);
+    void compute_cycle_RKL2(data_type* complex_Fields, scalar_type* real_Buffer);
     // void compute_dt(Fields &fields, Parameters &param, Physics &phys);
     // void RungeKutta3(Fields &fields, Parameters &param, Physics &phys);
 

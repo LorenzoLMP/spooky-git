@@ -3,12 +3,13 @@ import matplotlib.pyplot as plt
 import h5py
 import glob
 
-sp_savedir = "../../build/tests/heat-diffusion-sts/data/"
+# sp_savedir = "../../build/tests/heat-diffusion-sts/data/"
+sp_savedir = "/home/lorenzolmp/Documents/cuda-code/spooky-git/build/tests/heat-diffusion-sts/rkl2/nx_000512/data/"
 sp_savename = 'snap'
 
 sp_data_list = glob.glob(sp_savedir+'*.h5')
 
-nx = 128
+nx = 512
 ny = 2
 nz = 2
 
@@ -40,6 +41,7 @@ T_0_hat = np.fft.rfftn(T_0)
 
 def T_analytical_func(t):
     T =  np.fft.irfftn(T_0_hat*np.exp(-nu_th*KX**2*t))
+    # T = 1./(np.sqrt(2.*np.pi*(sigma**2 + 2 * nu_th*t)))*np.exp(-0.5*(X**2)/(sigma**2 + 2 * nu_th*t))
     return T
 
 for i in range(len(sp_data_list)):

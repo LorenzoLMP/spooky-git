@@ -42,7 +42,11 @@ __global__ void VecInit( scalar_type *X, scalar_type a, size_t N);
 
 __global__ void VecInitComplex( data_type *X, data_type a, size_t N);
 
-__global__ void axpy5ComplexAssign( data_type *A, data_type *B, data_type *C, data_type *D, data_type *E, scalar_type a, scalar_type b, scalar_type c, scalar_type d, scalar_type e, size_t N);
+__global__ void rkl1_stage( data_type *Uc, data_type *Uc1, data_type *dU, scalar_type mu_j, scalar_type nu_j, scalar_type dt_hyp_mu_tilde_j, size_t N);
+
+// __global__ void axpy5ComplexAssign( data_type *A, data_type *B, data_type *C, data_type *D, data_type *E, scalar_type a, scalar_type b, scalar_type c, scalar_type d, scalar_type e, size_t N);
+
+__global__ void rkl2_stage( data_type *Uc, data_type *Uc1, data_type *Uc0, data_type *dU, data_type *dU0, scalar_type mu_j, scalar_type nu_j, scalar_type dt_hyp_mu_tilde_j, scalar_type gamma_j_dt_hyp, size_t N);
 
 // __global__ void scalarDissipation( const scalar_type *d_all_kvec, const data_type *X, scalar_type *Z, size_t N);
 

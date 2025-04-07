@@ -46,7 +46,9 @@ void TimeStepping::HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr) {
     // }
 
 
-    RungeKutta3(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
+    // RungeKutta3(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
+
+    ForwardEuler(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
     
 
     // if we want to do supertimestepping now we need to transform fields to real explicitely
@@ -178,6 +180,65 @@ void TimeStepping::RungeKutta3(data_type* complex_Fields, scalar_type* real_Buff
     stage_step++;
     if (param_ptr->debug > 1) {
         std::printf("End of RK3 integrator, t: %.5e \t dt: %.5e \n",current_time,current_dt);
+    }
+
+
+}
+
+void TimeStepping::ForwardEuler(data_type* complex_Fields, scalar_type* real_Buffer) {
+
+
+    std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+
+    if (param_ptr->debug > 0) {
+        std::printf("Now entering ForwardEuler function \n");
+    }
+
+    // a buffer to temporarily store the dU fields
+    data_type* complex_dFields = fields_ptr->d_all_dfields;
+
+    double dt_EU = 0.0;
+    int blocksPerGrid = (2 * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS + threadsPerBlock - 1) / threadsPerBlock;
+
+
+
+    dt_EU = current_dt; // in theory one can do strang splitting so dt_RK can be 1/2 dt
+
+    if (param_ptr->debug > 1) {
+        // std::printf("RK, finished 1st step.\n");
+        // std::printf("After compute dfield, RK, 1st step:\n");
+        // print_device_values();
+        if (current_step == 1 || current_step % 100 == 0 ) std::printf("t: %.5e \t dt: %.5e \n",current_time,dt_EU);
+        if (current_step == 1 || current_step % 100 == 0 ) fields_ptr->print_device_values();
+    }
+
+    compute_dfield(complex_Fields, real_Buffer, complex_dFields);
+
+
+    // d_all_fields = d_all_fields + gammaRK[0] * dt * d_all_dfields;
+    axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( complex_Fields, complex_dFields, complex_Fields, (scalar_type) 1.0, dt_EU,  grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
+    
+    
+    current_time += current_dt;
+
+    if (param_ptr->shearing) {
+
+        tremap += current_dt;
+        // is a remap necessary?
+        if (tremap > param_ptr->ly / (2.0 * param_ptr->shear * param_ptr->lx)) {
+            // if yes recompute tremap
+            ShiftTime();
+            // and remap fields
+            RemapAllFields(complex_Fields);
+        }
+
+        fields_ptr->wavevector.shearWavevector(tremap);
+    }
+
+    
+    if (param_ptr->debug > 1) {
+        std::printf("End of ForwardEuler integrator, t: %.5e \t dt: %.5e \n",current_time,current_dt);
     }
 
 

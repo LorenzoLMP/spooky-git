@@ -18,16 +18,17 @@ nu_th = 1./1.
 sigma = 0.1
 
 
-def T_analytical_func(T_0_hat, KX, t):
+def T_analytical_func(T_0_hat, KX, X, t):
     T =  np.fft.irfftn(T_0_hat*np.exp(-nu_th*KX**2*t))
+    # T = 1./(np.sqrt(2.*np.pi*(sigma**2 + 2 * nu_th*t)))*np.exp(-0.5*(X**2)/(sigma**2 + 2 * nu_th*t))
     return T
 
 
 tol = 1e-7
 flag = 1 # fail
 
-sts_algorithms = ["sts", "rkl3"]
-
+sts_algorithms = ["sts","rkl1","rkl2"]
+# sts_algorithms = ["rkl2"]
 
 def main():
 
@@ -54,10 +55,10 @@ def main():
     f = open(args.output_dir+"/sts_bench_results.txt", "w")
     f.write("## This file contains the results of the bench test for sts \n")
     f.write("## The table contains the L1 norm of last snapshot (t=0.5) wrt the analytic solution \n")
-    f.write("## nx \t sts \t rkl3 \n")
+    f.write("## nx \t sts \t rkl1 \t rkl2 \n")
     f.close()
 
-    for m in range(5, 6):
+    for m in range(5, 12):
 
         nx = 2**m
         ny = 2
@@ -94,6 +95,9 @@ def main():
 
 
             try:
+                # subprocess.run(
+                #     [args.executable,"--input-dir",args.input_dir+'/%s'%(sts_algo), "--output-dir", subtest_output_dir, "--ngrid", "%d"%(nx), "%d"%(ny), "%d"%(nz), "--stats", "%d"%(2**m+1)], timeout=1000, check=True
+                # )
                 subprocess.run(
                     [args.executable,"--input-dir",args.input_dir+'/%s'%(sts_algo), "--output-dir", subtest_output_dir, "--ngrid", "%d"%(nx), "%d"%(ny), "%d"%(nz)], timeout=1000, check=True
                 )
@@ -125,7 +129,7 @@ def main():
 
             data_sp.close()
 
-            T_analytical = T_analytical_func(T_0_hat, KX, t)
+            T_analytical = T_analytical_func(T_0_hat, KX, X, t)
 
             L1_err = np.sum(np.abs(T-T_analytical))/(nx*ny*nz)
 
@@ -134,23 +138,50 @@ def main():
             L1_norms.append(L1_err)
 
         f = open(args.output_dir+"/sts_bench_results.txt", "a")
-        f.write("%d \t %.6e \t %.6e \n"%(nx, L1_norms[0], L1_norms[1]))
+        f.write("%d \t %.6e \t %.6e \t %.6e \n"%(2**m, L1_norms[0], L1_norms[1], L1_norms[2]))
         f.close()
+
+
+    return 0
+
+def plot():
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--executable',
+                        help='full path to executable')
+
+    parser.add_argument('--input-dir',
+                        default="./",
+                        # action='store_const',
+                        help='full path to config')
+    parser.add_argument('--output-dir',
+                        # action='store_const',
+                        help='full path to output dir')
+    # parser.add_argument('--short',
+    #                     default=False,
+    #                     action='store_true',
+    #                     help='run a shorter test')
+    # args = parser.parse_args(['--input-dir'])
+    args = parser.parse_args()
+    print("test dir is %s"%(args.input_dir))
 
     bench_results = np.loadtxt(args.output_dir+"/sts_bench_results.txt", comments="#", delimiter=None, unpack=False)
     nx_array = bench_results[:,0]
     L1_sts = bench_results[:,1]
-    L1_rkl3 = bench_results[:,2]
+    L1_rkl1 = bench_results[:,2]
+    L1_rkl2 = bench_results[:,3]
 
     xx = np.logspace(np.log10(nx_array[0]), np.log10(nx_array[-1]), 100)
 
     fig, ax = plt.subplots()
 
     ax.plot(nx_array, L1_sts, 's', color='r', label='sts')
-    ax.plot(nx_array, L1_rkl3, 'o', color='b', label='rkl3')
+    ax.plot(nx_array, L1_rkl1, 'x', color='g', label='rkl1')
+    ax.plot(nx_array, L1_rkl2, 'o', color='b', label='rkl2')
 
     ax.plot(xx, L1_sts[0]*(xx/xx[0])**(-1), '--', label=r'$N^{-1}$')
-    ax.plot(xx, L1_rkl3[0]*(xx/xx[0])**(-2), '-', label=r'$N^{-2}$')
+    ax.plot(xx, L1_rkl2[0]*(xx/xx[0])**(-2), '-', label=r'$N^{-2}$')
 
     ax.set_xscale('log')
     ax.set_yscale('log')
@@ -166,11 +197,17 @@ def main():
 
     plt.close()
 
+
     return 0
 
 
 if __name__ == '__main__':
+
+    result = 1
     result = main()
+    plot()
+
+
 
     assert result == 0 #pass
 

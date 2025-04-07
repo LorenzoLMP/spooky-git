@@ -36,6 +36,7 @@ public:
     void compute_dfield(data_type* complex_Fields, scalar_type* real_Buffer, data_type* complex_dFields);
     void HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr);
     void RungeKutta3(data_type* complex_Fields, scalar_type* real_Buffer);
+    void ForwardEuler(data_type* complex_Fields, scalar_type* real_Buffer);
 
     // shearing routines
     void ShiftTime();

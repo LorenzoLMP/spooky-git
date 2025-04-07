@@ -25,6 +25,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/data/)
 add_executable(test_heat-diffusion-sts
 compute_dt.cu
 initflow.cu
+rkl.cu
 ${spooky_src})
 
 target_link_libraries(test_heat-diffusion-sts CUDA::cufft CUDA::cublas CUDA::cudart hdf5-lib config)

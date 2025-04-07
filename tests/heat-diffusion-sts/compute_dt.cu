@@ -42,11 +42,15 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
         gamma_par = ((kxmax )*( kxmax )+kymax*kymax+kzmax*kzmax) * param_ptr->nu_th;
         dt_par = param_ptr->cfl_par / gamma_par;
         // usual dt
-        current_dt = dt_par;
+        // current_dt = dt_par;
 
         // replicate Vaidya 2017
         // dt_hyp = 0.00703125 * (param_ptr->lx/grid.NX);
-        // current_dt = 0.00703125 * (param_ptr->lx/grid.NX);
+        current_dt = 0.002 * (param_ptr->lx/grid.NX);
+        // test
+        // int s = 2 + supervisor_ptr->stats_frequency;
+        // current_dt = dt_par*(s*s + s - 2)/4;
+        // current_dt = dt_par*supervisor_ptr->stats_frequency;
     }
 
     if (param_ptr->incompressible) {
