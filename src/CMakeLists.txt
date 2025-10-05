@@ -16,5 +16,10 @@ ${PROJECT_SOURCE_DIR}/src/user/
 ### do not modify
 include_directories(${CMAKE_CURRENT_LIST_DIR}/)
 include(list_source_files.txt)
-add_library(spooky-lib OBJECT ${spooky_src} )
-target_link_libraries(spooky-lib CUDA::cufft CUDA::cublas CUDA::cudart config hdf5-lib HighFive argparse)
+
+# add_library(spooky-lib OBJECT ${spooky_src} )
+# target_link_libraries(spooky-lib CUDA::cufft CUDA::cublas CUDA::cudart config hdf5-lib HighFive argparse)
+
+add_executable(spooky
+${spooky_src})
+target_link_libraries(spooky CUDA::cufft CUDA::cublas CUDA::cudart config hdf5-lib HighFive argparse)

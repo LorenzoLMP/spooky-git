@@ -95,7 +95,7 @@ def main():
 
     try:
         subprocess.run(
-            ["python", args.input_dir+"/"+"test_rk3_heatdiff.py","--input-dir",args.input_dir,"--output-dir",args.output_dir,"-r","0"], timeout=1000, check=True )
+            ["python", args.input_dir+"/"+"test_rk3_heatdiff.py","--input-dir",args.input_dir,"--output-dir",args.output_dir], timeout=1000, check=True )
     except FileNotFoundError as exc:
         print(f"Process failed because the executable could not be found.\n{exc}")
         sys.exit(1)
@@ -112,7 +112,7 @@ def main():
 
     try:
         subprocess.run(
-            [args.executable,"--input-dir",args.input_dir,"--output-dir",args.output_dir], timeout=1000, check=True
+            [args.executable,"--input-dir",args.input_dir,"--output-dir",args.output_dir,"-r","0"], timeout=1000, check=True
         )
     except FileNotFoundError as exc:
         print(f"Process failed because the executable could not be found.\n{exc}")

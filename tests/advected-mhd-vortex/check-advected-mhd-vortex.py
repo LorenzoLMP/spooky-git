@@ -69,9 +69,10 @@ tol = 1e-4 ## for this test lower the tolerance to pass (need to check why...)
 def createICs(output_dir):
 
     print("savedir is %s"%(output_dir))
+    sp_savename = 'snap'
 
     # with h5py.File(sp_savedir+'{:s}{:04d}.h5'.format(sp_savename,0), 'w') as data_0:
-    data_0 = h5py.File(output_dir+'{:s}{:04d}.h5'.format(sp_savename,0), 'w')
+    data_0 = h5py.File(output_dir+'/data/'+'{:s}{:04d}.h5'.format(sp_savename,0), 'w')
 
     dset = data_0.create_dataset("step", (1,), dtype='i4')
     dset[0] = 0

@@ -145,7 +145,7 @@ ${PROJECT_SOURCE_DIR}/libs/HighFive/include/
 
 
 add_subdirectory(src)
-add_subdirectory(problems)
+# add_subdirectory(problems)
 
 
 if( BUILD_TESTS )

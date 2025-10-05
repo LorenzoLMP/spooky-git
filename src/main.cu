@@ -86,9 +86,14 @@ int main(int argc, char *argv[]) {
         std::cout << "output directory will be overriden: " << parser.output_dir << std::endl;
     }
 
-    parser.restart_num = program.get<int>("--restart");
-    if (parser.restart_num >= -1) {
+    if (program.is_used("--restart")){
+        parser.restart_num = program.get<int>("--restart");
+    // if (parser.restart_num >= -1) {
         std::cout << "restarting from file: " << parser.restart_num << std::endl;
+    }
+    else {
+        // means not restart
+        parser.restart_num = -2;
     }
     
     parser.stats_frequency = program.get<int>("--stats");

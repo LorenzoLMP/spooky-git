@@ -8,6 +8,7 @@ ${PROJECT_SOURCE_DIR}/src/cuda/cufft_routines.cu
 ##### fields files #####
 ${PROJECT_SOURCE_DIR}/src/fields/fields.cu
 ${PROJECT_SOURCE_DIR}/src/fields/wavevector.cu
+${PROJECT_SOURCE_DIR}/src/fields/initflow.cu
 ${PROJECT_SOURCE_DIR}/src/fields/symmetries.cu
 ##### input/output files ######
 ${PROJECT_SOURCE_DIR}/src/io/inputoutput.cu

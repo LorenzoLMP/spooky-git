@@ -201,7 +201,7 @@ void Supervisor::executeMainLoop(){
 
 void Supervisor::initialDataDump(){
 
-    if (param_ptr->restart == 0){
+    if (parser.restart_num == -2){
 
         std::printf("Initial data dump...\n");
         try {
