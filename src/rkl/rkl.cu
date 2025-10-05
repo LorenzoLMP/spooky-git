@@ -224,7 +224,11 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
         N = floor(N+1.0);
         n = (int)N;
 
-        if (param_ptr->debug > 0) {
+        if (param_ptr->debug > 0 and m==0) {
+            std::printf("STS::::: number of STS subcycles: %d \n", n);
+        }
+
+        if (param_ptr->debug > 1) {
             std::printf("STS::::: STS subcycle num: %d \n", m);
         }
 
@@ -237,7 +241,7 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
         }
         if (n == 1) ts[0] = dt_hyp;
         tau = ts[n-m-1];
-        if (param_ptr->debug > 0) {
+        if (param_ptr->debug > 1) {
             std::printf("STS::::: tau: %.4e \n",tau);
         }
 
@@ -557,127 +561,6 @@ void RKLegendre::compute_cycle_RKL2(data_type* complex_Fields, scalar_type* real
 
 }
 
-
-// void RKLegendre::compute_cycle_RKL(data_type* complex_Fields, scalar_type* real_Buffer){
-
-//     std::shared_ptr<Fields> fields_ptr = supervisor_ptr->fields_ptr;
-//     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
-//     std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
-//     std::shared_ptr<Physics> phys_ptr = supervisor_ptr->phys_ptr;
-
-//     double dt_hyp = timestep_ptr->current_dt;
-//     double dt_par = timestep_ptr->dt_par;
-//     double time = timestep_ptr->current_time;
-
-//     // std::printf("now in supertimestepping function");
-
-
-//     // tau is dt_hyp
-//     // static Data_Arr Y_jm1, Y_jm2, MY_jm1, MY_0;
-//     // in idefix they correspond to:
-//     // Y_jm1  --> Uc0    // field step j-1
-//     // Y_jm2  --> Uc1   // field step j-2
-//     // MY_jm1 --> dU    // dfield step j-1
-//     // MY_0   --> dU0   // dfield step 0
-//     // static double **v;
-//     double s_str;                          /* The "s" parameter */
-
-//     // int i;
-//     int nv, s, s_RKL = 0;
-//     double scrh;
-//     // int nv_indx, var_list[vars.NUM_FIELDS], nvar_rkl;
-//     double mu_j, nu_j, mu_tilde_j, gamma_j;
-//     // data_type Y;
-//     double a_jm1, b_j, b_jm1, b_jm2, w1;
-
-
-//     scrh  = dt_hyp/dt_par;                      /*  Solution of quadratic Eq.   */
-//     s_str =   4.0*(1.0 + 2.0*scrh)           /*  4*tau/dt_exp = s^2 + s - 2  */
-//             /(1.0 + sqrt(9.0 + 16.0*scrh));
-
-//     s_RKL = 1 + int(s_str);
-//     if (param_ptr->debug > 0) {
-//         std::printf("RKL::::: number of RKL subcycles: %d \n",s_RKL);
-//     }
-//     w1 = 4.0/(s_RKL*s_RKL + s_RKL - 2.0);
-//     mu_tilde_j = w1/3.0;
-
-//     b_j = b_jm1 = b_jm2 = 1.0/3.0;
-//     a_jm1 = 1.0 - b_jm1;
-
-
-//     // initialize temp fields
-//     // MY_0 <- parabolicRHS(d_farray[vars.TH])
-//     blocksPerGrid = ( num_sts_vars * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-//     VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>((data_type *)d_all_dU0, data_type(0.0,0.0), num_sts_vars * grid.NTOTAL_COMPLEX);
-
-//     // this is only for temperature
-//     // phys_ptr->AnisotropicConduction(fields, param, (data_type *) fields_ptr->d_farray[vars.TH], (data_type *) d_farray_dU0[vars.TH]);
-
-//     // this is for all parabolic terms
-//     phys_ptr->ParabolicTermsSTS(complex_Fields, real_Buffer, d_all_dU0);
-
-
-//     // this is the index corresponding
-//     // to the position in the VAR array of a given
-//     // sts_var
-//     int var_idx;
-
-//     for (nv = 0; nv < num_sts_vars; nv++){
-//         var_idx = sts_variables_index[nv];
-
-//         // Y_jm1 <- d_farray[vars.TH]
-//         blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-
-//         ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(complex_Fields + var_idx * grid.NTOTAL_COMPLEX, d_farray_Uc0[nv], grid.NTOTAL_COMPLEX);
-
-//         // Y_jm2 <- d_farray[vars.TH]
-//         ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(complex_Fields + var_idx * grid.NTOTAL_COMPLEX, d_farray_Uc1[nv], grid.NTOTAL_COMPLEX);
-
-//         // Y_jm1 (d_farray[vars.TH]) <- Y_jm2 + mu_tilde_j*dt_hyp*MY_0
-//         axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_farray_Uc1[nv],  d_farray_dU[nv],  complex_Fields + var_idx * grid.NTOTAL_COMPLEX, 1.0, mu_tilde_j*dt_hyp,  grid.NTOTAL_COMPLEX);
-//     }
-
-//     /* s loop */
-//     s = 1;
-//     // g_time = t0 + 0.25*tau*(s*s+s-2)*w1;
-//     for (s = 2; s <= s_RKL; s++) {
-
-//         mu_j       = (2.*s -1.)/s * b_j/b_jm1;   /* Eq. [17] */
-//         mu_tilde_j = w1*mu_j;
-//         gamma_j    = -a_jm1*mu_tilde_j;
-//         nu_j       = -(s -1.)*b_j/(s*b_jm2);
-
-//         b_jm2 = b_jm1;    /* Eq. [16] */
-//         b_jm1 = b_j;
-//         a_jm1 = 1.0 - b_jm1;
-//         b_j   = 0.5*(s*s+3.0*s)/(s*s+3.0*s+2);
-
-//         blocksPerGrid = ( num_sts_vars * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-//         VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>((data_type *)d_all_dU, data_type(0.0,0.0), num_sts_vars * grid.NTOTAL_COMPLEX);
-
-//         // phys_ptr->AnisotropicConduction(fields, param, (data_type *) fields_ptr->d_farray[vars.TH], (data_type *) d_farray_dU[vars.TH]);
-
-//         phys_ptr->ParabolicTermsSTS(complex_Fields, real_Buffer, d_all_dU);
-
-//         for (nv = 0; nv < num_sts_vars; nv++){
-//             var_idx = sts_variables_index[nv];
-
-//             // MY_j-1 <- parabolicRHS(d_farray[vars.TH])
-
-//             blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
-//             // real Y = mu_j*Uc(nv,k,j,i) + nu_j*Uc1(nv,k,j,i);
-//             // Uc1(nv,k,j,i) = Uc(nv,k,j,i);
-//             // Uc <- Y + (1.0 - mu_j - nu_j)*Uc0 + dt_hyp*mu_tilde_j*dU +  gamma_j*dt_hyp*dU0;
-//             axpy5ComplexAssign<<<blocksPerGrid, threadsPerBlock>>>((data_type *) complex_Fields + var_idx * grid.NTOTAL_COMPLEX, (data_type *) d_farray_Uc1[nv], (data_type *) d_farray_Uc0[nv], (data_type *) d_farray_dU[nv], (data_type *) d_farray_dU0[nv], mu_j, nu_j, (1.0 - mu_j - nu_j), dt_hyp*mu_tilde_j,  gamma_j*dt_hyp, grid.NTOTAL_COMPLEX);
-
-//             // increment time
-//             time = timestep_ptr->current_time + 0.25*dt_hyp*(s*s+s-2)*w1;
-//         }
-//     }
-
-
-// }
 
 
 void STS_ComputeSubSteps(double dtex, double* tau, int N, double STS_NU)

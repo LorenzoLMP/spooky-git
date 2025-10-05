@@ -43,6 +43,7 @@ public:
     unsigned int NumFFTs;
     float TimeSpentInFFTs;
 
+    // in bytes
     unsigned int AllocCpuMem;
     unsigned int AllocGpuMem;
 
@@ -69,6 +70,8 @@ public:
 
     void Complex2RealFields(data_type* ComplexField_in, int num_fields);
     void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);
+
+    void spookyGpuAlloc(void** devPtr, size_t size);
 
     ~Supervisor();
 };

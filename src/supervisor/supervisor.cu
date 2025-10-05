@@ -256,3 +256,8 @@ void Supervisor::Complex2RealFields(data_type* ComplexField_in, scalar_type* Rea
     }
 
 }
+
+void Supervisor::spookyGpuAlloc(void** devPtr, size_t size){
+    CUDA_RT_CALL(cudaMalloc(devPtr, size));
+    AllocGpuMem += size;
+}

@@ -72,10 +72,10 @@ $ ./src/spooky --input-dir /path/to/input/dir
 
 ## Running tests
 
-If you want to run the tests (```-DBUILD_TESTS=ON```) do instead:
+If you want to run the tests (```-DBUILD_TESTS=ON```) do instead: (NOTE: to verify the sts scalings you need to comment out certain parts in the code, replacing the RK3 with Forward Euler)
 
 ```
-$ ctest -V -R "spooky"
+$ ctest -V -R "spooky" -E "sts"
 ```
 
 which will run all the spooky tests and show the output.

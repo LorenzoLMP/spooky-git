@@ -40,20 +40,21 @@ void TimeStepping::HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr) {
 
     // now we do the supertimestepping?
     // if we want to do it later we need to transform fields to real explicitely
-    // if (param_ptr->supertimestepping and (current_step%2)==1) {
-    //
-    //     rkl_ptr->compute_cycle(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
-    // }
+    if (param_ptr->supertimestepping and (current_step%2)==1) {
+
+        rkl_ptr->compute_cycle(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
+    }
 
 
-    // RungeKutta3(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
-
-    ForwardEuler(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
+    RungeKutta3(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
+    // this is only for testing the super time stepping
+    // in this case also deactivate the interleaved sts (comment out lines 43-46 and replace line 56 with 57)
+    // ForwardEuler(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r);
     
 
     // if we want to do supertimestepping now we need to transform fields to real explicitely
-    // if (param_ptr->supertimestepping and (current_step%2)==0) {
-    if (param_ptr->supertimestepping) {
+    if (param_ptr->supertimestepping and (current_step%2)==0) {
+    // if (param_ptr->supertimestepping) {
         // this functions copies the complex fields from d_all_fields into d_all_buffer_r and performs
         // an in-place r2c FFT to give the real fields. This buffer is reserved for the real fields!
         supervisor_ptr->Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r, vars.NUM_FIELDS);
