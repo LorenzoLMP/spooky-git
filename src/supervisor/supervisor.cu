@@ -226,9 +226,9 @@ void Supervisor::initialDataDump(){
 
 
 void Supervisor::Restart(){
-    if (param_ptr->restart == 1){
-        inout_ptr->ReadDataFile(parser.restart_num);
-    }
+    // if (param_ptr->restart == 1){
+    inout_ptr->ReadDataFile(parser.restart_num);
+    // }
 }
 
 Supervisor::~Supervisor(){

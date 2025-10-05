@@ -30,6 +30,46 @@ flag = 1 # fail
 sts_algorithms = ["sts","rkl1","rkl2"]
 # sts_algorithms = ["rkl2"]
 
+def createICs(output_dir, **kwargs):
+
+    print("savedir is %s"%(output_dir))
+    sp_savename = 'snap'
+
+    if 'nx' in kwargs.keys():
+        nx = kwargs['nx']
+    if 'ny' in kwargs.keys():
+        ny = kwargs['ny']
+    if 'nz' in kwargs.keys():
+        nz = kwargs['nz']
+    if 'T_0' in kwargs.keys():
+        th_0 = kwargs['T_0']
+
+    # with h5py.File(sp_savedir+'{:s}{:04d}.h5'.format(sp_savename,0), 'w') as data_0:
+    data_0 = h5py.File(output_dir+'/data/'+'{:s}{:04d}.h5'.format(sp_savename,0), 'w')
+
+    dset = data_0.create_dataset("step", (1,), dtype='i4')
+    dset[0] = 0
+
+    dset = data_0.create_dataset("t_end", (1,), dtype='f8')
+    dset[0] = 10.0
+
+    dset = data_0.create_dataset("t_lastsnap", (1,), dtype='f8')
+    dset[0] = 0.0
+
+    dset = data_0.create_dataset("t_lastvar", (1,), dtype='f8')
+    dset[0] = 0.0
+
+    dset = data_0.create_dataset("t_save", (1,), dtype='f8')
+    dset[0] = 0.0
+
+    dset = data_0.create_dataset("t_start", (1,), dtype='f8')
+    dset[0] = 0.0
+
+    dset = data_0.create_dataset("th", (nx*ny*nz,), dtype='f8')
+    dset[:] = th_0.flatten()
+
+    data_0.close()
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -94,12 +134,15 @@ def main():
                 # os.mkdir(subtest_output_dir+'/data')
 
 
+            # create ICs
+            createICs(subtest_output_dir, nx=nx, ny=ny, nz=nz, T_0=T_0)
+
             try:
                 # subprocess.run(
                 #     [args.executable,"--input-dir",args.input_dir+'/%s'%(sts_algo), "--output-dir", subtest_output_dir, "--ngrid", "%d"%(nx), "%d"%(ny), "%d"%(nz), "--stats", "%d"%(2**m+1)], timeout=1000, check=True
                 # )
                 subprocess.run(
-                    [args.executable,"--input-dir",args.input_dir+'/%s'%(sts_algo), "--output-dir", subtest_output_dir, "--ngrid", "%d"%(nx), "%d"%(ny), "%d"%(nz)], timeout=1000, check=True
+                    [args.executable,"--input-dir",args.input_dir+'/%s'%(sts_algo), "--output-dir", subtest_output_dir, "--ngrid", "%d"%(nx), "%d"%(ny), "%d"%(nz),"-r","0"], timeout=1000, check=True
                 )
             except FileNotFoundError as exc:
                 print(f"Process failed because the executable could not be found.\n{exc}")

@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
     }
 
     parser.restart_num = program.get<int>("--restart");
-    if (parser.restart_num > -1) {
+    if (parser.restart_num >= -1) {
         std::cout << "restarting from file: " << parser.restart_num << std::endl;
     }
     
@@ -137,8 +137,9 @@ int main(int argc, char *argv[]) {
 
     std::printf("Finished reading in params and initializing objects.\n");
 
-
-    spooky.Restart();
+    if (parser.restart_num >= -1) {
+        spooky.Restart();
+    }
 
     spooky.displayConfiguration();
 

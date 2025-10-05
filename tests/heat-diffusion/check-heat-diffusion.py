@@ -16,7 +16,55 @@ nx = 1024
 ny = 2
 nz = 2
 
+lx = 1.0
+ly = 1.0
+lz = 1.0
+
+x = -0.5 + lx * (np.arange(nx)) / nx
+y = -0.5 + ly * (np.arange(ny)) / ny
+z = -0.5 + lz * (np.arange(nz)) / nz
+
+X, Y, Z = np.meshgrid(x,y,z,indexing='ij')
+
 tol = 1e-15
+
+a = 0.01
+delta = 1.0
+
+th_0 = 1 + delta / 2 * (np.tanh((X + 0.375) / a) - np.tanh((X + 0.125) / a)) \
+        + delta / 2 * (np.tanh((X - 0.125) / a) - np.tanh((X - 0.375) / a))
+
+
+def createICs(output_dir):
+
+    print("savedir is %s"%(output_dir))
+    sp_savename = 'snap'
+
+    # with h5py.File(sp_savedir+'{:s}{:04d}.h5'.format(sp_savename,0), 'w') as data_0:
+    data_0 = h5py.File(output_dir+'/data/'+'{:s}{:04d}.h5'.format(sp_savename,0), 'w')
+
+    dset = data_0.create_dataset("step", (1,), dtype='i4')
+    dset[0] = 0
+
+    dset = data_0.create_dataset("t_end", (1,), dtype='f8')
+    dset[0] = 10.0
+
+    dset = data_0.create_dataset("t_lastsnap", (1,), dtype='f8')
+    dset[0] = 0.0
+
+    dset = data_0.create_dataset("t_lastvar", (1,), dtype='f8')
+    dset[0] = 0.0
+
+    dset = data_0.create_dataset("t_save", (1,), dtype='f8')
+    dset[0] = 0.0
+
+    dset = data_0.create_dataset("t_start", (1,), dtype='f8')
+    dset[0] = 0.0
+
+    dset = data_0.create_dataset("th", (nx*ny*nz,), dtype='f8')
+    dset[:] = th_0.flatten()
+
+    data_0.close()
 
 
 def main():
@@ -35,20 +83,19 @@ def main():
     parser.add_argument('--output-dir',
                         # action='store_const',
                         help='full path to output dir')
-    # parser.add_argument('--short',
-    #                     default=False,
-    #                     action='store_true',
-    #                     help='run a shorter test')
-    # args = parser.parse_args(['--input-dir'])
+
     args = parser.parse_args()
     print("test dir is %s"%(args.input_dir))
 
     py_savedir = args.output_dir+"/data/"
     sp_savedir = args.output_dir+"/data/"
 
+    # create ICs
+    createICs(args.output_dir)
+
     try:
         subprocess.run(
-            ["python", args.input_dir+"/"+"test_rk3_heatdiff.py","--input-dir",args.input_dir,"--output-dir",args.output_dir], timeout=1000, check=True )
+            ["python", args.input_dir+"/"+"test_rk3_heatdiff.py","--input-dir",args.input_dir,"--output-dir",args.output_dir,"-r","0"], timeout=1000, check=True )
     except FileNotFoundError as exc:
         print(f"Process failed because the executable could not be found.\n{exc}")
         sys.exit(1)

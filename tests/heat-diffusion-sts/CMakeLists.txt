@@ -25,6 +25,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/data/)
 add_executable(test_heat-diffusion-sts
 compute_dt.cu
 initflow.cu
+hydro_mhd_advance.cu
 # rkl.cu
 ${spooky_src})
 
