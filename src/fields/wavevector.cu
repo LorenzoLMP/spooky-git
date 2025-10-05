@@ -165,9 +165,11 @@ void Wavevector::shearWavevector(double tremap){
 void Wavevector::allocate_and_move_to_gpu() {
     // void *d_vx, *d_vy;
 
-    CUDA_RT_CALL(cudaMalloc(&d_all_kvec, (size_t) sizeof(scalar_type) * grid.NTOTAL_COMPLEX * 3));
+    // CUDA_RT_CALL(cudaMalloc(&d_all_kvec, (size_t) sizeof(scalar_type) * grid.NTOTAL_COMPLEX * 3));
+    supervisor_ptr->spookyGpuAlloc(&d_all_kvec, (size_t) sizeof(scalar_type) * grid.NTOTAL_COMPLEX * 3);
 
-    CUDA_RT_CALL(cudaMalloc(&d_mask,  (size_t) sizeof(scalar_type) * grid.NTOTAL_COMPLEX));
+    // CUDA_RT_CALL(cudaMalloc(&d_mask,  (size_t) sizeof(scalar_type) * grid.NTOTAL_COMPLEX));
+    supervisor_ptr->spookyGpuAlloc(&d_mask,  (size_t) sizeof(scalar_type) * grid.NTOTAL_COMPLEX);
 
     CUDA_RT_CALL(cudaMemcpy(d_all_kvec, all_kvec, (size_t) sizeof(scalar_type) * grid.NTOTAL_COMPLEX * 3, cudaMemcpyHostToDevice));
 

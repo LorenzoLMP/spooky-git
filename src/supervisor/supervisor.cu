@@ -105,6 +105,7 @@ void Supervisor::print_final_stats(){
     std::printf("@@\t\t- FFTs per loop: %d \n", NumFFTs/tot_steps);
     std::cout << "@@" << std::endl;
     std::printf("@@\tThe average performance is: \n@@\t\t\t %.4e [cell_updates/s]  \n",grid.NTOTAL*tot_steps/TimeSpentInMainLoop);
+    std::printf("@@\tTotal GPU allocated memory: \n@@\t\t\t %.4e [MB]  \n",(double) AllocGpuMem/1e6);
 
     std::printf("@@ ------------------------------------------------------------------------ @@ \n");
     std::printf("@@@@@ ------------------------------------------------------------------ @@@@@ \n");
@@ -257,7 +258,7 @@ void Supervisor::Complex2RealFields(data_type* ComplexField_in, scalar_type* Rea
 
 }
 
-void Supervisor::spookyGpuAlloc(void** devPtr, size_t size){
-    CUDA_RT_CALL(cudaMalloc(devPtr, size));
-    AllocGpuMem += size;
-}
+// void Supervisor::spookyGpuAlloc(void** devPtr, size_t size){
+//     CUDA_RT_CALL(cudaMalloc(devPtr, size));
+//     AllocGpuMem += size;
+// }

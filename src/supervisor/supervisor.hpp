@@ -71,7 +71,11 @@ public:
     void Complex2RealFields(data_type* ComplexField_in, int num_fields);
     void Complex2RealFields(data_type* ComplexField_in, scalar_type* RealField_out, int num_fields);
 
-    void spookyGpuAlloc(void** devPtr, size_t size);
+    template <typename T>
+    void spookyGpuAlloc(T** devPtr, size_t size){
+        CUDA_RT_CALL(cudaMalloc(devPtr, size));
+        AllocGpuMem += size;
+    };
 
     ~Supervisor();
 };

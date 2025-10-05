@@ -28,7 +28,6 @@ InputOutput::InputOutput(Supervisor &sup_in) {
     CUDA_RT_CALL(cudaMalloc(&d_output_spectrum, (size_t) sizeof(scalar_type) * nbins));
 
 
-
 }
 
 InputOutput::~InputOutput(){

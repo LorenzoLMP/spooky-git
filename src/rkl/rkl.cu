@@ -80,7 +80,8 @@ RKLegendre::RKLegendre(Parameters &p_in, Supervisor &sup_in) {
         }
 
         std::printf("num rkl scratch arrays: %d \n",num_sts_vars);
-        CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        // CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        supervisor_ptr->spookyGpuAlloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars);
 
         VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU,  data_type(0.0,0.0), grid.NTOTAL_COMPLEX * num_sts_vars);
 
@@ -95,10 +96,14 @@ RKLegendre::RKLegendre(Parameters &p_in, Supervisor &sup_in) {
         // sts_algorithm = "rkl2";
         std::printf("num rkl scratch arrays: %d \n",4*num_sts_vars);
 
-        CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
-        CUDA_RT_CALL(cudaMalloc(&d_all_dU0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
-        CUDA_RT_CALL(cudaMalloc(&d_all_Uc0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
-        CUDA_RT_CALL(cudaMalloc(&d_all_Uc1, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        // CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        supervisor_ptr->spookyGpuAlloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars);
+        // CUDA_RT_CALL(cudaMalloc(&d_all_dU0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        supervisor_ptr->spookyGpuAlloc(&d_all_dU0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars);
+        // CUDA_RT_CALL(cudaMalloc(&d_all_Uc0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        supervisor_ptr->spookyGpuAlloc(&d_all_Uc0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars);
+        // CUDA_RT_CALL(cudaMalloc(&d_all_Uc1, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        supervisor_ptr->spookyGpuAlloc(&d_all_Uc1, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars);
 
         VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU,  data_type(0.0,0.0), grid.NTOTAL_COMPLEX * num_sts_vars);
         VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU0, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * num_sts_vars);
@@ -121,10 +126,14 @@ RKLegendre::RKLegendre(Parameters &p_in, Supervisor &sup_in) {
         // sts_algorithm = "rkl2";
         std::printf("num rkl scratch arrays: %d \n",4*num_sts_vars);
 
-        CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
-        CUDA_RT_CALL(cudaMalloc(&d_all_dU0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
-        CUDA_RT_CALL(cudaMalloc(&d_all_Uc0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
-        CUDA_RT_CALL(cudaMalloc(&d_all_Uc1, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        // CUDA_RT_CALL(cudaMalloc(&d_all_dU, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        supervisor_ptr->spookyGpuAlloc(&d_all_dU, sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars);
+        // CUDA_RT_CALL(cudaMalloc(&d_all_dU0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        supervisor_ptr->spookyGpuAlloc(&d_all_dU0, sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars);
+        // CUDA_RT_CALL(cudaMalloc(&d_all_Uc0, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        supervisor_ptr->spookyGpuAlloc(&d_all_Uc0, sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars);
+        // CUDA_RT_CALL(cudaMalloc(&d_all_Uc1, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars));
+        supervisor_ptr->spookyGpuAlloc(&d_all_Uc1, sizeof(data_type) * grid.NTOTAL_COMPLEX * num_sts_vars);
 
         VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU,  data_type(0.0,0.0), grid.NTOTAL_COMPLEX * num_sts_vars);
         VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(d_all_dU0, data_type(0.0,0.0), grid.NTOTAL_COMPLEX * num_sts_vars);

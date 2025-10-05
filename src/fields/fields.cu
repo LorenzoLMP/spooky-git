@@ -298,13 +298,17 @@ void Fields::allocate_and_move_to_gpu() {
     std::printf("Allocating to gpu:\n");
     // void *d_vx, *d_vy;
     // this is the mega array that contains fields
-    CUDA_RT_CALL(cudaMalloc(&d_all_fields, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+    // CUDA_RT_CALL(cudaMalloc(&d_all_fields, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+    supervisor_ptr->spookyGpuAlloc(&d_all_fields, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
     // this is the mega array that contains dfields
-    CUDA_RT_CALL(cudaMalloc(&d_all_dfields, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+    // CUDA_RT_CALL(cudaMalloc(&d_all_dfields, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+    supervisor_ptr->spookyGpuAlloc(&d_all_dfields, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
     // this is the mega array that contains temporary scratch arrays
-    CUDA_RT_CALL(cudaMalloc(&d_all_tmparray, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_tmp_array));
+    // CUDA_RT_CALL(cudaMalloc(&d_all_tmparray, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_tmp_array));
+    supervisor_ptr->spookyGpuAlloc(&d_all_tmparray, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * num_tmp_array);
     // this is the buffer array for real fields
-    CUDA_RT_CALL(cudaMalloc(&d_all_buffer_r, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+    // CUDA_RT_CALL(cudaMalloc(&d_all_buffer_r, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+    supervisor_ptr->spookyGpuAlloc(&d_all_buffer_r, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
 
     // copy to gpu
 

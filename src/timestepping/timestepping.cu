@@ -32,7 +32,8 @@ TimeStepping::TimeStepping(Supervisor &sup_in, Parameters &p_in) {
     // this is the mega array that contains intermediate fields during multi-stage timestepping
     // std::printf("vars.NUM_FIELDS fields ts: %d \n", fields->vars.NUM_FIELDS_fields);
     std::printf("num timestepping scratch arrays: %d \n",vars.NUM_FIELDS);
-    CUDA_RT_CALL(cudaMalloc(&d_all_scrtimestep, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+    // CUDA_RT_CALL(cudaMalloc(&d_all_scrtimestep, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS));
+    supervisor_ptr->spookyGpuAlloc(&d_all_scrtimestep, (size_t) sizeof(data_type) * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
     int blocksPerGrid = ( 2 * vars.NUM_FIELDS * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
     VecInit<<<blocksPerGrid, threadsPerBlock>>>((scalar_type *)d_all_scrtimestep, 0.0, 2 * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS);
 }
