@@ -61,9 +61,9 @@ Wavevector::Wavevector(Supervisor &sup_in, Parameters &p_in) {
     std::printf("Finished filling wavevector\n");
 
 
-    kxmax = 2.0 * M_PI/ lx * ( ( (double) grid.NX / 2) - 1);
-    kymax = 2.0 * M_PI/ ly * ( ( (double) grid.NY / 2) - 1);
-    kzmax = 2.0 * M_PI/ lz * ( ( (double) grid.NZ / 2) - 1);
+    kxmax = 2.0 * M_PI/ lx * ( ( grid.NX / 2) - 1);
+    kymax = 2.0 * M_PI/ ly * ( ( grid.NY / 2) - 1);
+    kzmax = 2.0 * M_PI/ lz * ( ( grid.NZ / 2) );
 
     std::printf("Maximum wavenumbers (without dealiasing): kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",kxmax,kymax, kzmax);
 

@@ -63,8 +63,8 @@ void InputOutput::WriteDataFile() {
     dataset = file.createDataSet<scalar_type>("t_save", data_scalar);
     dataset.write(timestep_ptr->current_time);
 
-    dataset = file.createDataSet<scalar_type>("t_end", data_scalar);
-    dataset.write(param_ptr->t_final);
+    // dataset = file.createDataSet<scalar_type>("t_end", data_scalar);
+    // dataset.write(param_ptr->t_final);
 
     dataset = file.createDataSet<scalar_type>("t_lastsnap", data_scalar);
     dataset.write(t_lastsnap);

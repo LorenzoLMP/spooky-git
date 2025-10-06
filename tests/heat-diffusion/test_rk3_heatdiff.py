@@ -15,9 +15,9 @@ lz = 1.0
 
 x = -0.5 + lx * (np.arange(nx)) / nx
 
-kxmax = 2.0*np.pi/lx * (nx/2-1)
-kymax = 2.0*np.pi/ly * (ny/2-1)
-kzmax = 2.0*np.pi/lz * (nz/2-1)
+kxmax = 2.0*np.pi/lx * (nx//2-1)
+kymax = 2.0*np.pi/ly * (ny//2-1)
+kzmax = 2.0*np.pi/lz * (nz//2)
 
 k2max =  kxmax*kxmax + kymax*kymax + kzmax*kzmax
 
