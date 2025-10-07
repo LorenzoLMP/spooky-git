@@ -29,6 +29,7 @@ class Parameters {
 	 ******************/
 
 	int debug;   				// debug levels = 0 (no debug), 1 (less verbose), 2 (very verbose)
+	int with2d;					// force problem to be 2d (x,y) by setting kz=0
 	int incompressible;			// HD module
 	int heat_equation;			// heat_equation module (incompatible with incompressible)
 	// int explicit_dissipation; 	// need to check this

@@ -116,6 +116,10 @@ void Supervisor::displayConfiguration(){
     std::printf("You are running SPOOKY with the following configuration: \n");
     std::printf("Number of fields = %d \n",vars.NUM_FIELDS);
     std::printf("Grid size (real space) (NX, NY, NZ) = (%d \t %d \t %d)\n",grid.NX, grid.NY, grid.NZ);
+
+    if (param_ptr->with2d) {
+        std::printf("You are running with 2d (x,y) \n");
+    }
     std::printf("Size of the domain: lx = %f \t ly = %f \t lz = %f\n",param_ptr->lx, param_ptr->ly, param_ptr->lz);
     std::printf("kxmax = %.4e  kymax = %.4e  kzmax = %.4e \n",fields_ptr->wavevector.kxmax,fields_ptr->wavevector.kymax, fields_ptr->wavevector.kzmax);
 

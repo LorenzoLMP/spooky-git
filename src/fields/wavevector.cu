@@ -53,7 +53,13 @@ Wavevector::Wavevector(Supervisor &sup_in, Parameters &p_in) {
                 idx = k + (grid.NZ/2+1) * ( j + i * grid.NY);
                 kvec[vars.KX][idx] = (2.0 * M_PI) / lx * (fmod( (double) i + ( (double) grid.NX / 2) ,  grid.NX ) - (double) grid.NX / 2 );
                 kvec[vars.KY][idx]  = (2.0 * M_PI) / ly * (fmod( (double) j + ( (double) grid.NY / 2) ,  grid.NY ) - (double) grid.NY / 2 );
-                kvec[vars.KZ][idx]  = (2.0 * M_PI) / lz * (double) k;
+                if (p_in.with2d) {
+                    kvec[vars.KZ][idx]  = 0.0;
+                }
+                else {
+                    kvec[vars.KZ][idx]  = (2.0 * M_PI) / lz * (double) k;
+                }
+
             }
         }
     }
@@ -63,7 +69,10 @@ Wavevector::Wavevector(Supervisor &sup_in, Parameters &p_in) {
 
     kxmax = 2.0 * M_PI/ lx * ( ( grid.NX / 2) - 1);
     kymax = 2.0 * M_PI/ ly * ( ( grid.NY / 2) - 1);
-    kzmax = 2.0 * M_PI/ lz * ( ( grid.NZ / 2) );
+    kzmax = 2.0 * M_PI/ lz * ( ( grid.NZ / 2) - 1);
+    if (p_in.with2d) {
+        kzmax = 0.0;
+    }
 
     std::printf("Maximum wavenumbers (without dealiasing): kxmax = %.2e  kymax = %.2e  kzmax = %.2e \n",kxmax,kymax, kzmax);
 

@@ -55,6 +55,8 @@ struct Parser {
     std::string input_dir;
     std::string output_dir;
     bool output_dir_override = false;
+
+    bool with2d = false;
 };
 
 extern struct Parser parser;

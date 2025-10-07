@@ -57,6 +57,10 @@ int main(int argc, char *argv[]) {
     .scan<'i', int>()
     .default_value(std::vector<int>{32, 32, 32});
 
+    program.add_argument("--with-2d")
+    .help("force problem to be 2d (x,y)")
+    .flag();
+
     try {
     program.parse_args(argc, argv);
     }
@@ -122,6 +126,11 @@ int main(int argc, char *argv[]) {
         parser.nz = ngrid[2];
 
         std::printf("overriding ngrid: (nx, ny, nz) = (%d, %d, %d) \n", parser.nx, parser.ny, parser.nz);
+    }
+
+    if (program["--with-2d"] == true) {
+        std::cout << "Forcing 2d" << std::endl;
+        parser.with2d = true;
     }
 
 

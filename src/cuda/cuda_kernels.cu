@@ -128,7 +128,7 @@ __global__ void NonLinAdvection(const scalar_type *kvec, const data_type *ShearM
 __global__ void GradPseudoPressure(const scalar_type *kvec, data_type *dVelField, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     data_type divDeltaField;
-    scalar_type ik2 = 1.0;
+    scalar_type k2, ik2;
     // this is the imaginary unit
     data_type imI = data_type(0.0,1.0);
 
@@ -136,8 +136,12 @@ __global__ void GradPseudoPressure(const scalar_type *kvec, data_type *dVelField
         divDeltaField = imI * ( kvec[0 * N + i] * dVelField[0 * N + i] + kvec[1 * N + i] * dVelField[1 * N + i] + kvec[2 * N + i] * dVelField[2 * N + i] ) ;
 
         // compute 1/k2
-        if (i > 0){
-            ik2 = 1.0 / (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
+        k2 = (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
+        if (k2 > 0.0) {
+            ik2 = 1.0 / k2;
+        }
+        else {
+            ik2 = 1.0;
         }
 
         // add -grad p
@@ -161,7 +165,7 @@ __global__ void GradPseudoPressure(const scalar_type *kvec, data_type *dVelField
 __global__ void GradPseudoPressureShearing(const scalar_type *kvec, data_type *dVelField, data_type *Velx, double shear, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     data_type divDeltaField;
-    scalar_type ik2 = 1.0;
+    scalar_type k2, ik2;
     // this is the imaginary unit
     data_type imI = data_type(0.0,1.0);
 
@@ -170,8 +174,12 @@ __global__ void GradPseudoPressureShearing(const scalar_type *kvec, data_type *d
         divDeltaField = imI * ( shear * kvec[1 * N + i] * Velx[i] + kvec[0 * N + i] * dVelField[0 * N + i] + kvec[1 * N + i] * dVelField[1 * N + i] + kvec[2 * N + i] * dVelField[2 * N + i] ) ;
 
         // compute 1/k2
-        if (i > 0){
-            ik2 = 1.0 / (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
+        k2 = (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
+        if (k2 > 0.0) {
+            ik2 = 1.0 / k2;
+        }
+        else {
+            ik2 = 1.0;
         }
 
         // add -grad p

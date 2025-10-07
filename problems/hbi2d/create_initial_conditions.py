@@ -27,9 +27,23 @@ z = -0.5 + lz * (np.arange(nz)) / nz
 
 X, Y, Z = np.meshgrid(x,y,z,indexing='ij')
 
+kx_vec = 2.0*np.pi*np.fft.fftfreq(nx, d=lx/nx)
+ky_vec = 2.0*np.pi*np.fft.fftfreq(ny, d=ly/ny)
+kz_vec = 2.0*np.pi*np.fft.rfftfreq(nz, d=lz/nz)
 
-vx_0 =   0.01*rng.uniform(low=-0.5, high=0.5, size=X.shape)
-vy_0 =   0.01*rng.uniform(low=-0.5, high=0.5, size=X.shape)
+KX, KY, KZ = np.meshgrid(kx_vec, ky_vec, kz_vec, sparse=False, indexing='ij')
+
+def rand(size):
+    return rng.uniform(low=-0.5, high=0.5, size=size)
+
+
+fact = (27.0/8.0*nx*ny*nz)**0.5
+
+vx_0_hat = 0.01*rand(KX.shape) * np.exp(1j*2.0*np.pi*rand(KX.shape)) * fact
+vy_0_hat = 0.01*rand(KX.shape) * np.exp(1j*2.0*np.pi*rand(KX.shape)) * fact
+
+vx_0 =   np.fft.irfftn(vx_0_hat)
+vy_0 =   np.fft.irfftn(vy_0_hat)
 vz_0 =   np.zeros(X.shape)
 
 bx_0 =   np.zeros(X.shape)

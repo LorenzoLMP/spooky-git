@@ -290,15 +290,19 @@ __global__ void CleanDivergence( const scalar_type *kvec, const data_type *X, da
     // X points to the first element of the 3D vector, Z is the scalar (complex) output
     // This kernel works for velocity and magnetic field
     data_type q0;
-    scalar_type ik2 = 0.0;
+    scalar_type ik2, k2;
     // this is the imaginary unit
     data_type imI = data_type(0.0,1.0);
     if (i < N) {
         // divergence of vfeld/bfield
         q0 = imI *  (kvec[0 * N + i] * X[i] + kvec[1 * N + i] * X[N + i] + kvec[2 * N + i] * X[2 * N + i] );
 
-        if (i > 0) {
-            ik2 = 1.0 / (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
+        k2 = (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
+        if (k2 > 0.0) {
+            ik2 = 1.0 / k2;
+        }
+        else {
+            ik2 = 1.0;
         }
 
         Z[        i] = X[        i] + imI * kvec[0 * N + i] * q0 * ik2;
@@ -470,7 +474,7 @@ __global__ void Spectrum1d( const scalar_type *kvec, const data_type *v1, const 
 __global__ void Helicity(const scalar_type *kvec, data_type *VecField, data_type *HelicityVec, size_t N){
     size_t i = static_cast<size_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     
-    scalar_type ik2 = 1.0;
+    scalar_type k2, ik2;
     // this is the imaginary unit
     data_type imI = data_type(0.0,1.0);
     data_type curl_x, curl_y, curl_z;
@@ -484,8 +488,12 @@ __global__ void Helicity(const scalar_type *kvec, data_type *VecField, data_type
         curl_z = - imI * ( kvec[0 * N + i] * VecField[1 * N + i] - kvec[1 * N + i] * VecField[0 * N + i]);
 
         // compute 1/k2
-        if (i > 0){
-            ik2 = 1.0 / (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
+        k2 = (kvec[0 * N + i] * kvec[0 * N + i] + kvec[1 * N + i] * kvec[1 * N + i] + kvec[2 * N + i] * kvec[2 * N + i]);
+        if (k2 > 0.0) {
+            ik2 = 1.0 / k2;
+        }
+        else {
+            ik2 = 1.0;
         }
 
         // hel_x component

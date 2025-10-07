@@ -77,6 +77,13 @@ Parameters::Parameters(Supervisor& sup_in) : spookyOutVar(sup_in), userOutVar(su
 	if(!config_lookup_int(&config, "modules.debug",&debug)) {
 		debug = 0;
 	}
+	if(!config_lookup_bool(&config, "modules.with2d",&with2d)) {
+		with2d = 0;
+	}
+	// override from command line
+	if (parser.with2d == true) {
+		with2d = 1;
+	}
 	if(!config_lookup_bool(&config, "modules.incompressible",&incompressible)) {
 		incompressible = 0;
 	}
@@ -531,6 +538,11 @@ int Parameters::checkParameters(){
 			paramsConsistent = 0;
 			std::cout << "Error: the number of sts variables is larger than the total number of variables." << std::endl;
 		}
+	}
+
+	if (nx < 2 or ny < 2 or nz < 2){
+		std::cout << "Error: please select a number of grid points >= 2 in each direction." << std::endl;
+		std::cout << "If you want to run a 2d sim use the flag --with-2d or select the option in the spooky.cfg" << std::endl;
 	}
 
 	// is shearing is on, overwrite toutput_flow so that
