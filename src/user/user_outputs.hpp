@@ -1,3 +1,6 @@
+#ifndef USER_OUTPUTS_HPP
+#define USER_OUTPUTS_HPP
+
 #include "common.hpp"
 #include <vector>
 #include <array>
@@ -18,3 +21,4 @@ class UserOutput : public SpookyOutput { // The class
                                     scalar_type* real_Buffer);
 };
 
+#endif
