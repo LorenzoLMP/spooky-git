@@ -218,7 +218,7 @@ void InputOutput::WriteTimevarOutputHeader() {
     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
     if (param_ptr->debug > 0) {
-        std::printf("Writing data output... \n");
+        std::printf("Writing data header... \n");
     }
 
     char data_output_name[16];

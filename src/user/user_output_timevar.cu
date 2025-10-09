@@ -25,9 +25,9 @@ void InputOutput::WriteUserTimevarOutput() {
     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
     std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
 
-#ifdef DEBUG
-    std::printf("Writing user data output... \n");
-#endif
+    if (param_ptr->debug > 0) {
+        std::printf("Writing user data output... \n");
+    }
 
     // int blocksPerGrid;
     double t0        = param_ptr->t_initial;
@@ -78,11 +78,12 @@ void InputOutput::WriteUserTimevarOutput() {
 
 void InputOutput::WriteUserTimevarOutputHeader() {
 
-#ifdef DEBUG
-    std::printf("Writing data output... \n");
-#endif
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
-     std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
+    if (param_ptr->debug > 0) {
+        std::printf("Writing user data header... \n");
+    }
+
 
     char data_output_name[16];
     std::sprintf(data_output_name,"user-timevar.spooky");
