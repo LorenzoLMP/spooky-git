@@ -106,7 +106,7 @@ void InputOutput::WriteUserTimevarOutputHeader() {
         outputfile << "\n";
         outputfile.close();
     }
-    catch (const std::exception& err) {
+    catch (const std::bad_alloc& err) {
         std::cerr << err.what() << std::endl;
             // std::cerr << program;
         std::exit(1);
