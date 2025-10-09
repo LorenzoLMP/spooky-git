@@ -85,23 +85,32 @@ void InputOutput::WriteUserTimevarOutputHeader() {
     }
 
 
-    char data_output_name[16];
-    std::sprintf(data_output_name,"user-timevar.spooky");
-    std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
+    try {
+        char data_output_name[16];
+        std::sprintf(data_output_name,"user-timevar.spooky");
+        std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
 
-    std::ofstream outputfile;
-    outputfile.open (fname, std::ios_base::app);
+        std::ofstream outputfile;
+        outputfile.open (fname, std::ios_base::app);
 
 
-    outputfile << "## This file contains the time evolution of the following quantities: \n";
-    outputfile << "## \t";
+        outputfile << "## This file contains the time evolution of the following quantities: \n";
+        outputfile << "## \t";
 
-    // if (param_ptr->userOutVar.length_timevar > 0){
-    for (int i = 0; i < param_ptr->userOutVar.length_timevar; i++){
-        outputfile << param_ptr->userOutVar.name_timevar[i]  << "\t";
+        // if (param_ptr->userOutVar.length_timevar > 0){
+        for (int i = 0; i < param_ptr->userOutVar.length_timevar; i++){
+            outputfile << param_ptr->userOutVar.name_timevar[i]  << "\t";
+        }
+        // }
+
+        outputfile << "\n";
+        outputfile.close();
     }
-    // }
+    catch (const std::exception& err) {
+        std::cerr << err.what() << std::endl;
+            // std::cerr << program;
+        std::exit(1);
+    }
 
-    outputfile << "\n";
-    outputfile.close();
+
 }
