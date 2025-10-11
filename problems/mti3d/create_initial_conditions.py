@@ -31,6 +31,12 @@ vx_0 =   np.zeros(X.shape)
 vy_0 =   np.sin(2.0*np.pi*Y/ly) * np.cos(2.0*np.pi*Z/lz)
 vz_0 = - np.cos(2.0*np.pi*Y/ly) * np.sin(2.0*np.pi*Z/lz)
 
+bx_0 =   1e-4*np.ones(X.shape)
+by_0 =   np.zeros(X.shape)
+bz_0 =   np.zeros(X.shape)
+
+th_0 =   np.zeros(X.shape)
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -72,6 +78,18 @@ def main():
 
     dset = data_0.create_dataset("vz", (nx*ny*nz,), dtype='f8')
     dset[:] = vz_0.flatten()
+
+    dset = data_0.create_dataset("bx", (nx*ny*nz,), dtype='f8')
+    dset[:] = bx_0.flatten()
+
+    dset = data_0.create_dataset("by", (nx*ny*nz,), dtype='f8')
+    dset[:] = by_0.flatten()
+
+    dset = data_0.create_dataset("bz", (nx*ny*nz,), dtype='f8')
+    dset[:] = bz_0.flatten()
+
+    dset = data_0.create_dataset("th", (nx*ny*nz,), dtype='f8')
+    dset[:] = th_0.flatten()
 
     data_0.close()
 
