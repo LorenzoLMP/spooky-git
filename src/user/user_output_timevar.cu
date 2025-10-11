@@ -84,11 +84,12 @@ void InputOutput::WriteUserTimevarOutputHeader() {
         std::printf("Writing user data header... \n");
     }
 
-    std::printf("length of the user timevar array = %d \n", param_ptr->userOutVar.length_timevar);
+    // std::printf("length of the user timevar array = %d \n", param_ptr->userOutVar.length_timevar);
+    // std::cout << "output dir" << param_ptr->output_dir << std::endl;
 
-    char user_output_name[16];
-    std::sprintf(user_output_name,"user-timevar.spooky");
-    std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(user_output_name);
+    // char user_output_name[16];
+    // std::sprintf(user_output_name,"user-timevar.spooky");
+    std::string fname = param_ptr->output_dir + std::string("/data/") + std::string("user-timevar.spooky");
 
     std::ofstream outputfile;
     outputfile.open (fname, std::ios_base::app);
