@@ -167,6 +167,7 @@ int main(int argc, char *argv[]) {
     spooky.fields_ptr->allocate_and_move_to_gpu();
 
     spooky.fields_ptr->CheckSymmetries();
+    spooky.fields_ptr->CleanFieldDivergence();
 
     spooky.initialDataDump();
 
