@@ -47,7 +47,9 @@ void Fields::CheckSymmetries(){
     
 }
 
-double Fields::CheckDivergence(  ){
+void Fields::CheckDivergence(  ){
+
+    std::shared_ptr<Parameters> param_ptr = supervisor_ptr->param_ptr;
 
     int current_step = supervisor_ptr->timestep_ptr->current_step;
     // int symmetries_step = param_ptr->symmetries_step;
