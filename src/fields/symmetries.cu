@@ -33,8 +33,8 @@ void Fields::CheckSymmetries(){
 
 
 
-    if( current_step % symmetries_step) {
-        CleanFieldDivergence();
+    // if( current_step % symmetries_step) {
+    CleanFieldDivergence();
 
 
 //         // clean divergence for velocity field
@@ -43,7 +43,7 @@ void Fields::CheckSymmetries(){
 //         // clean divergence for magnetic field
 //         CleanFieldDivergence(d_all_fields + grid.NTOTAL_COMPLEX * vars.MAG);
 
-    }
+    // }
     
 }
 

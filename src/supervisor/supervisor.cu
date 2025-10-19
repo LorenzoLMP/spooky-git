@@ -178,13 +178,14 @@ void Supervisor::executeMainLoop(){
     // max_walltime_elapsed is in hours
     while (timestep_ptr->current_time < param_ptr->t_final and TimeSpentInMainLoop < param_ptr->max_walltime_elapsed*3600) {
 
+        // clean divergence
+        fields_ptr->CheckSymmetries();
         // advance the equations (field(n+1) = field(n) + dfield*dt)
         // timestep_ptr->RungeKutta3();
         timestep_ptr->HydroMHDAdvance(fields_ptr);
         // check if we need to output data
         inout_ptr->CheckOutput();
-        // check if we need to enforce symmetries
-        fields_ptr->CheckSymmetries();
+
 
         if (param_ptr->debug == 2){
             std::printf("step: %d \t dt: %.2e \n", timestep_ptr->current_step,timestep_ptr->current_dt);

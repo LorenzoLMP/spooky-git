@@ -82,11 +82,11 @@ Wavevector::Wavevector(Supervisor &sup_in, Parameters &p_in) {
                 for (int k = 0; k < grid.NZ/2 + 1; k++){
                     idx = k + (grid.NZ/2+1) * ( j + i * grid.NY);
                     mask[idx] = 1.0;
-                    if( fabs( kvec[vars.KX][ idx] ) > 2.0/3.0 * kxmax)
+                    if( fabs( kvec[vars.KX][ idx] ) >= 2.0/3.0 * kxmax)
                         mask[idx] = 0.0;
-                    if( fabs( kvec[vars.KY][ idx ] ) > 2.0/3.0 * kymax)
+                    if( fabs( kvec[vars.KY][ idx ] ) >= 2.0/3.0 * kymax)
                         mask[idx] = 0.0;
-                    if( fabs( kvec[vars.KZ][ idx ] ) > 2.0/3.0 * kzmax)
+                    if( fabs( kvec[vars.KZ][ idx ] ) >= 2.0/3.0 * kzmax)
                         mask[idx] = 0.0;
                 }
             }

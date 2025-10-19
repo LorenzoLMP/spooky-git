@@ -30,10 +30,6 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
     }
 
 
-
-    // for heat eq we do not need to compute ffts
-    // complex to real because we can just use complex variables
-
     if (param_ptr->incompressible) {
 
         // before we do anything we need to transform from
@@ -52,7 +48,11 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
         // compute hyperbolic terms
         phys_ptr->HyperbolicTerms(complex_Fields, real_Buffer, complex_dFields);
 
+        // compute source terms
         phys_ptr->SourceTerms(complex_Fields, real_Buffer, complex_dFields);
+
+        // compute parabolic terms
+        phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, complex_dFields);
 
         
 
@@ -81,13 +81,11 @@ void TimeStepping::compute_dfield(data_type* complex_Fields, scalar_type* real_B
 
 
     } //end INCOMPRESSIBLE
+    else if (param_ptr->heat_equation) {
+        phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, complex_dFields);
+    }
 
-    // if (not param_ptr->supertimestepping) {
-    // compute parabolic terms
-    // it takes care if the variables should be
-    // evolved by the sts or here
-    phys_ptr->ParabolicTerms(complex_Fields, real_Buffer, complex_dFields);
-    // }
+
 
 }
 

@@ -95,7 +95,7 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
 
 
 
-        gamma_v = ( kxmax + fabs(tremap)*kymax ) * maxfx + kymax * maxfy + kzmax * maxfz;
+        gamma_v = ( ( kxmax + fabs(tremap)*kymax ) * maxfx + kymax * maxfy + kzmax * maxfz );
 
         if (param_ptr->rotating) {
             gamma_v += fabs(param_ptr->omega) / param_ptr->safety_source;
@@ -106,7 +106,7 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
         }
 
 
-        gamma_tmp = (kxmax + fabs(tremap)*kymax )*( kxmax + fabs(tremap)*kymax)* param_ptr->nu;	// CFL condition on viscosity in incompressible regime
+        gamma_tmp = 6*(kxmax + fabs(tremap)*kymax )*( kxmax + fabs(tremap)*kymax)* param_ptr->nu;	// CFL condition on viscosity in incompressible regime
 
         // the variable is not in the sts list
         // and should be evolved during the
@@ -118,7 +118,7 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
             gamma_par += gamma_tmp;
         }
 
-        gamma_tmp = kymax*kymax * param_ptr->nu;	// CFL condition on viscosity in incompressible regime
+        gamma_tmp = 6*kymax*kymax * param_ptr->nu;	// CFL condition on viscosity in incompressible regime
         if (sts_variables_pos[vars.VY] < 0) {
             gamma_v += gamma_tmp;
         }
@@ -126,7 +126,7 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
             gamma_par += gamma_tmp;
         }
 
-        gamma_tmp = kzmax*kzmax * param_ptr->nu;	// CFL condition on viscosity in incompressible regime
+        gamma_tmp = 6*kzmax*kzmax * param_ptr->nu;	// CFL condition on viscosity in incompressible regime
         if (sts_variables_pos[vars.VZ] < 0) {
             gamma_v += gamma_tmp;
         }
