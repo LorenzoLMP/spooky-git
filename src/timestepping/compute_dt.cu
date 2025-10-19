@@ -44,8 +44,20 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
         // to real, because we can just use complex variables
         // and the dt is fixed (given by nu_th)
 
-        gamma_par = ((kxmax )*( kxmax )+kymax*kymax+kzmax*kzmax) * param_ptr->nu_th;
-        dt_par = param_ptr->cfl_par / gamma_par;
+        gamma_tmp = ((kxmax )*( kxmax )+kymax*kymax+kzmax*kzmax) * param_ptr->nu_th;
+
+        if (sts_variables_pos[vars.TH] < 0) {
+            gamma_par += gamma_tmp;
+        }
+        else {
+            gamma_sts += gamma_tmp;
+        }
+
+
+        dt_par = param_ptr->cfl * param_ptr->cfl_par / gamma_par;
+        dt_sts = param_ptr->cfl_par / gamma_sts;
+
+
         current_dt = dt_par;
 
     }
@@ -240,7 +252,7 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
         } //end MHD
 
         dt_hyp = param_ptr->cfl / (gamma_v + gamma_th + gamma_b);
-        dt_par = param_ptr->cfl_par / gamma_par;
+        dt_par = param_ptr->cfl * param_ptr->cfl_par / gamma_par;
         dt_sts = param_ptr->cfl_par / gamma_sts;
 
         // minimum of dt_hyp and dt_par
