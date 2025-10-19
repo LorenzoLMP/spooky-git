@@ -24,8 +24,12 @@ public:
     int stage_step;
     unsigned int current_step;
     double current_dt;
-    double dt_par;
+    // dt of the hyperbolic terms
     double dt_hyp;
+    // dt of the parabolic terms (non sts)
+    double dt_par;
+    // dt of the parabolic terms (sts)
+    double dt_sts;
     double current_time;
     double tremap;
 

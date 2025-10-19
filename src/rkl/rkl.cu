@@ -211,9 +211,10 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
     std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
     std::shared_ptr<Physics> phys_ptr = supervisor_ptr->phys_ptr;
 
-    double dt_hyp = timestep_ptr->current_dt;
-    double dt_par = timestep_ptr->dt_par;
-    double dt_par_corr = dt_par;
+    // dt_current includes the hyperbolic and non-sts parabolic terms
+    double dt_current = timestep_ptr->current_dt;
+    double dt_sts = timestep_ptr->dt_sts;
+    double dt_sts_corr = dt_sts;
 
     // std::printf("now in supertimestepping function");
     // int i;
@@ -223,13 +224,13 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
     double tau;
 
 
-    tau = dt_par;
+    tau = dt_sts;
 
     m = 0;
     n = STS_MAX_STEPS;
     while (m < n){
 
-        N = STS_FindRoot(dt_par, dt_hyp, STS_NU);
+        N = STS_FindRoot(dt_sts, dt_current, STS_NU);
         N = floor(N+1.0);
         n = (int)N;
 
@@ -242,13 +243,13 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
         }
 
         if (n > 1){
-            dt_par_corr = STS_CorrectTimeStep(n, dt_hyp, STS_NU);
+            dt_sts_corr = STS_CorrectTimeStep(n, dt_current, STS_NU);
             if (param_ptr->debug > 1) {
-                std::printf("STS::::: dt_par_corr: %.4e \n",dt_par_corr);
+                std::printf("STS::::: dt_sts_corr: %.4e \n",dt_sts_corr);
             }
-            STS_ComputeSubSteps(dt_par_corr, ts, n, STS_NU);
+            STS_ComputeSubSteps(dt_sts_corr, ts, n, STS_NU);
         }
-        if (n == 1) ts[0] = dt_hyp;
+        if (n == 1) ts[0] = dt_current;
         tau = ts[n-m-1];
         if (param_ptr->debug > 1) {
             std::printf("STS::::: tau: %.4e \n",tau);
@@ -286,14 +287,15 @@ void RKLegendre::compute_cycle_RKL1(data_type* complex_Fields, scalar_type* real
     std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
     std::shared_ptr<Physics> phys_ptr = supervisor_ptr->phys_ptr;
 
-    double dt_hyp = timestep_ptr->current_dt;
-    double dt_par = timestep_ptr->dt_par;
+    // dt_current includes the hyperbolic and non-sts parabolic terms
+    double dt_current = timestep_ptr->current_dt;
+    double dt_sts = timestep_ptr->dt_sts;
     double time = timestep_ptr->current_time;
 
     // std::printf("now in supertimestepping function");
 
 
-    // tau is dt_hyp
+    // tau is dt_current
     // static Data_Arr Y_jm1, Y_jm2, MY_jm1, MY_0;
     // in idefix they correspond to:
     // Y_jm1  --> Uc0    // field step j-1
@@ -314,9 +316,9 @@ void RKLegendre::compute_cycle_RKL1(data_type* complex_Fields, scalar_type* real
     int stage = 1;
 
 
-    scrh  = dt_hyp/dt_par;                      
+    scrh  = dt_current/dt_sts;
     // Solution of quadratic Eq.
-    // 2*dt_hyp/dt_exp = s^2 + s
+    // 2*dt_current/dt_exp = s^2 + s
     s_str =   4.0*scrh / (1.0 + sqrt(1.0 + 8.0*scrh));
 
     s_RKL = 1 + int(s_str);  // number of RKL stages
@@ -330,7 +332,7 @@ void RKLegendre::compute_cycle_RKL1(data_type* complex_Fields, scalar_type* real
     w1 = 2.0/(s_RKL*s_RKL + s_RKL);
     mu_tilde_j = w1;
 
-    time = timestep_ptr->current_time + 0.5*dt_hyp*(stage*stage+stage)*w1;
+    time = timestep_ptr->current_time + 0.5*dt_current*(stage*stage+stage)*w1;
     
     
     // initialize temp fields
@@ -366,13 +368,13 @@ void RKLegendre::compute_cycle_RKL1(data_type* complex_Fields, scalar_type* real
         // Uc1 <- Uc (complex_Fields)
         ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(complex_Fields + var_idx * grid.NTOTAL_COMPLEX, d_farray_Uc1[nv], grid.NTOTAL_COMPLEX);
 
-        // Y_jm1 (d_farray[vars.TH]) <- Y_jm2 + mu_tilde_j*dt_hyp*MY_0
-        // Uc (complex_Fields) <- Uc1 + mu_tilde_j*dt_hyp*dU0
-        axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_farray_Uc1[nv],  d_farray_dU0[nv],  complex_Fields + var_idx * grid.NTOTAL_COMPLEX, 1.0, mu_tilde_j*dt_hyp,  grid.NTOTAL_COMPLEX);
+        // Y_jm1 (d_farray[vars.TH]) <- Y_jm2 + mu_tilde_j*dt_current*MY_0
+        // Uc (complex_Fields) <- Uc1 + mu_tilde_j*dt_current*dU0
+        axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_farray_Uc1[nv],  d_farray_dU0[nv],  complex_Fields + var_idx * grid.NTOTAL_COMPLEX, 1.0, mu_tilde_j*dt_current,  grid.NTOTAL_COMPLEX);
     }
 
     // increment time
-    time = timestep_ptr->current_time + 0.5*dt_hyp*(stage*stage+stage)*w1;
+    time = timestep_ptr->current_time + 0.5*dt_current*(stage*stage+stage)*w1;
 
     /* stage loop */
        
@@ -406,13 +408,13 @@ void RKLegendre::compute_cycle_RKL1(data_type* complex_Fields, scalar_type* real
 
             // Y <- mu_j*Uc + nu_j*Uc1;
             // Uc1 <- Uc;
-            // Uc <- Y +  dt_hyp*mu_tilde_j*dU ;
-            rkl1_stage<<<blocksPerGrid, threadsPerBlock>>>((data_type *) complex_Fields + var_idx * grid.NTOTAL_COMPLEX, d_farray_Uc1[nv],  d_farray_dU[nv], mu_j, nu_j,  dt_hyp*mu_tilde_j, grid.NTOTAL_COMPLEX);
+            // Uc <- Y +  dt_current*mu_tilde_j*dU ;
+            rkl1_stage<<<blocksPerGrid, threadsPerBlock>>>((data_type *) complex_Fields + var_idx * grid.NTOTAL_COMPLEX, d_farray_Uc1[nv],  d_farray_dU[nv], mu_j, nu_j,  dt_current*mu_tilde_j, grid.NTOTAL_COMPLEX);
 
         }
 
         // increment time
-        time = timestep_ptr->current_time + 0.5*dt_hyp*(stage*stage+stage)*w1;
+        time = timestep_ptr->current_time + 0.5*dt_current*(stage*stage+stage)*w1;
 
                
     }
@@ -428,14 +430,15 @@ void RKLegendre::compute_cycle_RKL2(data_type* complex_Fields, scalar_type* real
     std::shared_ptr<TimeStepping> timestep_ptr = supervisor_ptr->timestep_ptr;
     std::shared_ptr<Physics> phys_ptr = supervisor_ptr->phys_ptr;
 
-    double dt_hyp = timestep_ptr->current_dt;
-    double dt_par = timestep_ptr->dt_par;
+    // dt_current includes the hyperbolic and non-sts parabolic terms
+    double dt_current = timestep_ptr->current_dt;
+    double dt_sts = timestep_ptr->dt_sts;
     double time = timestep_ptr->current_time;
 
     // std::printf("now in supertimestepping function");
 
 
-    // tau is dt_hyp
+    // tau is dt_current
     // static Data_Arr Y_jm1, Y_jm2, MY_jm1, MY_0;
     // in idefix they correspond to:
     // Y_jm1  --> Uc0    // field step j-1
@@ -456,7 +459,7 @@ void RKLegendre::compute_cycle_RKL2(data_type* complex_Fields, scalar_type* real
     int stage = 1;
 
 
-    scrh  = dt_hyp/dt_par;                      /*  Solution of quadratic Eq.   */
+    scrh  = dt_current/dt_sts;                      /*  Solution of quadratic Eq.   */
     s_str =   4.0*(1.0 + 2.0*scrh)           /*  4*tau/dt_exp = stage^2 + stage - 2  */
             /(1.0 + sqrt(9.0 + 16.0*scrh));
 
@@ -512,13 +515,13 @@ void RKLegendre::compute_cycle_RKL2(data_type* complex_Fields, scalar_type* real
         // Uc1 <- Uc (complex_Fields)
         ComplexVecAssign<<<blocksPerGrid, threadsPerBlock>>>(complex_Fields + var_idx * grid.NTOTAL_COMPLEX, d_farray_Uc1[nv], grid.NTOTAL_COMPLEX);
 
-        // Y_jm1 (d_farray[vars.TH]) <- Y_jm2 + mu_tilde_j*dt_hyp*MY_0
-        // Uc (complex_Fields) <- Uc1 + mu_tilde_j*dt_hyp*dU0
-        axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_farray_Uc1[nv],  d_farray_dU0[nv],  complex_Fields + var_idx * grid.NTOTAL_COMPLEX, 1.0, mu_tilde_j*dt_hyp,  grid.NTOTAL_COMPLEX);
+        // Y_jm1 (d_farray[vars.TH]) <- Y_jm2 + mu_tilde_j*dt_current*MY_0
+        // Uc (complex_Fields) <- Uc1 + mu_tilde_j*dt_current*dU0
+        axpyComplex<<<blocksPerGrid, threadsPerBlock>>>( d_farray_Uc1[nv],  d_farray_dU0[nv],  complex_Fields + var_idx * grid.NTOTAL_COMPLEX, 1.0, mu_tilde_j*dt_current,  grid.NTOTAL_COMPLEX);
     }
 
     // increment time
-    time = timestep_ptr->current_time + 0.25*dt_hyp*(stage*stage+stage-2)*w1;
+    time = timestep_ptr->current_time + 0.25*dt_current*(stage*stage+stage-2)*w1;
 
     /* stage loop */
        
@@ -552,12 +555,12 @@ void RKLegendre::compute_cycle_RKL2(data_type* complex_Fields, scalar_type* real
             blocksPerGrid = ( grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
             // Y <- mu_j*Uc + nu_j*Uc1;
             // Uc1 <- Uc;
-            // Uc <- Y + (1.0 - mu_j - nu_j)*Uc0 + dt_hyp*mu_tilde_j*dU +  gamma_j*dt_hyp*dU0;
-            rkl2_stage<<<blocksPerGrid, threadsPerBlock>>>((data_type *) complex_Fields + var_idx * grid.NTOTAL_COMPLEX, d_farray_Uc1[nv],  d_farray_Uc0[nv],  d_farray_dU[nv], d_farray_dU0[nv], mu_j, nu_j, dt_hyp*mu_tilde_j,  gamma_j*dt_hyp, grid.NTOTAL_COMPLEX);
+            // Uc <- Y + (1.0 - mu_j - nu_j)*Uc0 + dt_current*mu_tilde_j*dU +  gamma_j*dt_current*dU0;
+            rkl2_stage<<<blocksPerGrid, threadsPerBlock>>>((data_type *) complex_Fields + var_idx * grid.NTOTAL_COMPLEX, d_farray_Uc1[nv],  d_farray_Uc0[nv],  d_farray_dU[nv], d_farray_dU0[nv], mu_j, nu_j, dt_current*mu_tilde_j,  gamma_j*dt_current, grid.NTOTAL_COMPLEX);
         }
 
         // increment time
-        time = timestep_ptr->current_time + 0.25*dt_hyp*(stage*stage+stage-2)*w1;
+        time = timestep_ptr->current_time + 0.25*dt_current*(stage*stage+stage-2)*w1;
 
         b_jm2 = b_jm1;    /* Eq. [16] */
         b_jm1 = b_j;
