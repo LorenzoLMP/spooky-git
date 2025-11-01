@@ -275,7 +275,7 @@ void Physics::ParabolicTermsSTS(data_type* complex_Fields, scalar_type* real_Buf
                 data_type* complex_velField = complex_Fields + (vars.VEL + i) * grid.NTOTAL_COMPLEX ;
                 data_type* complex_dVel = complex_dFields + sts_variables_pos[vars.VEL + i] * grid.NTOTAL_COMPLEX ;
 
-                nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_velField, complex_dVel, param_ptr->nu, (size_t) grid.NTOTAL_COMPLEX, 1);
+                nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_velField, complex_dVel, param_ptr->nu, (size_t) grid.NTOTAL_COMPLEX, 0);
             }
         }
     }
@@ -292,7 +292,7 @@ void Physics::ParabolicTermsSTS(data_type* complex_Fields, scalar_type* real_Buf
                 data_type* complex_magField = complex_Fields + (vars.MAG + i) * grid.NTOTAL_COMPLEX ;
                 data_type* complex_dMag = complex_dFields + sts_variables_pos[vars.MAG + i] * grid.NTOTAL_COMPLEX ;
 
-                nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_magField, complex_dMag, param_ptr->nu_m, (size_t) grid.NTOTAL_COMPLEX, 1);
+                nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_magField, complex_dMag, param_ptr->nu_m, (size_t) grid.NTOTAL_COMPLEX, 0);
             }
         }
     }
@@ -308,18 +308,21 @@ void Physics::ParabolicTermsSTS(data_type* complex_Fields, scalar_type* real_Buf
             data_type* complex_dTheta = complex_dFields + sts_variables_pos[vars.TH] * grid.NTOTAL_COMPLEX ;
 
             if (param_ptr->anisotropic_diffusion) {
+
+                // if anisotropic diffusion and sts also for magnetic fields,
+                // we need to update the real buffer
+                for (int i = 0; i < 3; i++) {
+                    if (sts_variables_pos[vars.MAG + i] >= 0) {
+                        supervisor_ptr->Complex2RealFields(complex_Fields + (vars.MAG + i) * grid.NTOTAL_COMPLEX, real_Buffer + 2 * grid.NTOTAL_COMPLEX * (vars.MAG + i), 1);
+                    }
+                }
+
                 AnisotropicHeatFlux(complex_Fields, real_Buffer, complex_dTheta);
             }
             else {
-                if (param_ptr->heat_equation) {
-                    // this is because the nabla scalar will *add* to d_dfarray, and with HEAT_EQ we want to *set*
-                    // VecInitComplex<<<blocksPerGrid, threadsPerBlock>>>(complex_dTheta, data_type(0.0,0.0), grid.NTOTAL_COMPLEX);
-                    nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Theta, complex_dTheta, param_ptr->nu_th, (size_t) grid.NTOTAL_COMPLEX, 0);
-                }
-                else {
-                    nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Theta, complex_dTheta, param_ptr->nu_th, (size_t) grid.NTOTAL_COMPLEX, 1);
-                }
-
+                 
+                nablaOpScalar<<<blocksPerGrid, threadsPerBlock>>>(kvec, complex_Theta, complex_dTheta, param_ptr->nu_th, (size_t) grid.NTOTAL_COMPLEX, 0);
+                
             }
         }
     }

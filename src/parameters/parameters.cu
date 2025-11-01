@@ -289,6 +289,9 @@ Parameters::Parameters(Supervisor& sup_in) : spookyOutVar(sup_in), userOutVar(su
 	if(!config_lookup_float(&config, "code.cfl_par",&cfl_par)) {
 		cfl_par = 1.0;
 	}
+	if(!config_lookup_float(&config, "code.cfl_sts",&cfl_sts)) {
+		cfl_sts = 1.0;
+	}
 	if(!config_lookup_int(&config, "code.safety_sts",&safety_sts)) {
 		safety_sts = 1;
 	}

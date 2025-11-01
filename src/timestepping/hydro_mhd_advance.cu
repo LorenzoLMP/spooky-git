@@ -28,7 +28,7 @@ void TimeStepping::HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr) {
 
     // int blocksPerGrid = (2 * grid.NTOTAL_COMPLEX * vars.NUM_FIELDS + threadsPerBlock - 1) / threadsPerBlock;
     stage_step = 0;
-    current_step += 1;
+    
 
     // the following function computes the timestep dt and it also calls internally
     // Complex2RealFields(fields_ptr->d_all_fields, fields_ptr->d_all_buffer_r) which
@@ -63,6 +63,8 @@ void TimeStepping::HydroMHDAdvance(std::shared_ptr<Fields> fields_ptr) {
 
     }
 
+    current_step += 1;
+    
     cudaEventRecord(supervisor_ptr->stop_2);
     cudaEventSynchronize(supervisor_ptr->stop_2);
     supervisor_ptr->updateMainLooptime();

@@ -252,8 +252,17 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
         } //end MHD
 
         dt_hyp = param_ptr->cfl / (gamma_v + gamma_th + gamma_b);
-        dt_par = param_ptr->cfl * param_ptr->cfl_par / gamma_par;
-        dt_sts = param_ptr->cfl_par / gamma_sts;
+
+        // from stability analysis of RK3-low storage scheme, for 
+        // purely diffusion equation, cfl condition is:
+        // k_max^2 \nu dt_par < 2.51
+        // since with de-alias we have kmax_dealias = 2/3 kmax
+        // dt_par < (2.51 * 4 / 9) / (kmax_dealias^2 \nu)
+        
+        dt_par = param_ptr->cfl_par / gamma_par;
+        dt_sts = param_ptr->cfl_sts / gamma_sts;
+
+        
 
         // minimum of dt_hyp and dt_par
         // this is valid both when sts and not sts

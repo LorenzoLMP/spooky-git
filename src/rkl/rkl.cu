@@ -275,6 +275,9 @@ void RKLegendre::compute_cycle_STS(data_type* complex_Fields, scalar_type* real_
         }
         CUDA_RT_CALL( cudaDeviceSynchronize() );
 
+        // fields_ptr->CleanFieldDivergence();
+        // supervisor_ptr->Complex2RealFields(complex_Fields, real_Buffer, vars.NUM_FIELDS);
+
         m++;
     }
 
@@ -376,6 +379,11 @@ void RKLegendre::compute_cycle_RKL1(data_type* complex_Fields, scalar_type* real
     // increment time
     time = timestep_ptr->current_time + 0.5*dt_current*(stage*stage+stage)*w1;
 
+    // fields_ptr->CleanFieldDivergence();
+    // supervisor_ptr->Complex2RealFields(complex_Fields, real_Buffer, vars.NUM_FIELDS);
+
+    
+
     /* stage loop */
        
     for (stage = 2; stage <= s_RKL; stage++) {
@@ -415,6 +423,9 @@ void RKLegendre::compute_cycle_RKL1(data_type* complex_Fields, scalar_type* real
 
         // increment time
         time = timestep_ptr->current_time + 0.5*dt_current*(stage*stage+stage)*w1;
+
+        // fields_ptr->CleanFieldDivergence();
+        // supervisor_ptr->Complex2RealFields(complex_Fields, real_Buffer, vars.NUM_FIELDS);
 
                
     }
@@ -523,6 +534,9 @@ void RKLegendre::compute_cycle_RKL2(data_type* complex_Fields, scalar_type* real
     // increment time
     time = timestep_ptr->current_time + 0.25*dt_current*(stage*stage+stage-2)*w1;
 
+    // fields_ptr->CleanFieldDivergence();
+    // supervisor_ptr->Complex2RealFields(complex_Fields, real_Buffer, vars.NUM_FIELDS);
+
     /* stage loop */
        
     for (stage = 2; stage <= s_RKL; stage++) {
@@ -561,6 +575,9 @@ void RKLegendre::compute_cycle_RKL2(data_type* complex_Fields, scalar_type* real
 
         // increment time
         time = timestep_ptr->current_time + 0.25*dt_current*(stage*stage+stage-2)*w1;
+
+        // fields_ptr->CleanFieldDivergence();
+        // supervisor_ptr->Complex2RealFields(complex_Fields, real_Buffer, vars.NUM_FIELDS);
 
         b_jm2 = b_jm1;    /* Eq. [16] */
         b_jm1 = b_j;

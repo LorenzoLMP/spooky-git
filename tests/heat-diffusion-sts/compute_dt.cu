@@ -256,6 +256,7 @@ void TimeStepping::compute_dt(data_type* complex_Fields, scalar_type* real_Buffe
         dt_par = param_ptr->cfl_par / gamma_par;
         dt_sts = param_ptr->cfl_par / gamma_sts;
 
+
         // minimum of dt_hyp and dt_par
         // this is valid both when sts and not sts
         // case no sts: dt_par includes all the parabolic terms

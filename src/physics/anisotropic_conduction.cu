@@ -38,9 +38,7 @@ void Physics::AnisotropicHeatFlux(data_type* complex_Fields, scalar_type* real_B
 
         // compute the scalar B grad theta (real space) and assign it to [3] scratch array
         // Bx, By, Bz real fields are already in the 4-5-6 real_Buffer arrays
-        // NOTE: for supertimestepping strictly speaking this is not 100% self-consistent because the real magnetic field in d_tmparray_r refer to those prior to the supertimestepping, so in theory before proceeding they would  need to be computed again from fields_in. However, with an isotropic magnetic resistivity, the value of b_x, b_y, b_z do not change during supertimestepping (even though B_x, B_y and B_z do). So here we are good, because \bm b is all that matters for the anisotropic conduction.
-
-
+        
         scalar_type* Bgrad_theta = fields_ptr->d_tmparray_r[3];
 
         blocksPerGrid = ( 2 * grid.NTOTAL_COMPLEX + threadsPerBlock - 1) / threadsPerBlock;
