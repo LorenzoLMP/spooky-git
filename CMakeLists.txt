@@ -1,6 +1,7 @@
 
 cmake_minimum_required(VERSION 3.24)
 
+project(spooky-git VERSION 0.1 LANGUAGES CUDA CXX C)
 
 find_package(CUDAToolkit REQUIRED)
 
@@ -43,7 +44,6 @@ set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 
-project(spooky-git VERSION 0.1 LANGUAGES CUDA CXX C)
 
 include(CMakePrintHelpers)
 include(FetchContent)
