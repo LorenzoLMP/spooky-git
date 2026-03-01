@@ -1,0 +1,29 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/cuda:13.1.1-devel-ubuntu24.04
+Stage: build
+
+
+%environment
+    source /home/anaconda3/bin/activate
+
+
+%post
+    apt-get update -y
+
+    apt-get install -y \
+    cmake \
+    wget \
+    git
+
+    cd /home
+
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+
+    bash Miniconda3-latest-Linux-x86_64.sh -b -p /home/anaconda3
+
+    export PATH="/home/anaconda3/bin:$PATH"
+
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
+    conda install -y numpy matplotlib h5py

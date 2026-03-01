@@ -35,7 +35,7 @@ void InputOutput::WriteUserTimevarOutput() {
     double tend     = param_ptr->t_final;
     double output_var = 0.0;
 
-    char data_output_name[16];
+    char data_output_name[20];
     std::sprintf(data_output_name,"user-timevar.spooky");
     std::string fname = param_ptr->output_dir + std::string("/data/") + std::string(data_output_name);
 

@@ -20,7 +20,7 @@
 
 ## Description
 
-Pseudospectral code to do HD/MHD simulations on a triply-periodic box on (one) NVidia GPU with CUDA. Largely inspired by the Snoopy code (https://ipag.osug.fr/~lesurg/snoopy). Work in progress.
+Pseudospectral code to do HD/MHD simulations on a triply-periodic box on (one) NVidia GPU with CUDA. Largely inspired by the Snoopy code (https://ipag.osug.fr/~lesurg/snoopy). Work in progress!
 
 ## Prerequisites 
 
@@ -32,14 +32,16 @@ The current implementation of SPOOKY requires:
 4. Python 3.+ with numpy, matplotlib, argparse (necessary for some tests)
 5. `libconfig` and `HDF5` libraries (can be installed automatically if not present)
 
-## Installation
+# Installation
 
 ```
 git clone git@github.com:LorenzoLMP/spooky-git.git
 cd spooky-git
 ```
 
-## Compiling with cmake (instructions to compile and run on newton cluster to follow)
+The installation can be done either directly on the host or inside a container (see below).
+
+## Compile with CMake
 
 Create build directory if not already present for out-of-source build (recommended)
 
@@ -50,7 +52,7 @@ $ cd build
 
 A typical build command looks like this:
 
-```
+```bash
 $ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/path/to/cuda/bin/nvcc -DHDF5_ROOT=/path/to/hdf5/ -DLIBCONFIG_ROOT=/path/to/libconfig/ -DCMAKE_CUDA_ARCHITECTURES="XX" ..
 ```
 
@@ -70,7 +72,50 @@ The SPOOKY executable can be run as
 $ ./src/spooky --input-dir /path/to/input/dir
 ```
 
-## Running tests
+
+## Using a container
+
+Users can choose to use the definition file spooky-container.def inside the repository to create a container that includes the NVIDIA CUDA libraries to run and develop spooky. This option can be useful for users on a shared HPC resources.
+
+Here below are the steps with Apptainer (which is assumed to be installed on the system). Apptainer supports running GPU applications from withing the container. The host has to have a driver and matching library installation of CUDA. Please refer to the [GPU Support page](https://apptainer.org/docs/user/main/gpu.html) of Apptainer for further information.
+
+
+Create a temporary directory in which to run the container:
+```
+$ export APPTAINER_TMPDIR=/path/to/temp/dir
+$ mkdir -p $APPTAINER_TMPDIR && cd $APPTAINER_TMPDIR
+```
+
+Clone spooky-git:
+```
+$ git clone https://github.com/LorenzoLMP/spooky-git.git
+```
+
+Build the .sif image:
+```
+$ apptainer build  spooky-container.sif spooky-git/spooky-container.def
+```
+
+Assuming the build process has been successful, you can now open a terminal in the container using the --nv flag which binds the cuda libraries of the host:
+```
+$ apptainer shell --nv  spooky-container.sif
+```
+From this point onwards the instructions to compile and run as the same:
+
+```
+$ cd spooky-git
+$ mkdir build
+$ cd build
+```
+
+Now the cmake command is simply:
+
+```bash
+$ cmake -DBUILD_TESTS=ON  -DCMAKE_CXX_FLAGS="-O3 -std=c++2a" 
+```
+
+
+# Running tests
 
 If you want to run the tests (```-DBUILD_TESTS=ON```) do instead: (NOTE: to verify the sts scalings the code will use a Forward Euler instead of the RK3, and a custom timestep)
 
@@ -80,13 +125,16 @@ $ ctest -V -R "spooky" -E "sts"
 
 which will run all the spooky tests (excluding the sts suite) and show the output.
 
+
+# Configurations
+
 ## On local laptop (last update: 2025-01-05)
 
 ```
 cmake -DBUILD_TESTS=ON ..
 ```
 
-## On Newton (last update: 2024-11-17)
+## On Newton (last update: 2026-03-01)
 
 For interactive jobs:
 ```
@@ -103,7 +151,7 @@ rm -rf *
 ```
 
 ```
-$ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.5/bin/nvcc -DCMAKE_CUDA_FLAGS="" -DCMAKE_CXX_FLAGS="-O3 -std=c++2a" -DHDF5_ROOT=/home/lperrone/myhdf5/hdf5/ -DLIBCONFIG_ROOT=/home/lperrone/mylibconfig/libconfig/ -DCMAKE_CUDA_ARCHITECTURES="80" ..
+$ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.9/bin/nvcc -DCMAKE_CUDA_FLAGS="" -DCMAKE_CXX_FLAGS="-O3 -std=c++2a" -DHDF5_ROOT=/home/lperrone/myhdf5/hdf5/ -DLIBCONFIG_ROOT=/home/lperrone/mylibconfig/libconfig/ -DCMAKE_CUDA_ARCHITECTURES="80" ..
 
 ```
 
