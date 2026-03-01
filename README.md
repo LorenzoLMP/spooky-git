@@ -34,7 +34,7 @@ The current implementation of SPOOKY requires:
 
 # Installation
 
-```
+```bash
 git clone git@github.com:LorenzoLMP/spooky-git.git
 cd spooky-git
 ```
@@ -45,7 +45,7 @@ The installation can be done either directly on the host or inside a container (
 
 Create build directory if not already present for out-of-source build (recommended)
 
-```
+```bash
 $ mkdir build
 $ cd build
 ```
@@ -63,12 +63,12 @@ $ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/path/to/cuda/bin/nvcc -DHDF5_ROO
 
 If the configuration step was successful, now simply compile as:
 
-```
+```bash
 $ make clean && make -j 8
 ```
 
 The SPOOKY executable can be run as
-```
+```bash
 $ ./src/spooky --input-dir /path/to/input/dir
 ```
 
@@ -81,28 +81,28 @@ Here below are the steps with Apptainer (which is assumed to be installed on the
 
 
 Create a temporary directory in which to run the container:
-```
+```bash
 $ export APPTAINER_TMPDIR=/path/to/temp/dir
 $ mkdir -p $APPTAINER_TMPDIR && cd $APPTAINER_TMPDIR
 ```
 
 Clone spooky-git:
-```
+```bash
 $ git clone https://github.com/LorenzoLMP/spooky-git.git
 ```
 
 Build the .sif image:
-```
+```bash
 $ apptainer build  spooky-container.sif spooky-git/spooky-container.def
 ```
 
 Assuming the build process has been successful, you can now open a terminal in the container using the --nv flag which binds the cuda libraries of the host:
-```
+```bash
 $ apptainer shell --nv  spooky-container.sif
 ```
 From this point onwards the instructions to compile and run as the same:
 
-```
+```bash
 $ cd spooky-git
 $ mkdir build
 $ cd build
@@ -119,7 +119,7 @@ $ cmake -DBUILD_TESTS=ON  -DCMAKE_CXX_FLAGS="-O3 -std=c++2a"
 
 If you want to run the tests (```-DBUILD_TESTS=ON```) do instead: (NOTE: to verify the sts scalings the code will use a Forward Euler instead of the RK3, and a custom timestep)
 
-```
+```bash
 $ ctest -V -R "spooky" -E "sts"
 ```
 
@@ -130,45 +130,45 @@ which will run all the spooky tests (excluding the sts suite) and show the outpu
 
 ## On local laptop (last update: 2025-01-05)
 
-```
+```bash
 cmake -DBUILD_TESTS=ON ..
 ```
 
 ## On Newton (last update: 2026-03-01)
 
 For interactive jobs:
-```
+```bash
 srun -p a100 --gres=gpu:1 --job-name "GpuInteractiveJob" --time=04:00:00 --pty bash
 ```
 
-```
+```bash
 $ source load_modules
 ```
 
-```
+```bash
 cd build
 rm -rf *
 ```
 
-```
+```bash
 $ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.9/bin/nvcc -DCMAKE_CUDA_FLAGS="" -DCMAKE_CXX_FLAGS="-O3 -std=c++2a" -DHDF5_ROOT=/home/lperrone/myhdf5/hdf5/ -DLIBCONFIG_ROOT=/home/lperrone/mylibconfig/libconfig/ -DCMAKE_CUDA_ARCHITECTURES="80" ..
 
 ```
 
 
-```
+```bash
 $ make clean && make -j 8
 ```
 
 or just for one executable:
 
-```
+```bash
 $ make clean && make spooky -j 8
 ```
 
 For the generic test problem:
 
-```
+```bash
 ./problems/generic/spooky --input-dir ../problems/generic/ --output-dir /lustre/lperrone/spooky/tests/tmp --stats 100
 
 ```
