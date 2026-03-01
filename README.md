@@ -57,7 +57,7 @@ $ cmake -DBUILD_TESTS=ON -DCMAKE_CUDA_COMPILER=/path/to/cuda/bin/nvcc -DHDF5_ROO
 ```
 
 1. The cuda architectures have to be chosen based on the hardware that is available. 75 for NVIDIA Quadro RTX 8000, 80 for A100.
-2. Depending on the version of your default g++ compiler, it might be incompatible with the .... If so, add the option ```-DCMAKE_CUDA_FLAGS="-ccbin /path/to/g++"``` with the path to a compatible version of g++
+2. Depending on the version of your default g++ compiler, it might be necessary to add the option ```-DCMAKE_CUDA_FLAGS="-ccbin /path/to/g++"``` with the path to a compatible version of g++
 3. If you don't want to build the tests, simply do ```-DBUILD_TESTS=OFF``` or omit.
 4. If you don't have libconfig or hdf5 installed, omit the option ```-DLIBCONFIG_ROOT``` or ```-DHDF5_ROOT``` and CMake will attempt to automatically donwload and build the appropriate version of the libraries.
 
