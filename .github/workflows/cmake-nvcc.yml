@@ -15,12 +15,6 @@ jobs:
     strategy:
       # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
       fail-fast: false
-
-      # Set up a matrix to run the following 3 configurations:
-      # 1. <Windows, Release, latest MSVC compiler toolchain on the default runner image, default generator>
-      # 2. <Linux, Release, latest GCC compiler toolchain on the default runner image, default generator>
-      # 3. <Linux, Release, latest Clang compiler toolchain on the default runner image, default generator>
-      #
       
 
     steps:
@@ -51,9 +45,9 @@ jobs:
         -DBUILD_TESTS=ON  -DCMAKE_CXX_FLAGS="-O3 -std=c++2a" 
         -S ${{ github.workspace }}
 
-    # - name: Build
+    - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      # run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} 
 
     # - name: Test
       # working-directory: ${{ steps.strings.outputs.build-output-dir }}
